@@ -1,12 +1,11 @@
 package co.gatedaccess.web.repo;
 
 import co.gatedaccess.web.model.Community;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
-import java.util.List;
+public interface CommunityRepo extends CrudRepository<Community, String> {
 
-public interface CommunityRepo extends MongoRepository<Community, String> {
+    Community findCommunityById(String id);
 
-    Community getById(String id);
-    List<Community> searchCommunitiesByNameContainingIgnoreCase(String name);
+    Community findCommunityBySuperAdminId(String id);
 }

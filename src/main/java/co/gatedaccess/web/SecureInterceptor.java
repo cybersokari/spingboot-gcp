@@ -29,6 +29,7 @@ public class SecureInterceptor implements HandlerInterceptor {
                 if (request.getRequestURL().toString().contains("localhost:8080")) {
                     System.out.println("Bearer is: " + idToken);
                     request.setAttribute("user", idToken);
+                    System.out.println("token is: " + idToken);
                     return true;
                 }
 

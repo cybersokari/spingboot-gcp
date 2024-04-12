@@ -1,10 +1,14 @@
 package co.gatedaccess.web.model;
 
-import org.bson.types.ObjectId;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
+@Document
 public class Community {
     @Id
     private String id;
@@ -13,14 +17,21 @@ public class Community {
     private String country;
     private String state;
     private String desc;
-    private ObjectId superAdmin;
+    @DBRef
+    @Field("super_admin")
+    @JsonProperty("super_admin")
+    private Member superAdmin;
+    @Field("created_at")
+    @JsonProperty("created_at")
     private Date createdAt;
+    @Field("banner_url")
+    @JsonProperty("banner_url")
     private String bannerUrl;
 
     public Community() {
     }
 
-    public Community(String id, String name, String address, String country, String state, String desc, ObjectId superAdmin, Date createdAt, String bannerUrl) {
+    public Community(String id, String name, String address, String country, String state, String desc, Member superAdmin, Date createdAt, String bannerUrl) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -80,11 +91,11 @@ public class Community {
         this.desc = desc;
     }
 
-    public ObjectId getSuperAdmin() {
+    public Member getSuperAdmin() {
         return superAdmin;
     }
 
-    public void setSuperAdmin(ObjectId superAdmin) {
+    public void setSuperAdmin(Member superAdmin) {
         this.superAdmin = superAdmin;
     }
 
@@ -102,5 +113,20 @@ public class Community {
 
     public void setBannerUrl(String bannerUrl) {
         this.bannerUrl = bannerUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "Community{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", country='" + country + '\'' +
+                ", state='" + state + '\'' +
+                ", desc='" + desc + '\'' +
+                ", superAdmin=" + superAdmin +
+                ", createdAt=" + createdAt +
+                ", bannerUrl='" + bannerUrl + '\'' +
+                '}';
     }
 }
