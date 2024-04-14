@@ -1,24 +1,32 @@
 package co.gatedaccess.web.model;
 
+import com.mongodb.lang.NonNull;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Document
 public class Member {
     @Id
     String id;
+    @NonNull
     @Field("first_name")
     String firstName;
+    @NonNull
     @Field("last_name")
     String lastName;
+    @NonNull
     String gender;
-    @Indexed
+    @NonNull
+    @Indexed(unique = true)
     String email;
     String phone;
     @Field(value = "phone_verified_at")
@@ -26,12 +34,24 @@ public class Member {
     @Field(value = "email_verified_at")
     Date emailVerifiedAt;
     String address;
-    @DBRef
+    @Field(value = "photo_url")
+    String photoUrl;
+    @DBRef(lazy = true)
     Community community;
     @DBRef
     Device device;
+    @NonNull
+    @Indexed(unique = true)
+    @Field("invite_code")
+    String inviteCode;
+    @Field("created_at")
+    @CreatedDate
+    Date createdAt;
+    @Field("last_modified_at")
+    @LastModifiedDate
+    Date lastModifiedAt;
 
-    public Member(String id, String firstName, String lastName, String gender, String email, String phone, Date phoneVerifiedAt, Date emailVerifiedAt, String address, Community community, Device device) {
+    public Member(String id, @NonNull String firstName, @NonNull String lastName, @NonNull String gender, @NonNull String email, String phone, Date phoneVerifiedAt, Date emailVerifiedAt, String address, String photoUrl, Community community, Device device, @NonNull String inviteCode, Date createdAt) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -41,9 +61,13 @@ public class Member {
         this.phoneVerifiedAt = phoneVerifiedAt;
         this.emailVerifiedAt = emailVerifiedAt;
         this.address = address;
+        this.photoUrl = photoUrl;
         this.community = community;
         this.device = device;
+        this.inviteCode = inviteCode;
+        this.createdAt = createdAt;
     }
+
 
     public String getId() {
         return id;
@@ -131,5 +155,21 @@ public class Member {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    public String getInviteCode() {
+        return inviteCode;
+    }
+
+    public void setInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
     }
 }

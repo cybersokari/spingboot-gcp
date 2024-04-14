@@ -1,18 +1,23 @@
 package co.gatedaccess.web.service;
 
-import co.gatedaccess.web.http.JoinBody;
-import co.gatedaccess.web.model.Community;
-import co.gatedaccess.web.model.JoinCommunityRequest;
-import co.gatedaccess.web.model.Member;
-import co.gatedaccess.web.repo.CommunityRepo;
-import co.gatedaccess.web.repo.JoinCommunityRequestRepo;
-import co.gatedaccess.web.repo.MemberRepo;
+import co.gatedaccess.web.model.*;
+import co.gatedaccess.web.repo.*;
+import co.gatedaccess.web.util.ApiResponseMessage;
+import co.gatedaccess.web.util.CodeGenerator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.mongodb.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class CommunityService {
@@ -23,6 +28,39 @@ public class CommunityService {
     MemberRepo memberRepo;
     @Autowired
     JoinCommunityRequestRepo joinCommunityRequestRepo;
+    @Autowired
+    SecurityGuardOtpRepo securityGuardOtpRepo;
+    @Autowired
+    SecurityGuardDeviceRepo securityGuardDeviceRepo;
+
+    @Transactional
+    public ResponseEntity<?> getCustomTokenForSecurityGuard(String otp, String deviceName) {
+
+        SecurityGuardOtp securityGuardOtp = securityGuardOtpRepo.findByCode(otp);
+        if (securityGuardOtp == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Otp");
+        }
+
+        LocalDateTime otpCreatedDate = securityGuardOtp.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        Duration duration = Duration.between(otpCreatedDate, LocalDateTime.now());
+
+        if (duration.toMinutes() > 5) {
+            securityGuardOtpRepo.delete(securityGuardOtp);
+            return ResponseEntity.status(HttpStatus.GONE).body("Otp Expired");
+        }
+
+        SecurityGuardDevice device = new SecurityGuardDevice
+                .Builder()
+                .withDeviceName(deviceName)
+                .withCommunityId(securityGuardOtp.getCommunityId()).build();
+        device = securityGuardDeviceRepo.save(device);
+        try {
+            String customToken = FirebaseAuth.getInstance().createCustomToken(device.getId());
+            return ResponseEntity.ok().body(Map.entry("token", customToken));
+        } catch (FirebaseAuthException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+        }
+    }
 
     public ResponseEntity<Community> updateSuperAdmin(String communityId, Member member) {
         Community community = communityRepo.findCommunityById(communityId);
@@ -34,79 +72,101 @@ public class CommunityService {
         return ResponseEntity.status(HttpStatus.OK).body(community);
     }
 
+    /**
+     * @param adminUserId Identity of the admin of the community
+     * @param requestId
+     * @param accept      if the request was accepted or rejected
+     * @return status of the request
+     */
+    @Transactional
     public ResponseEntity<String> handleMemberRequest(String adminUserId, String requestId, Boolean accept) {
         Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
         if (community == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not an Admin");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.USER_NOT_SUPER_ADMIN);
         }
         JoinCommunityRequest request = joinCommunityRequestRepo.findJoinCommunityRequestById(requestId);
         if (request == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Request does not exist");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseMessage.REQUEST_CANT_BE_FOUND);
         }
         String memberId = request.getMember().getId();
         if (joinCommunityRequestRepo.existsJoinCommunityRequestByMember_IdAndAcceptedAtIsNotNull(memberId)) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
-                    .body("Request has already been accepted");
+                    .body(ApiResponseMessage.REQUEST_ALREADY_ACCEPTED);
         }
         if (accept) {
             Member member = request.getMember();
             member.setCommunity(community);
             memberRepo.save(member);
+            updateMemberInviteCode(member);
 
             request.setAcceptedAt(new Date());
         } else {
             request.setRejectAt(new Date());
         }
-
         joinCommunityRequestRepo.save(request);
-        return ResponseEntity.status(HttpStatus.OK).body("Request updated");
 
-//        MongoClient client = MongoClients.create();
-//        ClientSession session = client.startSession();
-//        session.startTransaction();
-//        session.commitTransaction();
-//        session.close();
-//        client.close();
+        return ResponseEntity.status(HttpStatus.OK).body("Request updated");
     }
 
-    public ResponseEntity<String> join(JoinBody body, String userId) {
+    /**
+     * Recursively try to update users invite code if the update fails
+     *
+     * @param member
+     */
+    private void updateMemberInviteCode(Member member) {
+        try {
+            member.setInviteCode(CodeGenerator.generateMemberInviteCode());
+            memberRepo.save(member);
+        } catch (DuplicateKeyException e) {
+            updateMemberInviteCode(member);
+        }
+    }
+
+    public ResponseEntity<String> join(String inviteCode, String userId) {
 
         try {
-            Community community = communityRepo.findCommunityById(body.getCommunityId());
+            Member referrer = memberRepo.findMemberByInviteCode(inviteCode);
+            if (referrer == null) {
+                return ResponseEntity.badRequest().body("Invite code is not valid");
+            }
+
+            Community community = referrer.getCommunity();
             if (community == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community cannot be found");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This user is part of a community");
             }
 
-            System.out.println(community);
             if (community.getSuperAdmin() == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Community does not have an Admin");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community does not have an Admin");
             }
 
-            if (!community.getSuperAdmin().getPhone().equalsIgnoreCase(body.getAdminPhone())) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Phone number does not match Admin's");
-            }
             Member member = memberRepo.findMemberById(userId);
             if (member == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Create user entity with client app SDK");
             }
             if (member.getCommunity() != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Member is already part of a community");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is already part of a community");
+            }
+            if (member.getPhotoUrl() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.PHOTO_IS_REQUIRED);
             }
 
             if (joinCommunityRequestRepo.findJoinCommunityRequestByMember_IdAndAcceptedAtIsNull(userId) != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Member already have a pending request that has not been accepted");
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("User already have a pending request that has not been accepted");
             }
 
-            JoinCommunityRequest request = new JoinCommunityRequest.Builder().withCommunity(community).withMember(member)
-                    .withCreatedAt(new Date()).build();
+            JoinCommunityRequest request = new JoinCommunityRequest.Builder()
+                    .withMember(member)
+                    .withReferrer(referrer)
+                    .withCommunity(community).build();
 
             joinCommunityRequestRepo.save(request);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("Request to join community sent");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getLocalizedMessage());
         }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Request to join community sent");
     }
 }

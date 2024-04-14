@@ -1,7 +1,10 @@
 package co.gatedaccess.web.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -12,21 +15,30 @@ import java.util.Date;
 public class Community {
     @Id
     private String id;
+    @Size(max = 255)
     private String name;
+    @Size(max = 255)
     private String address;
+    @Size(max = 255)
     private String country;
+    @Size(max = 255)
     private String state;
+    @Size(max = 255)
     private String desc;
-    @DBRef
+    @DBRef(lazy = true)
     @Field("super_admin")
     @JsonProperty("super_admin")
     private Member superAdmin;
     @Field("created_at")
     @JsonProperty("created_at")
+    @CreatedDate
     private Date createdAt;
     @Field("banner_url")
     @JsonProperty("banner_url")
     private String bannerUrl;
+    @Field("last_modified_at")
+    @LastModifiedDate
+    Date lastModifiedAt;
 
     public Community() {
     }

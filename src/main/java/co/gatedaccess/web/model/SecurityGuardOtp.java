@@ -1,23 +1,24 @@
 package co.gatedaccess.web.model;
 
+import com.mongodb.lang.NonNull;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.Date;
 
-@Document
-public class Device {
-    @Id
+@Document("security_guard_otp")
+public class SecurityGuardOtp {
+    @MongoId
     String id;
-    String name;
-    @Field("fcm_token")
-    String fcmToken;
+    @NonNull
     @Indexed(unique = true)
-    @Field("member_id")
-    String memberId;
+    String code;
+    @NonNull
+    @Indexed(unique = true)
+    String communityId;
     @CreatedDate
     @Field("created_at")
     Date createdAt;
@@ -26,16 +27,14 @@ public class Device {
         return id;
     }
 
-    public String getFcmToken() {
-        return fcmToken;
+    @NonNull
+    public String getCode() {
+        return code;
     }
 
-    public String getMemberId() {
-        return memberId;
-    }
-
-    public String getName() {
-        return name;
+    @NonNull
+    public String getCommunityId() {
+        return communityId;
     }
 
     public Date getCreatedAt() {

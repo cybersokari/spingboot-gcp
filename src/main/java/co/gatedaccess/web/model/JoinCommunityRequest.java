@@ -1,5 +1,6 @@
 package co.gatedaccess.web.model;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -16,11 +17,14 @@ public class JoinCommunityRequest {
     @DBRef
     Community community;
     @Field("created_at")
+    @CreatedDate
     Date createdAt;
     @Field("accepted_at")
     Date acceptedAt;
     @Field("rejected_at")
     Date rejectAt;
+    @DBRef
+    Member referrer;
 
     public String getId() {
         return id;
@@ -61,6 +65,7 @@ public class JoinCommunityRequest {
         private Date createdAt;
         private Date acceptedAt;
         private Date rejectAt;
+        private Member referrer;
 
         public Builder() {
         }
@@ -99,14 +104,20 @@ public class JoinCommunityRequest {
             return this;
         }
 
+        public Builder withReferrer(Member referrer) {
+            this.referrer = referrer;
+            return this;
+        }
+
         public JoinCommunityRequest build() {
             JoinCommunityRequest joinCommunityRequest = new JoinCommunityRequest();
-            joinCommunityRequest.community = this.community;
-            joinCommunityRequest.rejectAt = this.rejectAt;
-            joinCommunityRequest.id = this.id;
-            joinCommunityRequest.createdAt = this.createdAt;
-            joinCommunityRequest.acceptedAt = this.acceptedAt;
+            joinCommunityRequest.setAcceptedAt(acceptedAt);
+            joinCommunityRequest.setRejectAt(rejectAt);
             joinCommunityRequest.member = this.member;
+            joinCommunityRequest.id = this.id;
+            joinCommunityRequest.community = this.community;
+            joinCommunityRequest.createdAt = this.createdAt;
+            joinCommunityRequest.referrer = this.referrer;
             return joinCommunityRequest;
         }
     }

@@ -26,15 +26,13 @@ public class SecureInterceptor implements HandlerInterceptor {
                 idToken = idToken.split(" ")[1]; //Remove Bearer prefix
 
                 // Running on dev, skip token decode
-                if (request.getRequestURL().toString().contains("localhost:8080")) {
+                if (request.getRequestURL().toString().startsWith("http://localhost:8080")) {
                     System.out.println("Bearer is: " + idToken);
                     request.setAttribute("user", idToken);
-                    System.out.println("token is: " + idToken);
                     return true;
                 }
 
-
-                ApiFuture<FirebaseToken> tokenAsync = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken);
+                ApiFuture<FirebaseToken> tokenAsync = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken, true);
                 FirebaseToken firebaseToken = tokenAsync.get(5, TimeUnit.SECONDS);
                 request.setAttribute("user", firebaseToken.getUid());
                 return true;
