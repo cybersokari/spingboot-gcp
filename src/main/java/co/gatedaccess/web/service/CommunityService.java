@@ -36,6 +36,8 @@ public class CommunityService {
     SecurityGuardDeviceRepo securityGuardDeviceRepo;
     @Autowired
     Environment environment;
+    @Autowired
+    private CodeGenerator codeGenerator;
 
     @Transactional
     public ResponseEntity<TokenBody> getCustomTokenForSecurityGuard(String otp, String deviceName) {
@@ -84,7 +86,7 @@ public class CommunityService {
         int codeExpiryDurationInSecs = Integer.parseInt(Objects.requireNonNull(environment.getProperty("security-guard.otp.duration-in-secs")));
         while (guardOtp.getId() == null){// Check for MongoDb ID to know if save is successful
 
-            guardOtp.setCode(new CodeGenerator(CodeType.guard).getCode());
+            guardOtp.setCode(codeGenerator.getCode(CodeType.guard));
 
             LocalDateTime futureDateTime = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             futureDateTime = futureDateTime.plusSeconds(codeExpiryDurationInSecs);

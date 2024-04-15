@@ -6,6 +6,7 @@ import co.gatedaccess.web.service.CommunityService;
 import co.gatedaccess.web.service.UserService;
 import com.google.firebase.FirebaseApp;
 import com.mongodb.lang.NonNull;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,6 +46,7 @@ public class GatedAccessServiceApplication {
      * @param provider
      * @return A custom Firebase token
      */
+    @ApiResponse(description = "", responseCode = "200 success")
     @GetMapping("/user/{provider}/login")
     ResponseEntity<TokenBody> loginUserWithProvider(@RequestParam String token,
                                                      @PathVariable("provider") String provider) {

@@ -1,7 +1,6 @@
 package co.gatedaccess.web.service;
 
 import co.gatedaccess.web.http.TokenBody;
-import co.gatedaccess.web.model.Community;
 import co.gatedaccess.web.model.Member;
 import co.gatedaccess.web.repo.MemberRepo;
 import co.gatedaccess.web.util.CodeGenerator;
@@ -15,7 +14,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.mongodb.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -29,18 +28,20 @@ public class UserService {
     MemberRepo memberRepo;
 
     @Autowired
-    Environment environment;
+    private CodeGenerator codeGenerator;
+
+    @Value("${google.client.id}")
+    String GOOGLE_CLIENT_ID;
 
     public ResponseEntity<TokenBody> getCustomTokenForClientLogin(String token, String provider) {
 
         try {
             if (provider.equalsIgnoreCase("google")) {
-                String CLIENT_ID = environment.getRequiredProperty("google.client.id");
                 HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
                 JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
                 GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                         // Specify the CLIENT_ID of the app that accesses the backend:
-                        .setAudience(Collections.singletonList(CLIENT_ID))
+                        .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                         // Or, if multiple clients access the backend:
                         //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
                         .build();
@@ -97,25 +98,15 @@ public class UserService {
         if (member != null && member.getCommunity() != null){
 
             while (member.getInviteCode() == null){
-                member.setInviteCode(new CodeGenerator(CodeType.community).getCode());
-                member = memberRepo.save(member);
+                //Recursively try to update users invite code if the update fails due to possible duplicate
+                try {
+                    member.setInviteCode(codeGenerator.getCode(CodeType.community));
+                    member = memberRepo.save(member);
+                }catch (DuplicateKeyException ignore){}
             }
             return ResponseEntity.ok(Optional.of(member.getInviteCode()));
         }
         return ResponseEntity.badRequest().build();
     }
 
-    /**
-     * Recursively try to update users invite code if the update fails
-     *
-     * @param member
-     */
-    private void updateMemberInviteCode(Member member) {
-        try {
-            member.setInviteCode(new CodeGenerator(CodeType.community).getCode());
-            memberRepo.save(member);
-        } catch (DuplicateKeyException e) {
-            updateMemberInviteCode(member);
-        }
-    }
 }

@@ -1,20 +1,19 @@
 package co.gatedaccess.web.util;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.StandardEnvironment;
+import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.UUID;
 
+@Component
 public class CodeGenerator {
 
-    private final CodeType type;
+    @Autowired
+    Environment environment;
 
-    Environment environment = new AnnotationConfigApplicationContext().getEnvironment();
-
-    public CodeGenerator(CodeType type) {
-        this.type = type;
+    public CodeGenerator() {
     }
 
     /**
@@ -22,7 +21,7 @@ public class CodeGenerator {
      *
      * @return code
      */
-    public String getCode() {
+    public String getCode(CodeType type) {
         final int CODE_LENGTH;
         switch (type) {
             case guard -> {
