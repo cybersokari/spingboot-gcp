@@ -1,23 +1,25 @@
 package co.gatedaccess.web.service;
 
+import co.gatedaccess.web.http.GuardOtpBody;
+import co.gatedaccess.web.http.TokenBody;
 import co.gatedaccess.web.model.*;
 import co.gatedaccess.web.repo.*;
 import co.gatedaccess.web.util.ApiResponseMessage;
 import co.gatedaccess.web.util.CodeGenerator;
+import co.gatedaccess.web.util.CodeType;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.mongodb.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Date;
-import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class CommunityService {
@@ -32,13 +34,15 @@ public class CommunityService {
     SecurityGuardOtpRepo securityGuardOtpRepo;
     @Autowired
     SecurityGuardDeviceRepo securityGuardDeviceRepo;
+    @Autowired
+    Environment environment;
 
     @Transactional
-    public ResponseEntity<?> getCustomTokenForSecurityGuard(String otp, String deviceName) {
+    public ResponseEntity<TokenBody> getCustomTokenForSecurityGuard(String otp, String deviceName) {
 
         SecurityGuardOtp securityGuardOtp = securityGuardOtpRepo.findByCode(otp);
         if (securityGuardOtp == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Otp");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new TokenBody().setErrorMessage("Invalid Otp"));
         }
 
         LocalDateTime otpCreatedDate = securityGuardOtp.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -46,7 +50,7 @@ public class CommunityService {
 
         if (duration.toMinutes() > 5) {
             securityGuardOtpRepo.delete(securityGuardOtp);
-            return ResponseEntity.status(HttpStatus.GONE).body("Otp Expired");
+            return ResponseEntity.status(HttpStatus.GONE).body(new TokenBody().setErrorMessage("Otp Expired"));
         }
 
         SecurityGuardDevice device = new SecurityGuardDevice
@@ -56,20 +60,43 @@ public class CommunityService {
         device = securityGuardDeviceRepo.save(device);
         try {
             String customToken = FirebaseAuth.getInstance().createCustomToken(device.getId());
-            return ResponseEntity.ok().body(Map.entry("token", customToken));
+            return ResponseEntity.ok().body(new TokenBody(customToken));
+
         } catch (FirebaseAuthException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new TokenBody().setErrorMessage(e.getLocalizedMessage()));
         }
     }
 
-    public ResponseEntity<Community> updateSuperAdmin(String communityId, Member member) {
-        Community community = communityRepo.findCommunityById(communityId);
-        System.out.println(community);
+    @Transactional
+    public ResponseEntity<GuardOtpBody> getSecurityGuardOtpForAdmin(String adminUserId){
+        Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
+        if(community == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
-        community.setSuperAdmin(member);
+        // Delete old before creating a new one
+        securityGuardOtpRepo.deleteByCommunityId(community.getId());
 
-        community = communityRepo.save(community);
-        return ResponseEntity.status(HttpStatus.OK).body(community);
+
+        // Retry otp generation if any duplicate occur
+        Date expiryTime = null;
+        SecurityGuardOtp guardOtp = new SecurityGuardOtp();
+        int codeExpiryDurationInSecs = Integer.parseInt(Objects.requireNonNull(environment.getProperty("security-guard.otp.duration-in-secs")));
+        while (guardOtp.getId() == null){// Check for MongoDb ID to know if save is successful
+
+            guardOtp.setCode(new CodeGenerator(CodeType.guard).getCode());
+
+            LocalDateTime futureDateTime = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            futureDateTime = futureDateTime.plusSeconds(codeExpiryDurationInSecs);
+            expiryTime = Date.from(Instant.from(futureDateTime));
+            guardOtp.setExpireAt(expiryTime);
+
+            try {
+                guardOtp = securityGuardOtpRepo.save(guardOtp);
+            }catch (DuplicateKeyException ignored){}
+        }
+        return ResponseEntity.ok(new GuardOtpBody(guardOtp.getCode(), expiryTime));
+
     }
 
     /**
@@ -115,7 +142,7 @@ public class CommunityService {
      */
     private void updateMemberInviteCode(Member member) {
         try {
-            member.setInviteCode(CodeGenerator.generateMemberInviteCode());
+            member.setInviteCode(new CodeGenerator(CodeType.visitor).getCode());
             memberRepo.save(member);
         } catch (DuplicateKeyException e) {
             updateMemberInviteCode(member);

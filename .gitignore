@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+##Firebase emulator
+firebase.json
+.firebaserc
+storage.rules
+ui-debug.log
