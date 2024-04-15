@@ -73,17 +73,17 @@ public class Member {
     @LastModifiedDate
     Date lastModifiedAt;
 
-    @Indexed(unique = true)
-    @JsonProperty("google_user_id")
-    @Field("google_user_id")
+    @Indexed(unique = true, sparse = true)
+    @JsonProperty("google_id")
+    @Field("google_id")
     String googleUserId;
 
-    @JsonProperty("apple_user_id")
-    @Indexed(unique = true)
-    @Field("apple_user_id")
+    @JsonProperty("apple_id")
+    @Indexed(unique = true, sparse = true)
+    @Field("apple_id")
     String appleUserId;
 
-    public Member(String id, @NonNull String firstName, @NonNull String lastName, @NonNull String gender, @NonNull String email, String phone, Date phoneVerifiedAt, Date emailVerifiedAt, String address, String photoUrl, Community community, Device device, @NonNull String inviteCode, Date createdAt) {
+    public Member(String id, @NonNull String firstName, @NonNull String lastName, @NonNull String gender, @NonNull String email, String phone, Date phoneVerifiedAt, Date emailVerifiedAt, String address, String photoUrl, Community community, Device device, @NonNull String inviteCode, Date createdAt, Date lastModifiedAt, String googleUserId, String appleUserId) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -98,8 +98,10 @@ public class Member {
         this.device = device;
         this.inviteCode = inviteCode;
         this.createdAt = createdAt;
+        this.lastModifiedAt = lastModifiedAt;
+        this.googleUserId = googleUserId;
+        this.appleUserId = appleUserId;
     }
-
 
     public String getId() {
         return id;
@@ -317,11 +319,7 @@ public class Member {
         }
 
         public Member build() {
-            Member member = new Member(id, firstName, lastName, gender, email, phone, phoneVerifiedAt, emailVerifiedAt, address, photoUrl, community, device, inviteCode, createdAt);
-            member.googleUserId = this.googleUserId;
-            member.appleUserId = this.appleUserId;
-            member.lastModifiedAt = this.lastModifiedAt;
-            return member;
+            return new Member(id, firstName, lastName, gender, email, phone, phoneVerifiedAt, emailVerifiedAt, address, photoUrl, community, device, inviteCode, createdAt, lastModifiedAt, googleUserId, appleUserId);
         }
     }
 }

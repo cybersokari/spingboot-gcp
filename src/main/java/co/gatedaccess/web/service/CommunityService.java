@@ -106,94 +106,77 @@ public class CommunityService {
      * @return status of the request
      */
     @Transactional
-    public ResponseEntity<String> handleMemberRequest(String adminUserId, String requestId, Boolean accept) {
+    public ResponseEntity<String> handleCommunityJoinRequest(String adminUserId, String requestId, Boolean accept) {
         Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
         if (community == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.USER_NOT_SUPER_ADMIN);
         }
-        JoinCommunityRequest request = joinCommunityRequestRepo.findJoinCommunityRequestById(requestId);
-        if (request == null) {
+        JoinCommunityRequest joinRequest = joinCommunityRequestRepo.findJoinCommunityRequestById(requestId);
+        if (joinRequest == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseMessage.REQUEST_CANT_BE_FOUND);
         }
-        String memberId = request.getMember().getId();
+        String memberId = joinRequest.getMember().getId();
         if (joinCommunityRequestRepo.existsJoinCommunityRequestByMember_IdAndAcceptedAtIsNotNull(memberId)) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
                     .body(ApiResponseMessage.REQUEST_ALREADY_ACCEPTED);
         }
         if (accept) {
-            Member member = request.getMember();
+            Member member = joinRequest.getMember();
             member.setCommunity(community);
             memberRepo.save(member);
-            updateMemberInviteCode(member);
-
-            request.setAcceptedAt(new Date());
+            joinRequest.setAcceptedAt(new Date());
         } else {
-            request.setRejectAt(new Date());
+            joinRequest.setRejectAt(new Date());
         }
-        joinCommunityRequestRepo.save(request);
+        joinCommunityRequestRepo.save(joinRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body("Request updated");
     }
 
-    /**
-     * Recursively try to update users invite code if the update fails
-     *
-     * @param member
-     */
-    private void updateMemberInviteCode(Member member) {
-        try {
-            member.setInviteCode(new CodeGenerator(CodeType.visitor).getCode());
-            memberRepo.save(member);
-        } catch (DuplicateKeyException e) {
-            updateMemberInviteCode(member);
+
+    @Transactional
+    public ResponseEntity<String> joinWithInviteCode(String inviteCode, String userId) {
+
+        Member referrer = memberRepo.findMemberByInviteCode(inviteCode);
+        if (referrer == null) {
+            return ResponseEntity.badRequest().body("Invite code is not valid");
         }
-    }
 
-    public ResponseEntity<String> join(String inviteCode, String userId) {
-
-        try {
-            Member referrer = memberRepo.findMemberByInviteCode(inviteCode);
-            if (referrer == null) {
-                return ResponseEntity.badRequest().body("Invite code is not valid");
-            }
-
-            Community community = referrer.getCommunity();
-            if (community == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This user is part of a community");
-            }
-
-            if (community.getSuperAdmin() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community does not have an Admin");
-            }
-
-            Member member = memberRepo.findMemberById(userId);
-            if (member == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Create user entity with client app SDK");
-            }
-            if (member.getCommunity() != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is already part of a community");
-            }
-            if (member.getPhotoUrl() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.PHOTO_IS_REQUIRED);
-            }
-
-            if (joinCommunityRequestRepo.findJoinCommunityRequestByMember_IdAndAcceptedAtIsNull(userId) != null) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("User already have a pending request that has not been accepted");
-            }
-
-            JoinCommunityRequest request = new JoinCommunityRequest.Builder()
-                    .withMember(member)
-                    .withReferrer(referrer)
-                    .withCommunity(community).build();
-
-            joinCommunityRequestRepo.save(request);
-
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body("Request to join community sent");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getLocalizedMessage());
+        Community community = referrer.getCommunity();
+        if (community == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Referrer is not part of any community at this time");
         }
+
+        if (community.getSuperAdmin() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community does not have an Admin");
+        }
+
+        Member member = memberRepo.findMemberById(userId);
+
+        if (member.getCommunity() != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is already part of a community");
+        }
+        if (member.getPhotoUrl() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.PHOTO_IS_REQUIRED);
+        }
+
+        if (joinCommunityRequestRepo.findJoinCommunityRequestByMember_IdAndAcceptedAtIsNull(userId) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("User already have a pending request that has not been accepted");
+        }
+
+        JoinCommunityRequest request = new JoinCommunityRequest.Builder()
+                .withMember(member)
+                .withReferrer(referrer)
+                .withCommunity(community).build();
+        joinCommunityRequestRepo.save(request);
+
+        /*Remove used invite code from referrer's document*/
+        referrer.setInviteCode(null);
+        memberRepo.save(referrer);
+
+        //TODO: Notify community admin
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Request to join community sent");
     }
 }

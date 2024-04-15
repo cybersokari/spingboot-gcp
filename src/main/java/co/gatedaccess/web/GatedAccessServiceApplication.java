@@ -12,9 +12,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 //@RequestMapping("/v1") Dont use it, it will break the '/secure' path interceptor
 @SpringBootApplication
@@ -42,24 +45,34 @@ public class GatedAccessServiceApplication {
      * @param provider
      * @return A custom Firebase token
      */
-    @GetMapping("/user/provider/{provider}/login")
+    @GetMapping("/user/{provider}/login")
     ResponseEntity<TokenBody> loginUserWithProvider(@RequestParam String token,
                                                      @PathVariable("provider") String provider) {
         return userService.getCustomTokenForClientLogin(token, provider);
     }
 
-
-    @PostMapping("/secure/community/join")
-    ResponseEntity<String> requestToJoinCommunity(@RequestAttribute("user") String userId,
-                                                  @RequestParam("invite-code") String inviteCode) {
-        return communityService.join(inviteCode, userId);
+    @GetMapping("/secure/community/invite-code")
+    ResponseEntity<Optional<String>> getCommunityInviteCode(@RequestAttribute("user") String userId){
+        return userService.getCommunityInviteCode(userId);
     }
 
-    @PostMapping("/secure/community/request/{request-id}")
-    ResponseEntity<String> handleMemberRequest(@RequestAttribute("user") String userId,
+
+    @GetMapping("/secure/community/join")
+    ResponseEntity<String> requestToJoinCommunity(@RequestAttribute("user") String userId,
+                                                  @RequestParam("invite-code") String inviteCode) {
+        try {
+            return communityService.joinWithInviteCode(inviteCode, userId);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getLocalizedMessage());
+        }
+    }
+
+    @GetMapping("/secure/community/request/{request-id}")
+    ResponseEntity<String> handleCommunityJoinRequest(@RequestAttribute("user") String userId,
                                                @PathVariable("request-id") String requestId,
                                                @RequestParam Boolean accept) {
-        return communityService.handleMemberRequest(userId, requestId, accept);
+        return communityService.handleCommunityJoinRequest(userId, requestId, accept);
     }
 
     @GetMapping("/secure/guard-otp/create")

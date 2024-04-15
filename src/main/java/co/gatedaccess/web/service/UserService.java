@@ -1,8 +1,11 @@
 package co.gatedaccess.web.service;
 
 import co.gatedaccess.web.http.TokenBody;
+import co.gatedaccess.web.model.Community;
 import co.gatedaccess.web.model.Member;
 import co.gatedaccess.web.repo.MemberRepo;
+import co.gatedaccess.web.util.CodeGenerator;
+import co.gatedaccess.web.util.CodeType;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -10,6 +13,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.firebase.auth.FirebaseAuth;
+import com.mongodb.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -84,5 +89,33 @@ public class UserService {
             return ResponseEntity.badRequest().body(new TokenBody().setErrorMessage(e.getLocalizedMessage()));
         }
 
+    }
+
+    public ResponseEntity<Optional<String>> getCommunityInviteCode(String userId){
+        Member member = memberRepo.findMemberById(userId);
+
+        if (member != null && member.getCommunity() != null){
+
+            while (member.getInviteCode() == null){
+                member.setInviteCode(new CodeGenerator(CodeType.community).getCode());
+                member = memberRepo.save(member);
+            }
+            return ResponseEntity.ok(Optional.of(member.getInviteCode()));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Recursively try to update users invite code if the update fails
+     *
+     * @param member
+     */
+    private void updateMemberInviteCode(Member member) {
+        try {
+            member.setInviteCode(new CodeGenerator(CodeType.community).getCode());
+            memberRepo.save(member);
+        } catch (DuplicateKeyException e) {
+            updateMemberInviteCode(member);
+        }
     }
 }
