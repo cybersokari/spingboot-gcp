@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.Date;
 
-@Document
+@Document("security_guard_device")
 public class SecurityGuardDevice {
     @MongoId
     String id;

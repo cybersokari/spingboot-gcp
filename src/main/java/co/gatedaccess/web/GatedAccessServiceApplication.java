@@ -6,6 +6,8 @@ import co.gatedaccess.web.service.CommunityService;
 import co.gatedaccess.web.service.UserService;
 import com.google.firebase.FirebaseApp;
 import com.mongodb.lang.NonNull;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -46,9 +48,10 @@ public class GatedAccessServiceApplication {
      * @param provider
      * @return A custom Firebase token
      */
-    @ApiResponse(description = "", responseCode = "200 success")
+    @ApiResponse(description = "Get custom Firebase JWT", responseCode = "200 success",
+            content = @Content(schema = @Schema(implementation = TokenBody.class)))
     @GetMapping("/user/{provider}/login")
-    ResponseEntity<TokenBody> loginUserWithProvider(@RequestParam String token,
+    ResponseEntity<?> loginUserWithProvider(@RequestParam String token,
                                                      @PathVariable("provider") String provider) {
         return userService.getCustomTokenForClientLogin(token, provider);
     }
@@ -77,13 +80,21 @@ public class GatedAccessServiceApplication {
         return communityService.handleCommunityJoinRequest(userId, requestId, accept);
     }
 
+    @ApiResponse(description = "New OTP", responseCode = "200",
+            content = @Content(schema = @Schema(implementation = GuardOtpBody.class)))
+    @ApiResponse(description = "User is not an Admin", responseCode = "400",
+            content = @Content(schema = @Schema(implementation = String.class)))
     @GetMapping("/secure/guard-otp/create")
-    ResponseEntity<GuardOtpBody> getSecurityGuardOtpForAdmin(@RequestAttribute("user") String adminUserId) {
+    ResponseEntity<?> getSecurityGuardOtpForAdmin(@RequestAttribute("user") String adminUserId) {
         return communityService.getSecurityGuardOtpForAdmin(adminUserId);
     }
 
+    @ApiResponse(description = "New Firebase JWT", responseCode = "200",
+            content = @Content(schema = @Schema(implementation = TokenBody.class)))
+    @ApiResponse(description = "Invalid OTP", responseCode = "404",
+            content = @Content(schema = @Schema(implementation = String.class)))
     @GetMapping("/guard-login/{otp}")
-    ResponseEntity<TokenBody> loginSecurityGuard(@PathVariable String otp, @RequestHeader("x-device-name") String device) {
+    ResponseEntity<?> loginSecurityGuard(@PathVariable String otp, @RequestHeader("x-device-name") String device) {
         return communityService.getCustomTokenForSecurityGuard(otp, device);
     }
 

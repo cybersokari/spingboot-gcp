@@ -5,6 +5,8 @@ import co.gatedaccess.web.model.Member;
 import co.gatedaccess.web.repo.MemberRepo;
 import co.gatedaccess.web.util.CodeGenerator;
 import co.gatedaccess.web.util.CodeType;
+import com.google.api.client.auth.openidconnect.IdToken;
+import com.google.api.client.auth.openidconnect.IdTokenVerifier;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -33,12 +35,14 @@ public class UserService {
     @Value("${google.client.id}")
     String GOOGLE_CLIENT_ID;
 
-    public ResponseEntity<TokenBody> getCustomTokenForClientLogin(String token, String provider) {
+    public ResponseEntity<?> getCustomTokenForClientLogin(String token, String provider) {
 
         try {
+            HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+            JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
             if (provider.equalsIgnoreCase("google")) {
-                HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-                JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
                 GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                         // Specify the CLIENT_ID of the app that accesses the backend:
                         .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
@@ -51,7 +55,7 @@ public class UserService {
                     GoogleIdToken.Payload payload = googleIdToken.getPayload();
 
                     // Print user identifier
-                    //String userId = payload.getSubject();
+                    String googleUserId = payload.getSubject();
 
                     // Get profile information from payload
                     String email = payload.getEmail();
@@ -70,6 +74,7 @@ public class UserService {
                                 .withPhotoUrl(photoUrl)
                                 .withFirstName(givenName)
                                 .withLastName(familyName)
+                                .withGoogleUserId(googleUserId)
                                 .withEmailVerifiedAt(new Date())
                                 .withEmail(email).build();
                         userId = memberRepo.save(member).getId();
@@ -78,16 +83,26 @@ public class UserService {
                     return ResponseEntity.ok(new TokenBody(customFirebaseToken));
 
                 } else {
-                    return ResponseEntity.badRequest().body(new TokenBody().setErrorMessage("Invalid google token"));
+                    return ResponseEntity.badRequest().body("Invalid google token");
                 }
 
             } else {
+
+                IdTokenVerifier verifier = new IdTokenVerifier.Builder()
+                        .setIssuer("https://appleid.apple.com")
+                        .setAudience(Collections.singletonList("your_client_id")) // Replace with your client ID
+                        .setIssuers(Collections.singletonList("https://appleid.apple.com"))
+                        .build();
+
+                IdToken idToken = IdToken.parse(jsonFactory, token);
+                verifier.verify(idToken);
+
                 //TODO: implement Apple Auth
-                return ResponseEntity.badRequest().body(new TokenBody().setErrorMessage(String.format("The %s provider is not supported at this time", provider)));
+                return ResponseEntity.badRequest().body(String.format("The %s provider is not supported at this time", provider));
             }
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new TokenBody().setErrorMessage(e.getLocalizedMessage()));
+            return ResponseEntity.badRequest().body(e.getLocalizedMessage());
         }
 
     }

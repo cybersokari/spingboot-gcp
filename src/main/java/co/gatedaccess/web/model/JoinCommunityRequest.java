@@ -22,7 +22,7 @@ public class JoinCommunityRequest {
     @Field("accepted_at")
     Date acceptedAt;
     @Field("rejected_at")
-    Date rejectAt;
+    Date rejectedAt;
     @DBRef
     Member referrer;
 
@@ -46,16 +46,16 @@ public class JoinCommunityRequest {
         return acceptedAt;
     }
 
-    public Date getRejectAt() {
-        return rejectAt;
+    public Date getRejectedAt() {
+        return rejectedAt;
     }
 
     public void setAcceptedAt(Date acceptedAt) {
         this.acceptedAt = acceptedAt;
     }
 
-    public void setRejectAt(Date rejectAt) {
-        this.rejectAt = rejectAt;
+    public void setRejectedAt(Date rejectedAt) {
+        this.rejectedAt = rejectedAt;
     }
 
     public static final class Builder {
@@ -112,7 +112,7 @@ public class JoinCommunityRequest {
         public JoinCommunityRequest build() {
             JoinCommunityRequest joinCommunityRequest = new JoinCommunityRequest();
             joinCommunityRequest.setAcceptedAt(acceptedAt);
-            joinCommunityRequest.setRejectAt(rejectAt);
+            joinCommunityRequest.setRejectedAt(rejectAt);
             joinCommunityRequest.member = this.member;
             joinCommunityRequest.id = this.id;
             joinCommunityRequest.community = this.community;

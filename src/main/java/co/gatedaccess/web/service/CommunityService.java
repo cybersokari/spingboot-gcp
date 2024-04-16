@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -40,19 +41,20 @@ public class CommunityService {
     private CodeGenerator codeGenerator;
 
     @Transactional
-    public ResponseEntity<TokenBody> getCustomTokenForSecurityGuard(String otp, String deviceName) {
+    public ResponseEntity<?> getCustomTokenForSecurityGuard(String otp, String deviceName) {
 
         SecurityGuardOtp securityGuardOtp = securityGuardOtpRepo.findByCode(otp);
         if (securityGuardOtp == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new TokenBody().setErrorMessage("Invalid Otp"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Otp");
         }
 
         LocalDateTime otpCreatedDate = securityGuardOtp.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         Duration duration = Duration.between(otpCreatedDate, LocalDateTime.now());
 
-        if (duration.toMinutes() > 5) {
+        int allowedDurationInSecs = environment.getRequiredProperty("security-guard.otp.duration-in-secs", Integer.class);
+        if (duration.toSeconds() > allowedDurationInSecs) {
             securityGuardOtpRepo.delete(securityGuardOtp);
-            return ResponseEntity.status(HttpStatus.GONE).body(new TokenBody().setErrorMessage("Otp Expired"));
+            return ResponseEntity.status(HttpStatus.GONE).body("Otp Expired");
         }
 
         SecurityGuardDevice device = new SecurityGuardDevice
@@ -61,19 +63,20 @@ public class CommunityService {
                 .withCommunityId(securityGuardOtp.getCommunityId()).build();
         device = securityGuardDeviceRepo.save(device);
         try {
-            String customToken = FirebaseAuth.getInstance().createCustomToken(device.getId());
+            String customToken = FirebaseAuth.getInstance()
+                    .createCustomToken(device.getId(), Map.of("user","guard"));
             return ResponseEntity.ok().body(new TokenBody(customToken));
 
         } catch (FirebaseAuthException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new TokenBody().setErrorMessage(e.getLocalizedMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
         }
     }
 
     @Transactional
-    public ResponseEntity<GuardOtpBody> getSecurityGuardOtpForAdmin(String adminUserId){
+    public ResponseEntity<?> getSecurityGuardOtpForAdmin(String adminUserId){
         Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
         if(community == null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.badRequest().body("User not a community admin");
         }
 
         // Delete old before creating a new one
@@ -128,7 +131,7 @@ public class CommunityService {
             memberRepo.save(member);
             joinRequest.setAcceptedAt(new Date());
         } else {
-            joinRequest.setRejectAt(new Date());
+            joinRequest.setRejectedAt(new Date());
         }
         joinCommunityRequestRepo.save(joinRequest);
 
