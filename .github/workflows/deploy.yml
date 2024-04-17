@@ -24,12 +24,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Write value to Properties-file
-        uses: christian-draeger/write-properties@1.1.0
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GCLOUD_SERVICE_KEY: ${{secrets.GCLOUD_SERVICE_KEY}}
+
+      - name: Use Secrets
+        run: |
+          echo "MONGODB URI: "$MONGODB_URI"
+          echo "GOOGLE CLIENT ID: "$GOOGLE_CLIENT_ID"
+          echo "GCLOUD SERVICE KEY: "$GCLOUD_SERVICE_KEY"
+
+      - name: Write value to Properties-file
+        uses: christian-draeger/write-properties@1.1.0
         with:
           path: './src/main/resources/application.properties'
           property: |
