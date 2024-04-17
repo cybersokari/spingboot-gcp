@@ -59,6 +59,6 @@ jobs:
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
         with:
-          service_account: ${{ secrets.GCLOUD_SERVICE_KEY }}
+          credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
           deliverables: './src/main/appengine/app.yaml'
           version: 'v2'
