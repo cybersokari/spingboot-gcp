@@ -60,5 +60,9 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
-          deliverables: './src/main/appengine/app.yaml'
+
+      - name: Deploy to GAE
+        uses: 'google-github-actions/deploy-appengine@v2'
+        with:
           version: 'v2'
+          deliverables: './src/main/appengine/app.yaml'
