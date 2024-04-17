@@ -1,0 +1,57 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Write value to Properties-file
+        uses: christian-draeger/write-properties@1.1.0
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GCLOUD_SERVICE_KEY: ${{secrets.GCLOUD_SERVICE_KEY}}
+        with:
+          path: './src/main/resources/application.properties'
+          property: |
+            'spring.data.mongodb.uri'
+            'google.client.id'
+          value: |
+            '$MONGODB_URI'
+            '$GOOGLE_CLIENT_ID'
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: $GCLOUD_SERVICE_KEY
+          deliverables: './src/main/appengine/app.yaml'
+          version: 'v2'
