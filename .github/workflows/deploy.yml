@@ -23,6 +23,7 @@ jobs:
       id-token: write
 
     steps:
+      - uses: actions/checkout@v3
       - name: Write value to Properties-file
         uses: christian-draeger/write-properties@1.1.0
         env:
@@ -37,7 +38,6 @@ jobs:
           value: |
             '$MONGODB_URI'
             '$GOOGLE_CLIENT_ID'
-      - uses: actions/checkout@v3
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
