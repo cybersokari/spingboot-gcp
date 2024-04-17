@@ -113,18 +113,12 @@
     <profiles>
         <profile>
             <id>prod</id>
-            <properties>
-                <war.name>prod</war.name>
-            </properties>
         </profile>
         <profile>
             <id>dev</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <properties>
-                <war.name>dev</war.name>
-            </properties>
         </profile>
     </profiles>
 </project>
