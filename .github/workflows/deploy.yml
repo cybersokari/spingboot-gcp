@@ -43,8 +43,8 @@ jobs:
             spring.data.mongodb.uri
             google.client.id
           value: |
-            $MONGODB_URI
-            $GOOGLE_CLIENT_ID
+            ${{ secrets.MONGODB_URI }}
+            ${{ secrets.GOOGLE_CLIENT_ID }}
 
 #      - name: Set up JDK 17
 #        uses: actions/setup-java@v3
