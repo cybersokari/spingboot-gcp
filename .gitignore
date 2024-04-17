@@ -37,3 +37,6 @@ firebase.json
 .firebaserc
 storage.rules
 ui-debug.log
+
+## prod properties
+src/main/resources/application-prod.properties
