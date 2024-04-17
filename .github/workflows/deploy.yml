@@ -53,6 +53,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Update Maven to latest
+        run: brew install maven
+
       - name: Build with Maven
         run: mvn --version && mvn -B package --file pom.xml -DskipTests
 
