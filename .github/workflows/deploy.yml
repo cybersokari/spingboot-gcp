@@ -49,4 +49,4 @@ jobs:
       - name: Deploy to GAE
         uses: 'google-github-actions/deploy-appengine@v2'
         with:
-          deliverables: target/gated_access_service-0.0.1-SNAPSHOT.jar
+          deliverables: target/gated_access_service-0.0.1-SNAPSHOT.jar src/main/appengine/app.yaml
