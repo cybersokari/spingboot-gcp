@@ -25,11 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Create Properties file with Secrets
-        run: |
-          # Overwrite the content of the file with the secret
-          echo "${{ secrets.PROPERTIES_PROD }}" > ./src/main/resources/application-prod.properties
-
       - name: Setup Java and Maven
         uses: s4u/setup-maven-action@v1.7.0
         with:
@@ -39,7 +34,10 @@ jobs:
           maven-version: 3.9.6
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml -DskipTests -Dspring-boot.run.profiles=prod -X
+        run: | 
+          mvn -B package --file pom.xml -DskipTests -X 
+          -Dspring.data.mongodb.uri=${{ secrets.MONGO_URI }}
+          -Dgoogle.client.id=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
