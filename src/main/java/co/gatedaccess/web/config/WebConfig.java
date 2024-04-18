@@ -1,6 +1,6 @@
 package co.gatedaccess.web.config;
 
-import co.gatedaccess.web.SecureInterceptor;
+import co.gatedaccess.web.http.interceptor.SecureInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

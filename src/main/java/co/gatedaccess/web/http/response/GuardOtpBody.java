@@ -1,4 +1,4 @@
-package co.gatedaccess.web.http;
+package co.gatedaccess.web.http.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

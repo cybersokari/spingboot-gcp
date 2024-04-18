@@ -1,8 +1,8 @@
 package co.gatedaccess.web.service;
 
-import co.gatedaccess.web.http.TokenBody;
-import co.gatedaccess.web.model.Member;
-import co.gatedaccess.web.repo.MemberRepo;
+import co.gatedaccess.web.http.response.TokenBody;
+import co.gatedaccess.web.data.model.Member;
+import co.gatedaccess.web.data.repo.MemberRepo;
 import co.gatedaccess.web.util.CodeGenerator;
 import co.gatedaccess.web.util.CodeType;
 import com.google.api.client.auth.openidconnect.IdToken;

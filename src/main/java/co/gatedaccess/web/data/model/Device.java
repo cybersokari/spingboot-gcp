@@ -1,4 +1,4 @@
-package co.gatedaccess.web.model;
+package co.gatedaccess.web.data.model;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;

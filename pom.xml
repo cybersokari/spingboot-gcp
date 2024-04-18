@@ -73,8 +73,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
 <!--                <configuration>-->
-<!--                    <mainClass>co.gatedaccess.web.GatedAccessServiceApplication</mainClass>-->
-<!--                </configuration>-->
+<!--                    <mainClass>co.gatedaccess.web.App          </configuration>-->
             </plugin>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>

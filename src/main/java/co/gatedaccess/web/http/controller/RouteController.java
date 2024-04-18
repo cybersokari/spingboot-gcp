@@ -1,32 +1,25 @@
-package co.gatedaccess.web;
+package co.gatedaccess.web.http.controller;
 
-import co.gatedaccess.web.http.GuardOtpBody;
-import co.gatedaccess.web.http.TokenBody;
+import co.gatedaccess.web.http.response.GuardOtpBody;
+import co.gatedaccess.web.http.response.TokenBody;
 import co.gatedaccess.web.service.CommunityService;
 import co.gatedaccess.web.service.UserService;
-import com.google.firebase.FirebaseApp;
 import com.mongodb.lang.NonNull;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 //@RequestMapping("/v1") Dont use it, it will break the '/secure' path interceptor
-@SpringBootApplication
-@EnableMongoRepositories("co.gatedaccess.web.repo")
 @RestController
-public class GatedAccessServiceApplication {
+public class RouteController {
 
     @Autowired
     private CommunityService communityService;
@@ -34,11 +27,6 @@ public class GatedAccessServiceApplication {
     @Autowired
     private UserService userService;
 
-    public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(GatedAccessServiceApplication.class);
-        app.addListeners((ApplicationListener<ApplicationStartedEvent>) event ->/*init Firebase*/ FirebaseApp.initializeApp());
-        app.run(args);
-    }
 
     /**
      * Enable the client app to exchange Google/Apple provider token for a
@@ -52,7 +40,7 @@ public class GatedAccessServiceApplication {
             content = @Content(schema = @Schema(implementation = TokenBody.class)))
     @GetMapping("/user/{provider}/login")
     ResponseEntity<?> loginUserWithProvider(@RequestParam String token,
-                                                     @PathVariable("provider") String provider) {
+                                            @PathVariable("provider") String provider) {
         return userService.getCustomTokenForClientLogin(token, provider);
     }
 
@@ -75,8 +63,8 @@ public class GatedAccessServiceApplication {
 
     @GetMapping("/secure/community/request/{request-id}")
     ResponseEntity<String> handleCommunityJoinRequest(@RequestAttribute("user") String userId,
-                                               @PathVariable("request-id") String requestId,
-                                               @RequestParam Boolean accept) {
+                                                      @PathVariable("request-id") String requestId,
+                                                      @RequestParam Boolean accept) {
         return communityService.handleCommunityJoinRequest(userId, requestId, accept);
     }
 
@@ -102,6 +90,12 @@ public class GatedAccessServiceApplication {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingHeader(@NonNull MissingRequestHeaderException ex) {
         return ResponseEntity.badRequest().body("Required header '" + ex.getHeaderName() + "' is missing.");
+    }
+
+    // Exception handler for MethodArgumentNotValidException
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest().body("Required argument '" + ex.getParameter().getParameterName() + "' is missing.");
     }
 
 }

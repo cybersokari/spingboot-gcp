@@ -1,6 +1,6 @@
-package co.gatedaccess.web.repo;
+package co.gatedaccess.web.data.repo;
 
-import co.gatedaccess.web.model.SecurityGuardOtp;
+import co.gatedaccess.web.data.model.SecurityGuardOtp;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface SecurityGuardOtpRepo extends MongoRepository<SecurityGuardOtp, String> {

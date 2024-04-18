@@ -1,6 +1,6 @@
-package co.gatedaccess.web.repo;
+package co.gatedaccess.web.data.repo;
 
-import co.gatedaccess.web.model.Member;
+import co.gatedaccess.web.data.model.Member;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface MemberRepo extends MongoRepository<Member, String> {

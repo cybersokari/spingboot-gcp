@@ -1,6 +1,6 @@
-package co.gatedaccess.web.repo;
+package co.gatedaccess.web.data.repo;
 
-import co.gatedaccess.web.model.Community;
+import co.gatedaccess.web.data.model.Community;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface CommunityRepo extends MongoRepository<Community, String> {

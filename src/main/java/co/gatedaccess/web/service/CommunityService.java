@@ -1,9 +1,9 @@
 package co.gatedaccess.web.service;
 
-import co.gatedaccess.web.http.GuardOtpBody;
-import co.gatedaccess.web.http.TokenBody;
-import co.gatedaccess.web.model.*;
-import co.gatedaccess.web.repo.*;
+import co.gatedaccess.web.data.model.*;
+import co.gatedaccess.web.data.repo.*;
+import co.gatedaccess.web.http.response.GuardOtpBody;
+import co.gatedaccess.web.http.response.TokenBody;
 import co.gatedaccess.web.util.ApiResponseMessage;
 import co.gatedaccess.web.util.CodeGenerator;
 import co.gatedaccess.web.util.CodeType;

@@ -1,5 +1,6 @@
-package co.gatedaccess.web.model;
+package co.gatedaccess.web.data.model;
 
+import jakarta.validation.constraints.Future;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -12,6 +13,7 @@ public class EmailOtp {
     String id;
     String code;
     String email;
+    @Future
     @Field("expire_at")
     Date expireAt;
 }

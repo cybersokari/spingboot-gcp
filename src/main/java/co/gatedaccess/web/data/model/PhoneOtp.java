@@ -1,5 +1,6 @@
-package co.gatedaccess.web.model;
+package co.gatedaccess.web.data.model;
 
+import jakarta.validation.constraints.Future;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,6 +14,7 @@ public class PhoneOtp {
     String id;
     String code;
     String phone;
+    @Future
     @Field("expire_at")
     Date expireAt;
     @CreatedDate

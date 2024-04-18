@@ -1,4 +1,4 @@
-package co.gatedaccess.web.model;
+package co.gatedaccess.web.data.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;

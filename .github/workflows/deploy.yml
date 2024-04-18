@@ -11,8 +11,8 @@ name: Java CI with Maven
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
 
 jobs:
   deploy:
@@ -39,7 +39,7 @@ jobs:
           maven-version: 3.9.6
 
       - name: Build with Maven
-        run: mvn --version && mvn -B package --file pom.xml -DskipTests -P prod
+        run: mvn -B package --file pom.xml -DskipTests -Dspring-boot.run.profiles=prod -X
 
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
@@ -48,5 +48,5 @@ jobs:
 
       - name: Deploy to GAE
         uses: 'google-github-actions/deploy-appengine@v2'
-#        with:
-#          deliverables: target/gated_access_service-0.0.1-SNAPSHOT.jar
+        with:
+          deliverables: ./pom.xml

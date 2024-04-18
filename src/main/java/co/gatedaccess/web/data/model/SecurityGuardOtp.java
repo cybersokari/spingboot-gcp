@@ -1,6 +1,7 @@
-package co.gatedaccess.web.model;
+package co.gatedaccess.web.data.model;
 
 import com.mongodb.lang.NonNull;
+import jakarta.validation.constraints.Future;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,6 +24,7 @@ public class SecurityGuardOtp {
     String communityId;
 
     @NonNull
+    @Future
     @Field("expire_at")
     Date expireAt;
 
@@ -33,10 +35,12 @@ public class SecurityGuardOtp {
     @Field("created_at")
     Date createdAt;
 
-    public SecurityGuardOtp(@NonNull String communityId, @NonNull Date expireAt, @NonNull String code) {
+    public SecurityGuardOtp(String id, @NonNull String code, @NonNull String communityId, @NonNull Date expireAt, Date createdAt) {
+        this.id = id;
+        this.code = code;
         this.communityId = communityId;
         this.expireAt = expireAt;
-        this.code = code;
+        this.createdAt = createdAt;
     }
 
     public String getId() {

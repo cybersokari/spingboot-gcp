@@ -1,6 +1,6 @@
 package co.gatedaccess.web.service;
 
-import co.gatedaccess.web.model.Device;
+import co.gatedaccess.web.data.model.Device;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
