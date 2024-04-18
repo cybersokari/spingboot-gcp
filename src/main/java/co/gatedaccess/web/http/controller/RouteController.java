@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 //@RequestMapping("/v1") Dont use it, it will break the '/secure' path interceptor
-@RestController
+@RestController("gatedaccess.co")
 public class RouteController {
 
     @Autowired

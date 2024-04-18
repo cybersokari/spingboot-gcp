@@ -25,23 +25,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Java and Maven
-        uses: s4u/setup-maven-action@v1.7.0
-        with:
-          checkout-fetch-depth: 0
-          java-version: 17
-          java-distribution: temurin
-          maven-version: 3.9.6
-
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml -X -DskipTests -Dgoogle.client.id=${{ secrets.GOOGLE_CLIENT_ID }} -Dspring.data.mongodb.uri=${{ secrets.MONGO_URI }}
+      - name: Create prod properties file
+        run: echo "google.client.id=${{ secrets.GOOGLE_CLIENT_ID }}\nspring.data.mongodb.uri=${{ secrets.MONGO_URI }}" > application-prod.properties
 
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
 
-      - name: Deploy to GAE
+      - name: Deploy to GAE Cloud build
         uses: 'google-github-actions/deploy-appengine@v2'
         with:
           deliverables: ./pom.xml
