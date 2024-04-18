@@ -30,7 +30,7 @@ jobs:
           GOOGLE : ${{secrets.GOOGLE_CLIENT_ID}}
           MONGO_USER: ${{secrets.MONGO_USER}}
           MONGO_PASSWORD: ${{secrets.MONGO_PASSWORD}}
-        run: echo "google.client.id=$GOOGLE\nspring.data.mongodb.uri=mongodb+srv://$MONGO_USER:$MONGO_PASSWORD@serverlessinstance0.dqvk9rt.mongodb.net/dev?retryWrites=true&w=majority&appName=ServerlessInstance0" > src/main/resources/application-prod.properties
+        run: echo "google.client.id=${{env.GOOGLE}}\nspring.data.mongodb.uri=mongodb+srv://${{env.MONGO_USER}}:${{env.MONGO_PASSWORD}}@serverlessinstance0.dqvk9rt.mongodb.net/dev?retryWrites=true&w=majority&appName=ServerlessInstance0" > src/main/resources/application-prod.properties
 
       - name: Authenticate GCP
         uses: google-github-actions/auth@v2
