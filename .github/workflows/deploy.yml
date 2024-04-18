@@ -34,8 +34,9 @@ jobs:
           maven-version: 3.9.6
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml -DskipTests -X \
-          -Dspring.data.mongodb.uri=${{ secrets.MONGO_URI }} \
+        run: >
+          mvn -B package --file pom.xml -DskipTests -X
+          -Dspring.data.mongodb.uri=${{ secrets.MONGO_URI }}
           -Dgoogle.client.id=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Authenticate GCP
