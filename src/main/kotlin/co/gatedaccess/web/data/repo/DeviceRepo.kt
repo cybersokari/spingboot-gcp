@@ -1,8 +1,8 @@
-package co.gatedaccess.web.data.repo;
+package co.gatedaccess.web.data.repo
 
-import co.gatedaccess.web.data.model.Device;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import co.gatedaccess.web.data.model.Device
+import org.springframework.data.mongodb.repository.MongoRepository
 
-public interface DeviceRepo extends MongoRepository<Device, String> {
-    Device findDeviceByMemberId(String memberId);
+interface DeviceRepo : MongoRepository<Device?, String?> {
+    fun findDeviceByMemberId(memberId: String?): Device?
 }

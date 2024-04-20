@@ -1,18 +1,11 @@
-package co.gatedaccess.web.http.response;
+package co.gatedaccess.web.http.response
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty
 
-public class JoinBody {
+class JoinBody {
     @JsonProperty("community_id")
-    String communityId;
+    var communityId: String? = null
+
     @JsonProperty("invite_code")
-    String inviteCode;
-
-    public String getCommunityId() {
-        return communityId;
-    }
-
-    public String getInviteCode() {
-        return inviteCode;
-    }
+    var inviteCode: String? = null
 }

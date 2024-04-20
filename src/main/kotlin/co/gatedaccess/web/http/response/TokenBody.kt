@@ -1,22 +1,17 @@
-package co.gatedaccess.web.http.response;
+package co.gatedaccess.web.http.response
 
-public class TokenBody {
-    String token;
+class TokenBody {
+    var token: String? = null
 
-    public TokenBody() {
+    constructor()
+
+    constructor(token: String?) {
+        this.token = token
     }
 
-    public TokenBody(String token) {
-        this.token = token;
-    }
 
-
-    public String getToken() {
-        return token;
-    }
-
-    public TokenBody setToken(String token) {
-        this.token = token;
-        return this;
+    fun setToken(token: String?): TokenBody {
+        this.token = token
+        return this
     }
 }

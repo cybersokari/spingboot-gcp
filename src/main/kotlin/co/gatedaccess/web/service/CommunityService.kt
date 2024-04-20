@@ -1,107 +1,112 @@
-package co.gatedaccess.web.service;
+package co.gatedaccess.web.service
 
-import co.gatedaccess.web.data.model.*;
-import co.gatedaccess.web.data.repo.*;
-import co.gatedaccess.web.http.response.GuardOtpBody;
-import co.gatedaccess.web.http.response.TokenBody;
-import co.gatedaccess.web.util.ApiResponseMessage;
-import co.gatedaccess.web.util.CodeGenerator;
-import co.gatedaccess.web.util.CodeType;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.mongodb.DuplicateKeyException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.*;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import co.gatedaccess.web.data.model.JoinCommunityRequest
+import co.gatedaccess.web.data.model.SecurityGuardDevice
+import co.gatedaccess.web.data.model.SecurityGuardOtp
+import co.gatedaccess.web.data.repo.*
+import co.gatedaccess.web.http.response.GuardOtpBody
+import co.gatedaccess.web.http.response.TokenBody
+import co.gatedaccess.web.util.ApiResponseMessage
+import co.gatedaccess.web.util.CodeGenerator
+import co.gatedaccess.web.util.CodeType
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.mongodb.DuplicateKeyException
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.*
+import java.util.Map
 
 @Component
-public class CommunityService {
+open class CommunityService {
+    @Autowired
+    var communityRepo: CommunityRepo? = null
 
     @Autowired
-    CommunityRepo communityRepo;
+    var memberRepo: MemberRepo? = null
+
     @Autowired
-    MemberRepo memberRepo;
+    var joinCommunityRequestRepo: JoinCommunityRequestRepo? = null
+
     @Autowired
-    JoinCommunityRequestRepo joinCommunityRequestRepo;
+    var securityGuardOtpRepo: SecurityGuardOtpRepo? = null
+
     @Autowired
-    SecurityGuardOtpRepo securityGuardOtpRepo;
+    var securityGuardDeviceRepo: SecurityGuardDeviceRepo? = null
+
     @Autowired
-    SecurityGuardDeviceRepo securityGuardDeviceRepo;
+    var environment: Environment? = null
+
     @Autowired
-    Environment environment;
-    @Autowired
-    private CodeGenerator codeGenerator;
+    private val codeGenerator: CodeGenerator? = null
 
     @Transactional
-    public ResponseEntity<?> getCustomTokenForSecurityGuard(String otp, String deviceName) {
+    open fun getCustomTokenForSecurityGuard(otp: String?, deviceName: String?): ResponseEntity<*> {
+        val securityGuardOtp = securityGuardOtpRepo!!.findByCode(otp)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Otp")
 
-        SecurityGuardOtp securityGuardOtp = securityGuardOtpRepo.findByCode(otp);
-        if (securityGuardOtp == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Otp");
-        }
+        val otpCreatedDate = securityGuardOtp.createdAt!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val duration = Duration.between(otpCreatedDate, LocalDateTime.now())
 
-        LocalDateTime otpCreatedDate = securityGuardOtp.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        Duration duration = Duration.between(otpCreatedDate, LocalDateTime.now());
-
-        int allowedDurationInSecs = environment.getRequiredProperty("security-guard.otp.duration-in-secs", Integer.class);
+        val allowedDurationInSecs =
+            environment!!.getRequiredProperty("security-guard.otp.duration-in-secs", Int::class.java)
         if (duration.toSeconds() > allowedDurationInSecs) {
-            securityGuardOtpRepo.delete(securityGuardOtp);
-            return ResponseEntity.status(HttpStatus.GONE).body("Otp Expired");
+            securityGuardOtpRepo!!.delete(securityGuardOtp)
+            return ResponseEntity.status(HttpStatus.GONE).body("Otp Expired")
         }
 
-        SecurityGuardDevice device = new SecurityGuardDevice
-                .Builder()
-                .withDeviceName(deviceName)
-                .withCommunityId(securityGuardOtp.getCommunityId()).build();
-        device = securityGuardDeviceRepo.save(device);
+        var device = SecurityGuardDevice.Builder()
+            .withDeviceName(deviceName)
+            .withCommunityId(securityGuardOtp.communityId).build()
+        device = securityGuardDeviceRepo!!.save(device)
         try {
-            String customToken = FirebaseAuth.getInstance()
-                    .createCustomToken(device.getId(), Map.of("user","guard"));
-            return ResponseEntity.ok().body(new TokenBody(customToken));
-
-        } catch (FirebaseAuthException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+            val customToken = FirebaseAuth.getInstance()
+                .createCustomToken(device.id, Map.of<String, Any>("user", "guard"))
+            return ResponseEntity.ok().body(TokenBody(customToken))
+        } catch (e: FirebaseAuthException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.localizedMessage)
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.localizedMessage)
         }
     }
 
     @Transactional
-    public ResponseEntity<?> getSecurityGuardOtpForAdmin(String adminUserId){
-        Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
-        if(community == null){
-            return ResponseEntity.badRequest().body("User not a community admin");
-        }
+    open fun getSecurityGuardOtpForAdmin(adminUserId: String?): ResponseEntity<*> {
+        val community = communityRepo!!.findCommunityBySuperAdminId(adminUserId)
+            ?: return ResponseEntity.badRequest().body("User not a community admin")
 
         // Delete old before creating a new one
-        securityGuardOtpRepo.deleteByCommunityId(community.getId());
+        securityGuardOtpRepo!!.deleteByCommunityId(community.id)
 
 
         // Retry otp generation if any duplicate occur
-        Date expiryTime = null;
-        SecurityGuardOtp guardOtp = new SecurityGuardOtp();
-        int codeExpiryDurationInSecs = Integer.parseInt(Objects.requireNonNull(environment.getProperty("security-guard.otp.duration-in-secs")));
-        while (guardOtp.getId() == null){// Check for MongoDb ID to know if save is successful
+        var expiryTime: Date? = null
+        var guardOtp = SecurityGuardOtp()
+        val codeExpiryDurationInSecs =
+            environment!!.getProperty("security-guard.otp.duration-in-secs")!!.toInt()
+        while (guardOtp.id == null) { // Check for MongoDb ID to know if save is successful
 
-            guardOtp.setCode(codeGenerator.getCode(CodeType.guard));
+            guardOtp.setCode(codeGenerator!!.getCode(CodeType.guard))
 
-            LocalDateTime futureDateTime = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            futureDateTime = futureDateTime.plusSeconds(codeExpiryDurationInSecs);
-            expiryTime = Date.from(Instant.from(futureDateTime));
-            guardOtp.setExpireAt(expiryTime);
+            var futureDateTime = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+            futureDateTime = futureDateTime.plusSeconds(codeExpiryDurationInSecs.toLong())
+            expiryTime = Date.from(Instant.from(futureDateTime))
+            guardOtp.expireAt = expiryTime
 
             try {
-                guardOtp = securityGuardOtpRepo.save(guardOtp);
-            }catch (DuplicateKeyException ignored){}
+                guardOtp = securityGuardOtpRepo!!.save(guardOtp)
+            } catch (ignored: DuplicateKeyException) {
+            }
         }
-        return ResponseEntity.ok(new GuardOtpBody(guardOtp.getCode(), expiryTime));
-
+        return ResponseEntity.ok(GuardOtpBody(guardOtp.getCode(), expiryTime))
     }
 
     /**
@@ -111,77 +116,71 @@ public class CommunityService {
      * @return status of the request
      */
     @Transactional
-    public ResponseEntity<String> handleCommunityJoinRequest(String adminUserId, String requestId, Boolean accept) {
-        Community community = communityRepo.findCommunityBySuperAdminId(adminUserId);
-        if (community == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.USER_NOT_SUPER_ADMIN);
-        }
-        JoinCommunityRequest joinRequest = joinCommunityRequestRepo.findJoinCommunityRequestById(requestId);
-        if (joinRequest == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponseMessage.REQUEST_CANT_BE_FOUND);
-        }
-        String memberId = joinRequest.getMember().getId();
-        if (joinCommunityRequestRepo.existsJoinCommunityRequestByMember_IdAndAcceptedAtIsNotNull(memberId)) {
+    open fun handleCommunityJoinRequest(adminUserId: String?, requestId: String?, accept: Boolean): ResponseEntity<String?> {
+        val community = communityRepo!!.findCommunityBySuperAdminId(adminUserId)
+            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseMessage.USER_NOT_SUPER_ADMIN)
+        val joinRequest = joinCommunityRequestRepo!!.findJoinCommunityRequestById(requestId)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseMessage.REQUEST_CANT_BE_FOUND)
+        val memberId = joinRequest.member!!.id
+        if (joinCommunityRequestRepo!!.existsJoinCommunityRequestByMemberIdAndAcceptedAtIsNotNull(memberId)) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
-                    .body(ApiResponseMessage.REQUEST_ALREADY_ACCEPTED);
+                .body(ApiResponseMessage.REQUEST_ALREADY_ACCEPTED)
         }
         if (accept) {
-            Member member = joinRequest.getMember();
-            member.setCommunity(community);
-            memberRepo.save(member);
-            joinRequest.setAcceptedAt(new Date());
+            val member = joinRequest.member
+            member!!.community = community
+            memberRepo!!.save(member)
+            joinRequest.acceptedAt = Date()
         } else {
-            joinRequest.setRejectedAt(new Date());
+            joinRequest.rejectedAt = Date()
         }
-        joinCommunityRequestRepo.save(joinRequest);
+        joinCommunityRequestRepo!!.save(joinRequest)
 
-        return ResponseEntity.status(HttpStatus.OK).body("Request updated");
+        return ResponseEntity.status(HttpStatus.OK).body("Request updated")
     }
 
 
     @Transactional
-    public ResponseEntity<String> joinWithInviteCode(String inviteCode, String userId) {
+    open fun joinWithInviteCode(inviteCode: String?, userId: String?): ResponseEntity<String?> {
+        val referrer = memberRepo!!.findMemberByInviteCode(inviteCode)
+            ?: return ResponseEntity.badRequest().body("Invite code is not valid")
 
-        Member referrer = memberRepo.findMemberByInviteCode(inviteCode);
-        if (referrer == null) {
-            return ResponseEntity.badRequest().body("Invite code is not valid");
+        val community = referrer.community
+            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Referrer is not part of any community at this time")
+
+        if (community.superAdmin == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community does not have an Admin")
         }
 
-        Community community = referrer.getCommunity();
-        if (community == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Referrer is not part of any community at this time");
+        val member = memberRepo!!.findMemberById(userId)
+
+        if (member.community != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is already part of a community")
+        }
+        if (member.photoUrl == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.PHOTO_IS_REQUIRED)
         }
 
-        if (community.getSuperAdmin() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Community does not have an Admin");
-        }
-
-        Member member = memberRepo.findMemberById(userId);
-
-        if (member.getCommunity() != null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User is already part of a community");
-        }
-        if (member.getPhotoUrl() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponseMessage.PHOTO_IS_REQUIRED);
-        }
-
-        if (joinCommunityRequestRepo.findJoinCommunityRequestByMember_IdAndAcceptedAtIsNull(userId) != null) {
+        if (joinCommunityRequestRepo!!.findJoinCommunityRequestByMemberIdAndAcceptedAtIsNull(userId) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("User already have a pending request that has not been accepted");
+                .body("User already have a pending request that has not been accepted")
         }
 
-        JoinCommunityRequest request = new JoinCommunityRequest.Builder()
-                .withMember(member)
-                .withReferrer(referrer)
-                .withCommunity(community).build();
-        joinCommunityRequestRepo.save(request);
+        val request = JoinCommunityRequest.Builder()
+            .withMember(member)
+            .withReferrer(referrer)
+            .withCommunity(community).build()
+        joinCommunityRequestRepo!!.save(request)
 
         /*Remove used invite code from referrer's document*/
-        referrer.setInviteCode(null);
-        memberRepo.save(referrer);
+        referrer.inviteCode = null
+        memberRepo!!.save(referrer)
 
         //TODO: Notify community admin
         return ResponseEntity.status(HttpStatus.OK)
-                .body("Request to join community sent");
+            .body("Request to join community sent")
     }
 }

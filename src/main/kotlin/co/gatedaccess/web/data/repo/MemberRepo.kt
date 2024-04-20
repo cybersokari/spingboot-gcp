@@ -1,14 +1,14 @@
-package co.gatedaccess.web.data.repo;
+package co.gatedaccess.web.data.repo
 
-import co.gatedaccess.web.data.model.Member;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import co.gatedaccess.web.data.model.Member
+import org.springframework.data.mongodb.repository.MongoRepository
 
-public interface MemberRepo extends MongoRepository<Member, String> {
-    Member findMemberById(String userId);
+interface MemberRepo : MongoRepository<Member?, String?> {
+    fun findMemberById(userId: String?): Member
 
-    Member findMemberByInviteCode(String inviteCode);
+    fun findMemberByInviteCode(inviteCode: String?): Member?
 
-    Member findMemberByEmail(String email);
+    fun findMemberByEmail(email: String?): Member?
 
-    Boolean existsMemberByEmail(String email);
+    fun existsMemberByEmail(email: String?): Boolean
 }

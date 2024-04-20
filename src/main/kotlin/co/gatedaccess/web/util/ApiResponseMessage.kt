@@ -1,8 +1,8 @@
-package co.gatedaccess.web.util;
+package co.gatedaccess.web.util
 
-public class ApiResponseMessage {
-    public static final String REQUEST_CANT_BE_FOUND = "Request does not exist";
-    public static final String REQUEST_ALREADY_ACCEPTED = "Request has already been accepted";
-    public static final String USER_NOT_SUPER_ADMIN = "This user is not a super admin of this community";
-    public static final String PHOTO_IS_REQUIRED = "Upload profile photo before joining a community";
+object ApiResponseMessage {
+    const val REQUEST_CANT_BE_FOUND: String = "Request does not exist"
+    const val REQUEST_ALREADY_ACCEPTED: String = "Request has already been accepted"
+    const val USER_NOT_SUPER_ADMIN: String = "This user is not a super admin of this community"
+    const val PHOTO_IS_REQUIRED: String = "Upload profile photo before joining a community"
 }

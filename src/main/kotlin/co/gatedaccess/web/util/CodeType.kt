@@ -1,5 +1,6 @@
-package co.gatedaccess.web.util;
+package co.gatedaccess.web.util
 
 
-
-public enum CodeType{community, visitor, guard}
+enum class CodeType {
+    community, visitor, guard
+}

@@ -1,124 +1,96 @@
-package co.gatedaccess.web.data.model;
+package co.gatedaccess.web.data.model
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.Date;
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.DBRef
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
+import java.util.*
 
 @Document("join_community_request")
-public class JoinCommunityRequest {
+class JoinCommunityRequest {
     @Id
-    String id;
+    var id: String? = null
+
     @DBRef
-    Member member;
+    var member: Member? = null
+
     @DBRef
-    Community community;
+    var community: Community? = null
+
     @Field("created_at")
     @CreatedDate
-    Date createdAt;
+    var createdAt: Date? = null
+
     @Field("accepted_at")
-    Date acceptedAt;
+    var acceptedAt: Date? = null
+
     @Field("rejected_at")
-    Date rejectedAt;
+    var rejectedAt: Date? = null
+
     @DBRef
-    Member referrer;
+    var referrer: Member? = null
 
-    public String getId() {
-        return id;
-    }
+    class Builder {
+        private var id: String? = null
+        private var member: Member? = null
+        private var community: Community? = null
+        private var createdAt: Date? = null
+        private var acceptedAt: Date? = null
+        private var rejectAt: Date? = null
+        private var referrer: Member? = null
 
-    public Member getMember() {
-        return member;
-    }
-
-    public Community getCommunity() {
-        return community;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public Date getAcceptedAt() {
-        return acceptedAt;
-    }
-
-    public Date getRejectedAt() {
-        return rejectedAt;
-    }
-
-    public void setAcceptedAt(Date acceptedAt) {
-        this.acceptedAt = acceptedAt;
-    }
-
-    public void setRejectedAt(Date rejectedAt) {
-        this.rejectedAt = rejectedAt;
-    }
-
-    public static final class Builder {
-        private String id;
-        private Member member;
-        private Community community;
-        private Date createdAt;
-        private Date acceptedAt;
-        private Date rejectAt;
-        private Member referrer;
-
-        public Builder() {
+        fun withId(id: String?): Builder {
+            this.id = id
+            return this
         }
 
-        public static Builder aJoinCommunityRequest() {
-            return new Builder();
+        fun withMember(member: Member?): Builder {
+            this.member = member
+            return this
         }
 
-        public Builder withId(String id) {
-            this.id = id;
-            return this;
+        fun withCommunity(community: Community?): Builder {
+            this.community = community
+            return this
         }
 
-        public Builder withMember(Member member) {
-            this.member = member;
-            return this;
+        fun withCreatedAt(createdAt: Date?): Builder {
+            this.createdAt = createdAt
+            return this
         }
 
-        public Builder withCommunity(Community community) {
-            this.community = community;
-            return this;
+        fun withAcceptedAt(acceptedAt: Date?): Builder {
+            this.acceptedAt = acceptedAt
+            return this
         }
 
-        public Builder withCreatedAt(Date createdAt) {
-            this.createdAt = createdAt;
-            return this;
+        fun withRejectAt(rejectAt: Date?): Builder {
+            this.rejectAt = rejectAt
+            return this
         }
 
-        public Builder withAcceptedAt(Date acceptedAt) {
-            this.acceptedAt = acceptedAt;
-            return this;
+        fun withReferrer(referrer: Member?): Builder {
+            this.referrer = referrer
+            return this
         }
 
-        public Builder withRejectAt(Date rejectAt) {
-            this.rejectAt = rejectAt;
-            return this;
+        fun build(): JoinCommunityRequest {
+            val joinCommunityRequest = JoinCommunityRequest()
+            joinCommunityRequest.acceptedAt = acceptedAt
+            joinCommunityRequest.rejectedAt = rejectAt
+            joinCommunityRequest.member = this.member
+            joinCommunityRequest.id = this.id
+            joinCommunityRequest.community = this.community
+            joinCommunityRequest.createdAt = this.createdAt
+            joinCommunityRequest.referrer = this.referrer
+            return joinCommunityRequest
         }
 
-        public Builder withReferrer(Member referrer) {
-            this.referrer = referrer;
-            return this;
-        }
-
-        public JoinCommunityRequest build() {
-            JoinCommunityRequest joinCommunityRequest = new JoinCommunityRequest();
-            joinCommunityRequest.setAcceptedAt(acceptedAt);
-            joinCommunityRequest.setRejectedAt(rejectAt);
-            joinCommunityRequest.member = this.member;
-            joinCommunityRequest.id = this.id;
-            joinCommunityRequest.community = this.community;
-            joinCommunityRequest.createdAt = this.createdAt;
-            joinCommunityRequest.referrer = this.referrer;
-            return joinCommunityRequest;
+        companion object {
+            fun aJoinCommunityRequest(): Builder {
+                return Builder()
+            }
         }
     }
 }

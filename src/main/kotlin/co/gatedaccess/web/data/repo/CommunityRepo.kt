@@ -1,11 +1,10 @@
-package co.gatedaccess.web.data.repo;
+package co.gatedaccess.web.data.repo
 
-import co.gatedaccess.web.data.model.Community;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import co.gatedaccess.web.data.model.Community
+import org.springframework.data.mongodb.repository.MongoRepository
 
-public interface CommunityRepo extends MongoRepository<Community, String> {
+interface CommunityRepo : MongoRepository<Community?, String?> {
+    fun findCommunityById(id: String?): Community?
 
-    Community findCommunityById(String id);
-
-    Community findCommunityBySuperAdminId(String id);
+    fun findCommunityBySuperAdminId(id: String?): Community?
 }

@@ -1,114 +1,111 @@
-package co.gatedaccess.web.data.model;
+package co.gatedaccess.web.data.model
 
-import com.mongodb.lang.NonNull;
-import jakarta.validation.constraints.Future;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.MongoId;
-
-import java.util.Date;
+import com.mongodb.lang.NonNull
+import jakarta.validation.constraints.Future
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.mongodb.core.index.Indexed
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
+import org.springframework.data.mongodb.core.mapping.MongoId
+import java.util.*
 
 @Document("security_guard_otp")
-public class SecurityGuardOtp {
+class SecurityGuardOtp {
     @MongoId
-    String id;
+    var id: String? = null
 
+    @JvmField
     @NonNull
     @Indexed(unique = true)
-    String code;
+    var code: String? = null
 
+    @JvmField
     @NonNull
     @Indexed(unique = true)
-    String communityId;
+    var communityId: String? = null
 
+    @JvmField
     @NonNull
-    @Future
     @Field("expire_at")
-    Date expireAt;
+    var expireAt: @Future Date? = null
 
-    public SecurityGuardOtp() {
-    }
+    constructor()
 
     @CreatedDate
     @Field("created_at")
-    Date createdAt;
+    var createdAt: Date? = null
 
-    public SecurityGuardOtp(String id, @NonNull String code, @NonNull String communityId, @NonNull Date expireAt, Date createdAt) {
-        this.id = id;
-        this.code = code;
-        this.communityId = communityId;
-        this.expireAt = expireAt;
-        this.createdAt = createdAt;
+    constructor(
+        id: String?,
+        @NonNull code: String?,
+        @NonNull communityId: String?,
+        @NonNull expireAt: Date?,
+        createdAt: Date?
+    ) {
+        this.id = id
+        this.code = code
+        this.communityId = communityId
+        this.expireAt = expireAt
+        this.createdAt = createdAt
     }
 
-    public String getId() {
-        return id;
+    fun getCode(): String? {
+        return code
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public String getCommunityId() {
-        return communityId;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
+    fun getCommunityId(): String? {
+        return communityId
     }
 
     @NonNull
-    public Date getExpireAt() {
-        return expireAt;
+    fun getExpireAt(): Date? {
+        return expireAt
     }
 
-    public void setCode(@NonNull String code) {
-        this.code = code;
+    fun setCode(@NonNull code: String?) {
+        this.code = code
     }
 
-    public void setCommunityId(@NonNull String communityId) {
-        this.communityId = communityId;
+    fun setCommunityId(@NonNull communityId: String?) {
+        this.communityId = communityId
     }
 
-    public void setExpireAt(@NonNull Date expireAt) {
-        this.expireAt = expireAt;
+    fun setExpireAt(@NonNull expireAt: Date?) {
+        this.expireAt = expireAt
     }
 
-    public static final class Builder {
-        private Date expireAt;
-        private String communityId;
-        private String code;
+    class Builder {
+        private var expireAt: Date? = null
+        private var communityId: String? = null
+        private var code: String? = null
 
-        public Builder() {
+        fun withExpireAt(expireAt: Date?): Builder {
+            this.expireAt = expireAt
+            return this
         }
 
-        public static Builder aSecurityGuardOtp() {
-            return new Builder();
+        fun withCommunityId(communityId: String?): Builder {
+            this.communityId = communityId
+            return this
         }
 
-        public Builder withExpireAt(Date expireAt) {
-            this.expireAt = expireAt;
-            return this;
+        fun withCode(code: String?): Builder {
+            this.code = code
+            return this
         }
 
-        public Builder withCommunityId(String communityId) {
-            this.communityId = communityId;
-            return this;
+        fun build(): SecurityGuardOtp {
+            val securityGuardOtp = SecurityGuardOtp()
+            securityGuardOtp.communityId = this.communityId
+            securityGuardOtp.expireAt = this.expireAt
+            securityGuardOtp.code = this.code
+            return securityGuardOtp
         }
 
-        public Builder withCode(String code) {
-            this.code = code;
-            return this;
-        }
-
-        public SecurityGuardOtp build() {
-            SecurityGuardOtp securityGuardOtp = new SecurityGuardOtp();
-            securityGuardOtp.communityId = this.communityId;
-            securityGuardOtp.expireAt = this.expireAt;
-            securityGuardOtp.code = this.code;
-            return securityGuardOtp;
+        companion object {
+            fun aSecurityGuardOtp(): Builder {
+                return Builder()
+            }
         }
     }
 }

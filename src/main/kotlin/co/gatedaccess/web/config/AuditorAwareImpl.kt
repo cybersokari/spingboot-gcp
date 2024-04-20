@@ -1,13 +1,10 @@
-package co.gatedaccess.web.config;
+package co.gatedaccess.web.config
 
-import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.AuditorAware
+import java.util.*
 
-import java.util.Date;
-import java.util.Optional;
-
-public class AuditorAwareImpl implements AuditorAware<Date> {
-    @Override
-    public Optional<Date> getCurrentAuditor() {
-        return Optional.of(new Date());
+class AuditorAwareImpl : AuditorAware<Date> {
+    override fun getCurrentAuditor(): Optional<Date> {
+        return Optional.of(Date())
     }
 }

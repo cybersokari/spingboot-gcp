@@ -1,8 +1,12 @@
-package co.gatedaccess.web.data.repo;
+package co.gatedaccess.web.data.repo
 
-import co.gatedaccess.web.data.model.Occupant;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import co.gatedaccess.web.data.model.Occupant
+import org.springframework.data.mongodb.repository.MongoRepository
 
-public interface OccupantRepo extends MongoRepository<Occupant, String> {
-    Occupant findByGuardianCommunity_IdAndFirstNameOrLastNameContainingIgnoreCase(String id, String s1, String s2);
+interface OccupantRepo : MongoRepository<Occupant?, String?> {
+    fun findByGuardianCommunity_IdAndFirstNameOrLastNameContainingIgnoreCase(
+        id: String?,
+        s1: String?,
+        s2: String?
+    ): Occupant?
 }

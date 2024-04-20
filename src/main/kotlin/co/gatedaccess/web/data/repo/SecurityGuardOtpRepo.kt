@@ -1,10 +1,10 @@
-package co.gatedaccess.web.data.repo;
+package co.gatedaccess.web.data.repo
 
-import co.gatedaccess.web.data.model.SecurityGuardOtp;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import co.gatedaccess.web.data.model.SecurityGuardOtp
+import org.springframework.data.mongodb.repository.MongoRepository
 
-public interface SecurityGuardOtpRepo extends MongoRepository<SecurityGuardOtp, String> {
-    SecurityGuardOtp findByCode(String code);
-    SecurityGuardOtp findByCommunityId(String communityId);
-    void deleteByCommunityId(String communityId);
+interface SecurityGuardOtpRepo : MongoRepository<SecurityGuardOtp?, String?> {
+    fun findByCode(code: String?): SecurityGuardOtp?
+    fun findByCommunityId(communityId: String?): SecurityGuardOtp?
+    fun deleteByCommunityId(communityId: String?)
 }

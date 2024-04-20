@@ -1,325 +1,206 @@
-package co.gatedaccess.web.data.model;
+package co.gatedaccess.web.data.model
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mongodb.lang.NonNull;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.mongodb.lang.NonNull
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.mongodb.core.index.Indexed
+import org.springframework.data.mongodb.core.mapping.DBRef
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
+import java.util.*
 
 @Document
-public class Member {
-    @Id
-    String id;
+class Member(
+    @field:Id var id: String?,
+    @field:Field(
+        "first_name"
+    ) @field:JsonProperty(
+        "first_name"
+    ) @field:NonNull @param:NonNull var firstName: String?,
+    @field:Field(
+        "last_name"
+    ) @field:JsonProperty(
+        "last_name"
+    ) @field:NonNull @param:NonNull var lastName: String?,
+    @field:NonNull @param:NonNull var gender: String?,
+    @field:Indexed(
+        unique = true
+    ) @field:NonNull @param:NonNull var email: String?,
+    @field:Indexed(
+        unique = true
+    ) var phone: String?,
+    @field:Field(value = "phone_verified_at") @field:JsonProperty("phone_verified_at") var phoneVerifiedAt: Date?,
+    @field:Field(
+        value = "email_verified_at"
+    ) @field:JsonProperty(
+        "email_verified_at"
+    ) var emailVerifiedAt: Date?,
+    var address: String?,
+    @field:Field(
+        value = "photo_url"
+    ) @field:JsonProperty(
+        "photo_url"
+    ) var photoUrl: String?,
+    @field:DBRef(lazy = true) var community: Community?,
+    @field:DBRef var device: Device?,
+    @field:Field(
+        "invite_code"
+    ) @field:Indexed(
+        unique = true
+    ) @field:JsonProperty(
+        "invite_code"
+    ) @field:NonNull @param:NonNull var inviteCode: String?,
+    @field:CreatedDate @field:Field(
+        "created_at"
+    ) @field:JsonProperty(
+        "created_at"
+    ) var createdAt: Date?,
+    @field:LastModifiedDate @field:Field("last_modified_at") @field:JsonProperty("last_modified_at") var lastModifiedAt: Date?,
+    @field:Field(
+        "google_id"
+    ) @field:JsonProperty(
+        "google_id"
+    ) @field:Indexed(
+        unique = true,
+        sparse = true
+    ) var googleUserId: String?,
+    @field:Field("apple_id") @field:Indexed(
+        unique = true,
+        sparse = true
+    ) @field:JsonProperty("apple_id") var appleUserId: String?
+) {
+    class Builder {
+        private var id: String? = null
+        private var firstName: String? = null
+        private var lastName: String? = null
+        private var gender: String? = null
+        private var email: String? = null
+        private var phone: String? = null
+        private var phoneVerifiedAt: Date? = null
+        private var emailVerifiedAt: Date? = null
+        private var address: String? = null
+        private var photoUrl: String? = null
+        private var community: Community? = null
+        private var device: Device? = null
+        private var inviteCode: String? = null
+        private var createdAt: Date? = null
+        private var lastModifiedAt: Date? = null
+        private var googleUserId: String? = null
+        private var appleUserId: String? = null
 
-    @NonNull
-    @JsonProperty("first_name")
-    @Field("first_name")
-    String firstName;
-
-    @NonNull
-    @JsonProperty("last_name")
-    @Field("last_name")
-    String lastName;
-
-    @NonNull
-    String gender;
-
-    @NonNull
-    @Indexed(unique = true)
-    String email;
-
-    @Indexed(unique = true)
-    String phone;
-
-    @JsonProperty("phone_verified_at")
-    @Field(value = "phone_verified_at")
-    Date phoneVerifiedAt;
-
-    @JsonProperty("email_verified_at")
-    @Field(value = "email_verified_at")
-    Date emailVerifiedAt;
-
-    String address;
-
-    @JsonProperty("photo_url")
-    @Field(value = "photo_url")
-    String photoUrl;
-
-    @DBRef(lazy = true)
-    Community community;
-
-    @DBRef
-    Device device;
-
-    @NonNull
-    @JsonProperty("invite_code")
-    @Indexed(unique = true)
-    @Field("invite_code")
-    String inviteCode;
-
-    @JsonProperty("created_at")
-    @Field("created_at")
-    @CreatedDate
-    Date createdAt;
-
-    @JsonProperty("last_modified_at")
-    @Field("last_modified_at")
-    @LastModifiedDate
-    Date lastModifiedAt;
-
-    @Indexed(unique = true, sparse = true)
-    @JsonProperty("google_id")
-    @Field("google_id")
-    String googleUserId;
-
-    @JsonProperty("apple_id")
-    @Indexed(unique = true, sparse = true)
-    @Field("apple_id")
-    String appleUserId;
-
-    public Member(String id, @NonNull String firstName, @NonNull String lastName, @NonNull String gender, @NonNull String email, String phone, Date phoneVerifiedAt, Date emailVerifiedAt, String address, String photoUrl, Community community, Device device, @NonNull String inviteCode, Date createdAt, Date lastModifiedAt, String googleUserId, String appleUserId) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.gender = gender;
-        this.email = email;
-        this.phone = phone;
-        this.phoneVerifiedAt = phoneVerifiedAt;
-        this.emailVerifiedAt = emailVerifiedAt;
-        this.address = address;
-        this.photoUrl = photoUrl;
-        this.community = community;
-        this.device = device;
-        this.inviteCode = inviteCode;
-        this.createdAt = createdAt;
-        this.lastModifiedAt = lastModifiedAt;
-        this.googleUserId = googleUserId;
-        this.appleUserId = appleUserId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public Date getPhoneVerifiedAt() {
-        return phoneVerifiedAt;
-    }
-
-    public void setPhoneVerifiedAt(Date phoneVerifiedAt) {
-        this.phoneVerifiedAt = phoneVerifiedAt;
-    }
-
-    public Date getEmailVerifiedAt() {
-        return emailVerifiedAt;
-    }
-
-    public void setEmailVerifiedAt(Date emailVerifiedAt) {
-        this.emailVerifiedAt = emailVerifiedAt;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Community getCommunity() {
-        return community;
-    }
-
-    public void setCommunity(Community community) {
-        this.community = community;
-    }
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
-        this.device = device;
-    }
-
-    public String getInviteCode() {
-        return inviteCode;
-    }
-
-    public void setInviteCode(String inviteCode) {
-        this.inviteCode = inviteCode;
-    }
-
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public static final class Builder {
-        private String id;
-        private String firstName;
-        private String lastName;
-        private String gender;
-        private String email;
-        private String phone;
-        private Date phoneVerifiedAt;
-        private Date emailVerifiedAt;
-        private String address;
-        private String photoUrl;
-        private Community community;
-        private Device device;
-        private String inviteCode;
-        private Date createdAt;
-        private Date lastModifiedAt;
-        private String googleUserId;
-        private String appleUserId;
-
-        public Builder() {
+        fun withId(id: String?): Builder {
+            this.id = id
+            return this
         }
 
-        public static Builder aMember() {
-            return new Builder();
+        fun withFirstName(firstName: String?): Builder {
+            this.firstName = firstName
+            return this
         }
 
-        public Builder withId(String id) {
-            this.id = id;
-            return this;
+        fun withLastName(lastName: String?): Builder {
+            this.lastName = lastName
+            return this
         }
 
-        public Builder withFirstName(String firstName) {
-            this.firstName = firstName;
-            return this;
+        fun withGender(gender: String?): Builder {
+            this.gender = gender
+            return this
         }
 
-        public Builder withLastName(String lastName) {
-            this.lastName = lastName;
-            return this;
+        fun withEmail(email: String?): Builder {
+            this.email = email
+            return this
         }
 
-        public Builder withGender(String gender) {
-            this.gender = gender;
-            return this;
+        fun withPhone(phone: String?): Builder {
+            this.phone = phone
+            return this
         }
 
-        public Builder withEmail(String email) {
-            this.email = email;
-            return this;
+        fun withPhoneVerifiedAt(phoneVerifiedAt: Date?): Builder {
+            this.phoneVerifiedAt = phoneVerifiedAt
+            return this
         }
 
-        public Builder withPhone(String phone) {
-            this.phone = phone;
-            return this;
+        fun withEmailVerifiedAt(emailVerifiedAt: Date?): Builder {
+            this.emailVerifiedAt = emailVerifiedAt
+            return this
         }
 
-        public Builder withPhoneVerifiedAt(Date phoneVerifiedAt) {
-            this.phoneVerifiedAt = phoneVerifiedAt;
-            return this;
+        fun withAddress(address: String?): Builder {
+            this.address = address
+            return this
         }
 
-        public Builder withEmailVerifiedAt(Date emailVerifiedAt) {
-            this.emailVerifiedAt = emailVerifiedAt;
-            return this;
+        fun withPhotoUrl(photoUrl: String?): Builder {
+            this.photoUrl = photoUrl
+            return this
         }
 
-        public Builder withAddress(String address) {
-            this.address = address;
-            return this;
+        fun withCommunity(community: Community?): Builder {
+            this.community = community
+            return this
         }
 
-        public Builder withPhotoUrl(String photoUrl) {
-            this.photoUrl = photoUrl;
-            return this;
+        fun withDevice(device: Device?): Builder {
+            this.device = device
+            return this
         }
 
-        public Builder withCommunity(Community community) {
-            this.community = community;
-            return this;
+        fun withInviteCode(inviteCode: String?): Builder {
+            this.inviteCode = inviteCode
+            return this
         }
 
-        public Builder withDevice(Device device) {
-            this.device = device;
-            return this;
+        fun withCreatedAt(createdAt: Date?): Builder {
+            this.createdAt = createdAt
+            return this
         }
 
-        public Builder withInviteCode(String inviteCode) {
-            this.inviteCode = inviteCode;
-            return this;
+        fun withLastModifiedAt(lastModifiedAt: Date?): Builder {
+            this.lastModifiedAt = lastModifiedAt
+            return this
         }
 
-        public Builder withCreatedAt(Date createdAt) {
-            this.createdAt = createdAt;
-            return this;
+        fun withGoogleUserId(googleUserId: String?): Builder {
+            this.googleUserId = googleUserId
+            return this
         }
 
-        public Builder withLastModifiedAt(Date lastModifiedAt) {
-            this.lastModifiedAt = lastModifiedAt;
-            return this;
+        fun withAppleUserId(appleUserId: String?): Builder {
+            this.appleUserId = appleUserId
+            return this
         }
 
-        public Builder withGoogleUserId(String googleUserId) {
-            this.googleUserId = googleUserId;
-            return this;
+        fun build(): Member {
+            return Member(
+                id,
+                firstName,
+                lastName,
+                gender,
+                email,
+                phone,
+                phoneVerifiedAt,
+                emailVerifiedAt,
+                address,
+                photoUrl,
+                community,
+                device,
+                inviteCode,
+                createdAt,
+                lastModifiedAt,
+                googleUserId,
+                appleUserId
+            )
         }
 
-        public Builder withAppleUserId(String appleUserId) {
-            this.appleUserId = appleUserId;
-            return this;
-        }
-
-        public Member build() {
-            return new Member(id, firstName, lastName, gender, email, phone, phoneVerifiedAt, emailVerifiedAt, address, photoUrl, community, device, inviteCode, createdAt, lastModifiedAt, googleUserId, appleUserId);
+        companion object {
+            fun aMember(): Builder {
+                return Builder()
+            }
         }
     }
 }
