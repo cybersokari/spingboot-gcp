@@ -40,3 +40,5 @@ ui-debug.log
 
 ## prod properties
 src/main/resources/application-prod.properties
+## Firebase service account key
+src/main/resources/service-account.json

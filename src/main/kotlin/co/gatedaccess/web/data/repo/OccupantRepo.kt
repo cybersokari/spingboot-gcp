@@ -4,7 +4,7 @@ import co.gatedaccess.web.data.model.Occupant
 import org.springframework.data.mongodb.repository.MongoRepository
 
 interface OccupantRepo : MongoRepository<Occupant?, String?> {
-    fun findByGuardianCommunity_IdAndFirstNameOrLastNameContainingIgnoreCase(
+    fun findByGuardianCommunityIdAndFirstNameOrLastNameContainingIgnoreCase(
         id: String?,
         s1: String?,
         s2: String?

@@ -8,9 +8,9 @@ import java.util.*
 
 @Configuration
 @EnableMongoAuditing(auditorAwareRef = "auditorProvider")
-open class MongoDbConfig {
+class MongoDbConfig {
     @Bean
-    open fun auditorProvider(): AuditorAware<Date> {
+    fun auditorProvider(): AuditorAware<String> {
         return AuditorAwareImpl()
     }
 }

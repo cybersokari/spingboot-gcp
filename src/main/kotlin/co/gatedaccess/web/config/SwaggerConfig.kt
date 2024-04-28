@@ -9,13 +9,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-open class SwaggerConfig {
+class SwaggerConfig {
     private var schemeName: String = "bearerAuth"
     private var bearerFormat: String = "JWT"
     private var scheme: String = "bearer"
 
     @Bean
-    open fun caseOpenAPI(): OpenAPI {
+    fun caseOpenAPI(): OpenAPI {
         return OpenAPI()
             .addSecurityItem(
                 SecurityRequirement()

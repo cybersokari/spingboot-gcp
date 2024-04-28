@@ -1,51 +1,88 @@
 package co.gatedaccess.web.http.interceptor
 
+import co.gatedaccess.web.data.repo.MemberRepo
+import co.gatedaccess.web.data.repo.SecurityGuardRepo
+import com.google.api.core.ApiFuture
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
+import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import javax.annotation.Nonnull
 
 @Component
-class SecureInterceptor : HandlerInterceptor {
-    @Throws(Exception::class)
+class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
+
+
     override fun preHandle(
         request: HttpServletRequest,
         @Nonnull response: HttpServletResponse,
         @Nonnull handler: Any
     ): Boolean {
+        println("Admin interceptor is working")
         var idToken = request.getHeader("Authorization")
 
         if (idToken != null) {
             try {
                 idToken =
                     idToken.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1] //Remove Bearer prefix
+                println("Bearer is: $idToken")
 
+                val userId : String
+                val userType : String
                 // Running on dev, skip token decode
                 if (request.requestURL.toString().startsWith("http://localhost:8080")) {
-                    println("Bearer is: $idToken")
-                    request.setAttribute("user", idToken)
-                    return true
+                    userType = "admin" // Manually update this to any type when running on dev
+                    userId = idToken
+                } else {
+                    val tokenAsync : ApiFuture<FirebaseToken> = FirebaseAuth.getInstance()
+                        .verifyIdTokenAsync(idToken, true)
+                    val firebaseToken = tokenAsync[5, TimeUnit.SECONDS]
+                    userType = firebaseToken.claims["type"].toString()
+                    userId = firebaseToken.uid
                 }
 
-                val tokenAsync = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken, true)
-                val firebaseToken = tokenAsync[5, TimeUnit.SECONDS]
-                request.setAttribute("user", firebaseToken.uid)
+                // Non admins cannot access admin routes
+                if (userType != "admin" && request.requestURI.contains("/admin")){
+                    println("User type : $userType cannot access admin route")
+                    response.sendError(401, "Unauthorized user")
+                    return false
+                }
+
+
+                /** Check if device-id in request header matches the one in db**/
+                val savedDeviceId: String
+                if(arrayOf("admin" ,"member").contains(userType)){
+                    val memberRepo = context.getBean(MemberRepo::class.java)
+                    val member = memberRepo.findById(userId).orElseThrow()!!
+                    request.setAttribute("user", member)
+                    savedDeviceId = member.deviceId!!
+                }else{
+                    val guardRepo = context.getBean(SecurityGuardRepo::class.java)
+                    val guard = guardRepo.findById(userId).orElseThrow()!!
+                    request.setAttribute("user", guard)
+                    savedDeviceId = guard.deviceId!!
+                }
+                request.getHeader("x-device-id").let {
+                    if (it != savedDeviceId){
+                        response.sendError(409, "Unauthorized device")
+                        return false
+                    }
+                }
+                /** End Device ID check**/
+
+                //request.setAttribute("user", userId)
                 return true
             } catch (e: Exception) {
-                log.info(e.localizedMessage)
+                Logger.getLogger(this::class.java.packageName).info(e.localizedMessage)
             }
         }
-
-        response.contentType = "application/json"
-        response.sendError(401, "Unauthorized user")
+        response.sendError(401, "User is not logged in")
         return false
     }
 
-    companion object {
-        private val log: Logger = Logger.getLogger(SecureInterceptor::class.java.simpleName)
-    }
 }

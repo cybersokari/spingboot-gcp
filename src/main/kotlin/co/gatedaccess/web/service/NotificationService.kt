@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class NotificationService {
-    fun notifyUserDeviceWhenPossible(title: String?, message: String?, device: Device) {
+    fun notifyUserDeviceWhenPossible(title: String, message: String, device: Device, data: Map<String,String>) {
         //Check if user has granted notification permission on this device
         if (device.fcmToken == null) return
 
@@ -16,9 +16,10 @@ class NotificationService {
             .setTitle(title)
             .setBody(message).build()
         val fcmMessage = Message.builder()
+            .putAllData(data)
             .setToken(device.fcmToken)
             .setNotification(notification).build()
 
-        FirebaseMessaging.getInstance().sendAsync(fcmMessage)
+        FirebaseMessaging.getInstance().send(fcmMessage)
     }
 }

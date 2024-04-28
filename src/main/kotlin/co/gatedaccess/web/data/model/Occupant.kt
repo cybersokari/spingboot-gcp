@@ -12,16 +12,16 @@ import java.util.*
 
 @Document
 class Occupant(
-    @field:Id var id: String,
-    @field:Field(
+    @Id var id: String,
+    @Field(
         "first_name"
     ) @field:Indexed var firstName: String,
-    @field:Field(
+    @Field(
         "last_name"
-    ) @field:Indexed var lastName: String,
+    ) @Indexed var lastName: String,
     var phone: String,
     var gender: String,
-    @field:DBRef(
+    @DBRef(
         lazy = true
     ) @field:NonNull @param:NonNull var guardian: Member,
     @field:Field(

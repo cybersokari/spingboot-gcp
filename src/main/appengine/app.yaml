@@ -1,11 +1,9 @@
 runtime: java17
 env: standard
-#entrypoint: java -jar gated_access_service-0.0.1-SNAPSHOT.jar
 instance_class: F1
 
 automatic_scaling:
   target_cpu_utilization: 0.9
-  min_instances: 1
   max_instances: 1
   min_pending_latency: 1000ms
   max_pending_latency: automatic
