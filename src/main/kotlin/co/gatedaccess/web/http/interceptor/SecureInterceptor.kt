@@ -75,7 +75,6 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
                 }
                 /** End Device ID check**/
 
-                //request.setAttribute("user", userId)
                 return true
             } catch (e: Exception) {
                 Logger.getLogger(this::class.java.packageName).info(e.localizedMessage)

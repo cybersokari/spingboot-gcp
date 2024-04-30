@@ -1,12 +1,13 @@
 package co.gatedaccess.web.http.body
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import jakarta.validation.constraints.NotBlank
 
-//@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class) Does not work in data class
-data class LoginBody(
-    @field:NotBlank val otp: String,
-    @field:NotBlank val ref: String,
-    @field:NotBlank @JsonProperty("device_id") val deviceId: String,
-    @field:NotBlank @JsonProperty("device_name")  val deviceName: String
-)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+class LoginBody {
+    @field:NotBlank(message = "Otp cannot be blank") lateinit var otp: String
+    @field:NotBlank(message = "ref cannot be blank") lateinit var ref: String
+    @field:NotBlank(message = "deviceId cannot be blank") lateinit var deviceId: String
+    @field:NotBlank(message = "deviceName cannot be blank") lateinit var deviceName: String
+}

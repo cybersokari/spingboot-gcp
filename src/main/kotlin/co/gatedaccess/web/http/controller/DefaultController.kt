@@ -3,8 +3,8 @@ package co.gatedaccess.web.http.controller
 import co.gatedaccess.web.data.model.UserType
 import co.gatedaccess.web.http.body.LoginBody
 import co.gatedaccess.web.http.body.OtpRefBody
-import co.gatedaccess.web.service.CommunityService
 import co.gatedaccess.web.service.UserService
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -37,6 +37,7 @@ class DefaultController: BaseController() {
         content = [Content(schema = Schema(name = "message", implementation = String::class))]
     )
 
+    @Operation(summary = "Log in User with phone number")
     @GetMapping("/user/login")
     fun loginUserWithPhone(
         @RequestParam phone: String,
@@ -53,6 +54,7 @@ class DefaultController: BaseController() {
         description = "Internal server error",
         responseCode = "500"
     )
+    @Operation(summary = "Verify login OTP for user")
     @PostMapping("/user/login/verify")
     fun verifyUserPhoneOtp(
         @RequestBody @Valid body: LoginBody
@@ -70,6 +72,7 @@ class DefaultController: BaseController() {
         responseCode = "404",
         content = [Content(schema = Schema(implementation = String::class))]
     )
+    @Operation(summary = "Log in Security guard with phone number")
     @GetMapping("/guard/login")
     fun loginSecurityGuard(
         @RequestParam phone: String,
@@ -82,10 +85,12 @@ class DefaultController: BaseController() {
         responseCode = "200",
         content = [Content(schema = Schema(implementation = String::class))]
     )
+    @Operation(summary = "Verify login OTP for Security guard")
     @PostMapping("/guard/login/verify")
     fun verifyGuardPhoneOtp(
         @Valid @RequestBody body: LoginBody
     ): ResponseEntity<*> {
         return userService.verifyPhoneOtp(body, UserType.Guard)
     }
+
 }
