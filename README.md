@@ -15,19 +15,10 @@ This project contains 2 profiles:
 - dev
 - prod
 
-To run the desired flavor either use the launch configuration in VSCode/Android Studio or use the following commands:
-
-### Run dev profile on your machine
-```sh
-$  mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-### Package prod profile for deployment
-```sh
-# Package prod profile for deployment
-$ mvn -B package --file pom.xml -DskipTests
-```
+To run the desired profile use `mvn spring-boot:run -P dev|prod`
 
 ## Setup MongoDB
+
 
 
 ### Springboot application.properties for production environment
@@ -39,22 +30,35 @@ spring.application.name=gated_access_service
 spring.data.mongodb.auto-index-creation=true
 spring.data.mongodb.uri=string
 springdoc.api-docs.enabled=false
-# Google auth
-google.client.id=string
 ```
 
-## Setup Google Authentication for Android (Optional)
-
-If you want to login with Google on debug builds, then you need to add your SHA-1 debug key to [Firebase Developer Console][firebase_console_settings]
-
-Open a terminal and run the keytool utility provided with Java to get the SHA-1 fingerprint of the certificate.
-
-
-The keytool utility prompts you to enter a password for the keystore. The default password for the debug keystore is android. The keytool then prints the fingerprint to the terminal.
+### Packaging for deployment
+Run
+```sh
+$ mvn clean package
+```
+The following file are required in the `src/main/resources` directory, but are not available in Git for security purposes
+1. `application-prod.properties` file for data url and production configs
+2. `service-account.json` file for Firebase Admin SDK
 
 ## Creating Routes
 
-Routes reside in the `src/main/***/RouteController`
+Routes can be found in `src/main/***/http/controller`
+There is a `BaseController.kt` abstract class that every `@RestController` can must inherit.
+
+### Logging
+This app uses [Logback](https://logback.qos.ch/manual) for logging. You can find the config in `/src/main/resources` folder
+When running in `prod` Logs are written to a file(s) auto created by Logback in the `/opts/spring/logs` directory of the machine.
+Use ``sudo chmod -R o+w /opts/spring/logs`` to grant write permission to the directory. 
+
+Our current cloud setup uses Google's Ops Agent for collecting telemetry. You will need to install Gcloud CLI for updating the 
+config when setting up a new GCP VM
+
+#### Deploying custom config for Google's Ops Agent
+Our custom Ops Agent config can be found in the ``config.yaml`` file. Use the following command to Update the Ops Agent config  when setting up a new VM
+```shell 
+$ gcloud compute scp config.yaml gated-vm:/etc/google-cloud-ops-agent/config.yaml
+```
 
 ## Running Tests 🧪
 
@@ -66,5 +70,3 @@ Routes reside in the `src/main/***/RouteController`
 ---
 
 ## Folder Architecture 🚀
-
-### Add

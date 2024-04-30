@@ -16,3 +16,5 @@
 # Target directory for maven builds
 target/
 .github
+
+config.yaml

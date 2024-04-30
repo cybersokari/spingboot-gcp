@@ -1,18 +1,16 @@
 package co.gatedaccess.web.data.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.mongodb.lang.NonNull
 import jakarta.validation.constraints.NotBlank
 import org.springframework.data.mongodb.core.mapping.Field
 
-class JoinRequestId {
-    @NotBlank
-    @NonNull
+data class JoinRequestId (
+
+    @field:NotBlank
     @Field("community_id")
     @JsonProperty("community_id")
-    lateinit var communityId: String
+    var communityId: String,
 
-    @NotBlank
-    @NonNull
-    lateinit var phone: String
-}
+    @field:NotBlank
+    var phone: String
+)

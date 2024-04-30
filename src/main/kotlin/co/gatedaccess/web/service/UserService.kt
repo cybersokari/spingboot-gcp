@@ -12,17 +12,20 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestClientResponseException
 import java.time.ZoneId
 import java.util.*
 
 
 @Service
 class UserService {
+    @Autowired
+    private lateinit var restTemplateBuilder: RestTemplateBuilder
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
     @Autowired
     lateinit var memberRepo: MemberRepo
@@ -41,7 +44,6 @@ class UserService {
 
 
     fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
-
 
         if(userType == UserType.Member){
             memberRepo.findByPhoneAndCommunityIsNotNull(phone)
@@ -70,9 +72,17 @@ class UserService {
                 h.contentType = MediaType.APPLICATION_JSON
             }
         }.build()
+
         try {
-            val result = client.post().body(requestBody.toString())
-                .retrieve().body(Map::class.java)!!
+
+            val result = client.post()
+                .body(requestBody.toString())
+                .retrieve().toEntity(Map::class.java).body!!
+
+            // Log error when Termii returns any other status
+            result["status"].takeIf { it != 200 }.let {
+                logger.error("termii API status: $it")
+            }
 
             val ref = result["pinId"] as String
             val futureDateTime = Date().toInstant()
@@ -84,7 +94,7 @@ class UserService {
 //                memberPhoneOtpRepo.save(memberPhoneOtp)
 
             return ResponseEntity.ok().body(OtpRefBody(ref, phone, expiry))
-        } catch (e: RestClientResponseException) {
+        } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return ResponseEntity.internalServerError().body(e.localizedMessage)
         }
@@ -108,9 +118,12 @@ class UserService {
         }.build()
         try {
             val result = client.post().body(requestBody.toString())
-                .retrieve().body(Map::class.java)!!
+                .retrieve().toEntity(Map::class.java)
 
-            val phone = result["msisdn"] as String
+            if(result.statusCode != HttpStatus.OK)
+                return ResponseEntity.badRequest().body("Code already confirmed")
+
+            val phone = result.body!!["msisdn"] as String
 
             val userId : String
             val previousDeviceId: String?
@@ -155,8 +168,6 @@ class UserService {
                 guard.lastLoginAt = Date()
                 guardRepo.save(guard)
             }
-
-
 
 
             val firebaseAuth = FirebaseAuth.getInstance()

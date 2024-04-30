@@ -17,7 +17,7 @@ import java.util.*
 class JoinRequest {
 
     @Id
-    @NotNull
+    @field:NotNull
     var id: JoinRequestId? = null
 
     @NonNull
@@ -25,18 +25,18 @@ class JoinRequest {
     @JsonIgnore
     var referrerId: String? = null
 
-    @NonNull
+    @field:NonNull
     @Field("first_name")
-    @NotBlank(message = "First name cannot be a null")
+    @field:NotBlank(message = "First name cannot be a null")
     var firstName: String? = null
 
     @NonNull
     @Field("last_name")
-    @NotBlank(message = "Last name cannot be a null")
+    @field:NotBlank(message = "Last name cannot be a null")
     var lastName: String? = null
 
-    @NotNull
-    @NonNull
+    @field:NotNull
+    @field:NonNull
     var gender: Gender? = null
 
     var address: String? = null

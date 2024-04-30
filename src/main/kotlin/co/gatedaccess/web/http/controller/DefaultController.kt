@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.*
 class DefaultController: BaseController() {
 
     @Autowired
-    lateinit var communityService: CommunityService
-
-    @Autowired
     lateinit var userService: UserService
 
     /**
@@ -58,7 +55,7 @@ class DefaultController: BaseController() {
     )
     @PostMapping("/user/login/verify")
     fun verifyUserPhoneOtp(
-        @Valid @RequestBody body: LoginBody
+        @RequestBody @Valid body: LoginBody
     ): ResponseEntity<*> {
         return userService.verifyPhoneOtp(body, UserType.Member)
     }

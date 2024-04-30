@@ -1,0 +1,53 @@
+<configuration>
+    <springProfile name="prod">
+        <!-- Define a RollingFileAppender for logging to a file -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<!--            <file>/opt/spring/logs/spring.log</file>-->
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- Set the directory where logs will be stored -->
+                <fileNamePattern>/opt/spring/logs/spring.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <!-- Set the maximum number of archived log files to keep (optional) -->
+                <maxHistory>30</maxHistory>
+                <!-- Set the total size of archived log files (optional) -->
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%file:%line] - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- Define a ConsoleAppender for logging to the console -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] - %yellow(%msg%n)</pattern>
+            </encoder>
+        </appender>
+
+        <!-- Set up loggers with different log levels and appenders -->
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- Set up loggers with different log levels and appenders -->
+        <logger name="co.gatedaccess.web" level="WARN">
+            <appender-ref ref="FILE"/>
+        </logger>
+    </springProfile>
+
+
+    <springProfile name="dev">
+        <!-- Define a ConsoleAppender for logging to the console -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] - %yellow(%msg%n)</pattern>
+            </encoder>
+        </appender>
+
+        <!-- Set up loggers with different log levels and appenders -->
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

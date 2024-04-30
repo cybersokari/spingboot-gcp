@@ -9,8 +9,6 @@ import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
-import java.io.FileInputStream
-
 
 @SpringBootApplication
 @EnableMongoRepositories("co.gatedaccess.web.data.repo")
@@ -23,7 +21,7 @@ class App {
             val ls = ApplicationListener<ApplicationStartedEvent> {
 
                 val serviceAccount =
-                    FileInputStream(ClassPathResource("service-account.json").file)
+                    ClassPathResource("service-account.json").inputStream
                 val options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build()

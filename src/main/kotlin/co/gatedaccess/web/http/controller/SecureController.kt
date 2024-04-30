@@ -26,6 +26,7 @@ class SecureController : BaseController() {
         responseCode = "208",
         content = [Content(schema = Schema(implementation = String::class))]
     )
+
     @PostMapping("/community/invite")
     fun requestToJoinCommunity(
         @RequestHeader("x-device-id") deviceId: String,

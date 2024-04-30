@@ -7,6 +7,7 @@ import co.gatedaccess.web.service.CommunityService
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -33,7 +34,7 @@ class AdminController : BaseController() {
     fun handleCommunityJoinRequest(
         @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
-        @RequestBody requestId: JoinRequestId,
+        @RequestBody @Valid requestId: JoinRequestId,
         @PathVariable accept: Boolean
     ): ResponseEntity<*> {
         return communityService.handleCommunityJoinRequest(user.id!!, requestId, accept)
@@ -80,24 +81,24 @@ class AdminController : BaseController() {
         return communityService.removeSecurityGuardFromCommunity(guardId, user.id!!)
     }
 
-    @PostMapping("{admin_id}")
-    fun addAdmin(
-        @RequestHeader("x-device-id") deviceId: String,
-        @RequestAttribute("user") userId: String,
-        @PathVariable("admin_id") adminIdToAdd: String
-    ): ResponseEntity<*> {
-        println("Admin controller is working")
-        return ResponseEntity.noContent().build<Any>()
-    }
-
-    @DeleteMapping("{admin_id}")
-    fun removeAdmin(
-        @RequestHeader("x-device-id") deviceId: String,
-        @RequestAttribute("user") userId: String,
-        @PathVariable("admin_id") adminIdToDelete: String,
-    ): ResponseEntity<*> {
-        println("Admin controller is working")
-        return ResponseEntity.noContent().build<Any>()
-    }
+//    @PostMapping("{admin_id}")
+//    fun addAdmin(
+//        @RequestHeader("x-device-id") deviceId: String,
+//        @RequestAttribute("user") userId: String,
+//        @PathVariable("admin_id") adminIdToAdd: String
+//    ): ResponseEntity<*> {
+//        println("Admin controller is working")
+//        return ResponseEntity.noContent().build<Any>()
+//    }
+//
+//    @DeleteMapping("{admin_id}")
+//    fun removeAdmin(
+//        @RequestHeader("x-device-id") deviceId: String,
+//        @RequestAttribute("user") userId: String,
+//        @PathVariable("admin_id") adminIdToDelete: String,
+//    ): ResponseEntity<*> {
+//        println("Admin controller is working")
+//        return ResponseEntity.noContent().build<Any>()
+//    }
 
 }
