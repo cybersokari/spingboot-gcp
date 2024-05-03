@@ -4,26 +4,25 @@ import co.gatedaccess.web.http.body.OtpRefBody
 import com.google.gson.JsonObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.StandardEnvironment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import java.time.ZoneId
 import java.util.*
 
 
-@Component
+@Service
 class SmsOtpComponent {
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    @Value("\${termii.api.key}")
-    lateinit var termiiApiKey: String
+    val environment = StandardEnvironment()
 
-    fun sendOtp(phone: String): OtpRefBody?{
+    fun sendOtp(phone: String): OtpRefBody? {
 
         val requestBody = JsonObject()
-        requestBody.addProperty("api_key", termiiApiKey)
+        requestBody.addProperty("api_key", environment.getProperty("termii.api.key"))
         requestBody.addProperty("from", "N-Alert")
         requestBody.addProperty("to", phone)
         requestBody.addProperty("message_type", "NUMERIC")
@@ -61,16 +60,16 @@ class SmsOtpComponent {
             val expiry = Date.from(futureDateTime.atZone(ZoneId.systemDefault()).toInstant())
 
             return OtpRefBody(ref, phone, expiry)
-        }catch (e:Exception){
+        } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return null
         }
 
     }
 
-    fun verifyOtp(otp: String, ref: String): String?{
+    fun verifyOtp(otp: String, ref: String): String? {
         val requestBody = JsonObject()
-        requestBody.addProperty("api_key", termiiApiKey)
+        requestBody.addProperty("api_key", environment.getProperty("termii.api.key"))
         requestBody.addProperty("pin_id", ref)
         requestBody.addProperty("pin", otp)
 
@@ -88,7 +87,7 @@ class SmsOtpComponent {
                 return null
 
             return result.body!!["msisdn"] as String
-        }catch (e: Exception){
+        } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return null
         }

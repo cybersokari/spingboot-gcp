@@ -17,7 +17,6 @@ import javax.annotation.Nonnull
 @Component
 class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
 
-
     override fun preHandle(
         request: HttpServletRequest,
         @Nonnull response: HttpServletResponse,

@@ -58,7 +58,7 @@ class AdminController : BaseController() {
     fun addSecurityGuard(
         @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
-        @RequestBody guardData: GuardInputBody,
+        @RequestBody @Valid guardData: GuardInputBody,
     ): ResponseEntity<*> {
         return communityService.addSecurityGuardToCommunity(guardData, user.id!!)
     }

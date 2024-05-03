@@ -7,10 +7,25 @@ After setting up the vm, use the Google CLI log into the vm with SSH
 ```shell
 $ gcloud compute ssh gated-vm
 ```
-### Install Java
+
 ```shell
-$ sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
+$ docker run -ti --rm -p 80:80 gcr.io/gatedaccessdev/cove-vm
+
+$ docker run -ti --rm -p 80:80 gcr.io/gatedaccessdev/cove-vm -v ~/.config:/root/.config
 ```
+
+### Add tag to Compute Engine VM
+```shell
+$ gcloud compute instances add-tags [vm-name] --tags=[tag-name]  
+```
+### Create Firewall rule for access to the VM
+```shell
+gcloud compute firewall-rules create sok-rule \     
+  --source-ranges=0.0.0.0/0 \
+  --target-tags=[vm-tag-name] \
+  --allow=tcp:8080
+```
+
 ### Install Ops Agent on the VM
 Use the Google Doc guide to install Ops agent. After that, use the following command to grant write permissions for the deployment 
 of a custom Ops Agent `config.yaml` file that can be found in this repo.
@@ -44,6 +59,8 @@ $ sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
 ```shell
 $ kill $(pgrep java)
 ```
+
+
 
 ## Find processes using a port
 ```shell
