@@ -29,10 +29,9 @@ Repositories can be found in `src/main/***/repository`
 
 ### Logging
 This app uses [Logback](https://logback.qos.ch/manual) for logging. You can find the config in `/src/main/resources` folder
-When running in `prod` Logs are sent to [Cloud Logging](https://cloud.google.com/logging), `dev` writes to console
+When running in `prod` Logs are sent to [Cloud Logging](https://cloud.google.com/logging) via [Logback Cloud logging plugin](https://cloud.google.com/logging/docs/setup/java), `dev` writes to console
 
-Our current cloud setup uses Google's Ops Agent for collecting telemetry. The config.yaml in this repo is used to update the Ops Agent config. 
-Follow the steps in the Google Documentation if you ever need to update the configuration
+Use this [setup to configure Docker](https://docs.docker.com/config/containers/logging/gcplogs/) to work with Cloud Logging when moving to a new VM
 
 #### Deploying custom config for Google's Ops Agent
 Our custom Ops Agent config can be found in the ``config.yaml`` file. Use the following command to Update the Ops Agent config  when setting up a new VM

@@ -1,35 +1,34 @@
 <configuration>
     <springProfile name="prod">
-        <!-- Define a ConsoleAppender for logging to the console -->
-        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] - %yellow(%msg%n)</pattern>
-            </encoder>
+        <!-- Define a Cloud Logging appender -->
+        <appender name="CLOUD" class="com.google.cloud.logging.logback.LoggingAppender">
+            <!-- Optional : filter logs at or above a level -->
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>INFO</level>
+            </filter>
+            <flushLevel>WARN</flushLevel> <!-- Optional : default ERROR -->
         </appender>
-
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
+        <root level="WARN">
+            <appender-ref ref="CLOUD"/>
         </root>
-
-        <include resource="org/springframework/cloud/gcp/logging/logback-appender.xml" />
-        <root level="INFO">
-            <appender-ref ref="STACKDRIVER" />
-        </root>
-
     </springProfile>
 
     <springProfile name="dev">
         <!-- Define a ConsoleAppender for logging to the console -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] - %yellow(%msg%n)</pattern>
+                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] -
+                    %yellow(%msg%n)
+                </pattern>
             </encoder>
         </appender>
 
-        <!-- Set up loggers with different log levels and appenders -->
+        <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="CONSOLE"/>
+        </appender>
 
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC"/>
         </root>
     </springProfile>
 </configuration>

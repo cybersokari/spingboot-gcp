@@ -34,7 +34,6 @@ class UserService {
 
 
     fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
-
         if (userType == UserType.Member) {
             memberRepo.findByPhoneAndCommunityIsNotNull(phone)
                 ?: return ResponseEntity.badRequest().body("$phone is not a member of a community")

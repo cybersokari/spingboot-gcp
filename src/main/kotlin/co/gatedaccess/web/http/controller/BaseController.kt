@@ -9,7 +9,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingRequestHeaderException
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.NoHandlerFoundException
 
@@ -37,9 +36,8 @@ abstract class BaseController {
     @ExceptionHandler(NoHandlerFoundException::class)
     fun handleNoHandlerFoundException(
         ex: NoHandlerFoundException?, httpServletRequest: HttpServletRequest?
-    ): ResponseEntity<*> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON)
-            .body<String>("Resource not found")
+    ): ResponseEntity<Any> {
+        return ResponseEntity.notFound().build()
     }
 
 }

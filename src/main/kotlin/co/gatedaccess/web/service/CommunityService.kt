@@ -6,6 +6,7 @@ import co.gatedaccess.web.http.body.GuardInputBody
 import co.gatedaccess.web.util.ApiResponseMessage
 import co.gatedaccess.web.util.CodeGenerator
 import com.google.firebase.auth.FirebaseAuth
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
@@ -13,8 +14,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.NoSuchElementException
 
 @Component
@@ -38,7 +37,7 @@ class CommunityService {
     @Autowired
     private val codeGenerator: CodeGenerator? = null
 
-    private val logger = Logger.getLogger(this::class.simpleName)
+    private val logger = LoggerFactory.getLogger(this::class.simpleName)
 
 
 //    @Transactional
@@ -201,7 +200,7 @@ class CommunityService {
             }
 
         }catch (e: NoSuchElementException){
-            logger.warning( e.localizedMessage)
+            logger.warn( e.localizedMessage)
             return ResponseEntity.badRequest().body(e.localizedMessage)
         }
 

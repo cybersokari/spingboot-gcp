@@ -7,11 +7,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 import javax.annotation.Nonnull
 
 @Component
@@ -76,7 +76,7 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
 
                 return true
             } catch (e: Exception) {
-                Logger.getLogger(this::class.java.packageName).info(e.localizedMessage)
+                LoggerFactory.getLogger(this::class.java.packageName).info(e.localizedMessage)
             }
         }
         response.sendError(401, "User is not logged in")
