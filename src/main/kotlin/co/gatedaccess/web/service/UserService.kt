@@ -1,6 +1,6 @@
 package co.gatedaccess.web.service
 
-import co.gatedaccess.web.component.SmsOtpComponent
+import co.gatedaccess.web.component.SmsOtpService
 import co.gatedaccess.web.data.model.UserType
 import co.gatedaccess.web.data.repo.MemberRepo
 import co.gatedaccess.web.data.repo.SecurityGuardRepo
@@ -30,7 +30,7 @@ class UserService {
     private val codeGenerator: CodeGenerator? = null
 
     @Autowired
-    lateinit var smsOtp: SmsOtpComponent
+    lateinit var smsOtp: SmsOtpService
 
 
     fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
@@ -51,7 +51,6 @@ class UserService {
         }
 
     }
-
 
     /**
      * Verify phone OTP for all user types

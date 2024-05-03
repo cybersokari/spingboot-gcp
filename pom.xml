@@ -34,10 +34,6 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter-secretmanager</artifactId>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>com.google.cloud</groupId>-->
-        <!--            <artifactId>spring-cloud-gcp-secretmanager</artifactId>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -53,22 +49,29 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.2.0</version>
             <exclusions>
-                <!--                https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
+                <!--  Excluding old version due to exploit-->
+                <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
                 <exclusion>
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
+                <!--  Excluding old version due to exploit-->
+                <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
                 <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-codec-http</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--  Using a later version due to exploit-->
+        <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>32.1.0-jre</version>
         </dependency>
+        <!--  Using a later version due to exploit-->
+        <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http</artifactId>
@@ -139,9 +142,6 @@
                                 <filters>
                                     <filter>
                                         <glob>**/service-account.json</glob>
-                                    </filter>
-                                    <filter>
-                                        <glob>**/vm-service-key.json</glob>
                                     </filter>
                                 </filters>
                             </configuration>

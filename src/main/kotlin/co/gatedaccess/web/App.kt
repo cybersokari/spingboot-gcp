@@ -1,5 +1,6 @@
 package co.gatedaccess.web
 
+import co.gatedaccess.web.component.SmsOtpService
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
@@ -10,74 +11,50 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.context.ApplicationListener
-import org.springframework.core.env.ConfigurableEnvironment
-import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
-import org.springframework.core.io.ClassPathResource
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
-import java.io.InputStream
-import java.util.*
-
 
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
 @EnableMongoRepositories("co.gatedaccess.web.data.repo")
-class App {
+class App
 
-    companion object {
+fun main(args: Array<String>) {
+    val app = SpringApplication(App::class.java)
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val app = SpringApplication(App::class.java)
+    val startedEvent = ApplicationListener<ApplicationStartedEvent> { event ->
 
-            val startedEvent = ApplicationListener<ApplicationStartedEvent> {
+        val profiles = StandardEnvironment().activeProfiles
+        val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"
 
-                val profiles = StandardEnvironment().activeProfiles
-                val profile = if (profiles.isNotEmpty()) {
-                    profiles[0]
-                } else {
-                    "prod"
-                }
+        if (!runningOnProd) {
+            // Init Firebase with Application default credentials from Gcloud or Firebase CLI
+            FirebaseApp.initializeApp()
+        } else {
 
-                val serviceAccountStream: InputStream
-                if (profile == "dev") {
-                    serviceAccountStream = ClassPathResource("service-account.json").inputStream
-                } else {
+            // Get secrets from GCP
+            val gcpProjectId = "gatedaccessdev"
+            val firebaseSecret = SecretVersionName.of(gcpProjectId, "firebase-service-account", "1")
+            val termiiSecret = SecretVersionName.of(gcpProjectId, "termii-key", "1")
 
-                    // Get secrets from GCP
-                    val gcpProjectId = "gatedaccessdev"
-                    val firebaseSecret = SecretVersionName.of(gcpProjectId, "firebase-service-account", "1")
-                    val termiiSecret = SecretVersionName.of(gcpProjectId, "termii-key", "1")
-
-                    // Auto-closable
-                    SecretManagerServiceClient.create().use {
-                        serviceAccountStream =
-                            it.accessSecretVersion(firebaseSecret).payload.data.toByteArray().inputStream()
-                        val termiiSecretPayload =
-                            it.accessSecretVersion(termiiSecret).payload.data.toByteArray().inputStream()
-
-                        val environment: ConfigurableEnvironment = StandardEnvironment()
-                        val propertySources = environment.propertySources
-                        val myMap: MutableMap<String, Any> = HashMap()
-                        myMap["termii.api.key"] = String(termiiSecretPayload.readAllBytes())
-                        propertySources.addFirst(MapPropertySource("MY_MAP", myMap))
-                        // Set Secret to application properties
-//                        val props = Properties()
-//                        println("Termii Secret: ${String(termiiSecretPayload.readAllBytes())}")
-//                        props.setProperty("termii.api.key", String(termiiSecretPayload.readAllBytes()))
-//                        app.setDefaultProperties(props)
-                    }
-
-                }
-                // Init Firebase only when app is started
+            // Auto-closable
+            SecretManagerServiceClient.create().use {
+                // Set Termii API Key to service
+                val termiiSecretPayload =
+                    it.accessSecretVersion(termiiSecret).payload.data.toByteArray().inputStream()
+                val smsOtpService = event.applicationContext.getBean(SmsOtpService::class.java)
+                smsOtpService.termiiApiKey = String(termiiSecretPayload.readAllBytes())
+                // Init Firebase with service account
+                val serviceAccountStream =
+                    it.accessSecretVersion(firebaseSecret).payload.data.toByteArray().inputStream()
                 val options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
                     .build()
                 FirebaseApp.initializeApp(options)
             }
-
-            app.addListeners(startedEvent)
-            app.run(*args)
         }
+
     }
 
+    app.addListeners(startedEvent)
+    app.run(*args)
 }

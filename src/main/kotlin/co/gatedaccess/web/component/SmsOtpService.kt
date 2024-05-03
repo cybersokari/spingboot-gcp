@@ -4,7 +4,6 @@ import co.gatedaccess.web.http.body.OtpRefBody
 import com.google.gson.JsonObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.core.env.StandardEnvironment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -14,15 +13,16 @@ import java.util.*
 
 
 @Service
-class SmsOtpComponent {
+class SmsOtpService {
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    val environment = StandardEnvironment()
+    // Set in ApplicationStartup
+    var termiiApiKey: String? = null
 
     fun sendOtp(phone: String): OtpRefBody? {
 
         val requestBody = JsonObject()
-        requestBody.addProperty("api_key", environment.getProperty("termii.api.key"))
+        requestBody.addProperty("api_key", termiiApiKey)
         requestBody.addProperty("from", "N-Alert")
         requestBody.addProperty("to", phone)
         requestBody.addProperty("message_type", "NUMERIC")
@@ -69,7 +69,7 @@ class SmsOtpComponent {
 
     fun verifyOtp(otp: String, ref: String): String? {
         val requestBody = JsonObject()
-        requestBody.addProperty("api_key", environment.getProperty("termii.api.key"))
+        requestBody.addProperty("api_key", termiiApiKey)
         requestBody.addProperty("pin_id", ref)
         requestBody.addProperty("pin", otp)
 

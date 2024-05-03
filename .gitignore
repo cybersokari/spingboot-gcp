@@ -38,5 +38,3 @@ firebase.json
 storage.rules
 ui-debug.log
 
-## Firebase service account key
-src/main/resources/service-account.json

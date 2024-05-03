@@ -17,13 +17,10 @@ class MongoConfig : AbstractMongoClientConfiguration() {
 
     override fun mongoClient(): MongoClient {
         val profiles = StandardEnvironment().activeProfiles
-        val profile = if (profiles.isNotEmpty()) {
-            profiles[0]
-        } else {
-            LoggerFactory.getLogger(this::class.java.packageName).warn("No profile specified, defaulting to 'prod'")
-            "prod"
-        }
-        if (profile == "prod"){
+        // profiles is usually empty at this point, when running in production
+        val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"
+
+        if (runningOnProd){
             //Auto-closable client
             SecretManagerServiceClient.create().use {
                 val gcpProjectId = "gatedaccessdev"
