@@ -1,4 +1,4 @@
-# GatedAccess Web Service Repo
+# Cove Web Service Repo
 
 ![coverage][coverage_badge]
 ## Before diving in 🙌
@@ -40,13 +40,19 @@ Our custom Ops Agent config can be found in the ``config.yaml`` file. Use the fo
 $ gcloud compute scp config.yaml gated-vm:/etc/google-cloud-ops-agent/config.yaml
 ```
 
+## Secrets Management 🔒
+We use Google Cloud Secrets Manager to manage secrets (API keys, passwords, database URLs, etc.)
+
 ## Deployments
 
 The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes
 
 ### Publishing a new version to Google Artifact Registry
-You will need to have write access to our Google Artifact Registry.
-Run the ``mvn clean package`` command to publish the new version to Google Artifact Registry
+You will need to have write access to our Google Artifact Registry on Google Cloud Platform and install docker on your machine.
+1. Run ``gcloud auth configure-docker us-central1-docker.pkg.dev`` to enable [Google Cloud CLI to authenticate requests to Artifact Registry](https://cloud.google.com/artifact-registry/docs/docker/store-docker-container-images#linux).
+2. Run the ``mvn clean package`` command to publish the new version to Google Artifact Registry. The required repository path is
+configured in the [Jib Maven plugin](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin) in pom.xml file
+
 
 ### Updating the container image with the new image version
 It takes the Compute Engine VM 20 to 30 seconds to update the container image. So we try not to run the following command

@@ -16,7 +16,7 @@
     <properties>
         <java.version>17</java.version>
         <kotlin.version>1.9.23</kotlin.version>
-        <image.path>gcr.io/gatedaccessdev/cove-vm</image.path>
+        <image.path>us-central1-docker.pkg.dev/gatedaccessdev/cove-repo/vm</image.path>
     </properties>
     <dependencyManagement>
         <dependencies>

@@ -7,8 +7,9 @@ $ gcloud compute ssh [vm-name]
 
 Pull docker image from Artifact Registry
 ```shell
-$ docker pull gcr.io/[project-id]/[image-name]
+$ docker pull [host-name]/[project-id]/[repository]/[image-name]
 ```
+
 Run a container on your machine 
 ```shell
 $ docker run -ti --rm -p 8080:80 gcr.io/[project-id]/[image-name]
