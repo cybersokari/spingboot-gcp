@@ -2,8 +2,6 @@ package co.gatedaccess.web.http.controller
 
 import com.mongodb.lang.NonNull
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException

@@ -129,7 +129,9 @@
                     </execution>
                 </executions>
                 <configuration>
-<!--                    <from>eclipse-temurin:17-jre</from>-->
+                    <from>
+                        <image>eclipse-temurin:17-jre@sha256:15b50cf95210242511c17e1ec8281fd691ad7d34f163c250a21298943d65de87</image>
+                    </from>
                     <to>
                         <image>${image.path}</image>
                         <tags>
