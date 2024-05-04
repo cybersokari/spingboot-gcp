@@ -18,23 +18,23 @@ class SecureController : BaseController() {
     @Autowired
     lateinit var communityService: CommunityService
 
-//    @Autowired
-//    lateinit var userService: UserService
-
     @ApiResponse(
         description = "Request already sent",
         responseCode = "208",
         content = [Content(schema = Schema(implementation = String::class))]
     )
-
+    @ApiResponse(
+        description = "Request sent",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = String::class))]
+    )
     @PostMapping("/community/invite")
     fun requestToJoinCommunity(
-        @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
         @Valid @RequestBody request: JoinRequest
     ): ResponseEntity<*> {
         return try {
-            communityService.inviteUserToCommunity(request, user.id!!)
+            communityService.inviteUserToCommunity(request, user)
         } catch (e: Exception) {
             ResponseEntity.internalServerError()
                 .body(e.localizedMessage)

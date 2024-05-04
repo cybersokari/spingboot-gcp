@@ -17,7 +17,8 @@ class MongoConfig : AbstractMongoClientConfiguration() {
 
     override fun mongoClient(): MongoClient {
         val profiles = StandardEnvironment().activeProfiles
-        // profiles is usually empty at this point, when running in production
+        // profiles is sometimes empty when running on a production server because it
+        // has not been loaded from the application.properties file at this point
         val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"
 
         if (runningOnProd){

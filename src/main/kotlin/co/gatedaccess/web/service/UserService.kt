@@ -61,7 +61,6 @@ class UserService {
                 ?: return ResponseEntity.badRequest().body("Invalid code")
 
             val userId: String
-            val previousDeviceId: String?
             var userTypeForClaims = userType
 
             if (userType == UserType.Member) {
@@ -70,10 +69,6 @@ class UserService {
                 if (member.phoneVerifiedAt == null) {
                     member.phoneVerifiedAt = Date()
                 }
-
-                // Grab previousDeviceId before updating Db with new
-                previousDeviceId = member.deviceId
-                // Update device info
 
                 member.deviceId = login.deviceId
                 member.deviceName = login.deviceName
@@ -95,9 +90,6 @@ class UserService {
 
                 userId = guard.id!!
 
-                // Grab previousDeviceId before updating Db with new
-                previousDeviceId = guard.deviceId
-
                 // Update device info
                 guard.deviceId = login.deviceId
                 guard.deviceName = login.deviceName
@@ -108,10 +100,10 @@ class UserService {
 
             val firebaseAuth = FirebaseAuth.getInstance()
 
-            //Revoke refresh token for previous devices
-            if (previousDeviceId != null) {
+            //Revoke refresh token for old devices if any
+            try {
                 firebaseAuth.revokeRefreshTokens(userId)
-            }
+            }catch (_: Exception){}
 
             // Set Admin claim for JWT
             val claims = mapOf("type" to userTypeForClaims.name)

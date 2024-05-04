@@ -124,9 +124,8 @@ class CommunityService {
 
 
     @Transactional
-    fun inviteUserToCommunity(request: JoinRequest, userId: String): ResponseEntity<*> {
+    fun inviteUserToCommunity(request: JoinRequest, referrer: Member): ResponseEntity<*> {
         try {
-            val referrer = memberRepo.findById(userId).orElseThrow()!!
 
             val community = referrer.community
                 ?: return ResponseEntity.badRequest()
@@ -150,7 +149,7 @@ class CommunityService {
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("User already has a pending request")
             }
 
-            request.referrerId = userId
+            request.referrerId = referrer.id
             joinRequestRepo.save(request)
 
             //TODO: Notify community admin

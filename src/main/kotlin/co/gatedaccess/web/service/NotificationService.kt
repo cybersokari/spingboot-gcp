@@ -4,11 +4,14 @@ import co.gatedaccess.web.data.model.Device
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 
 @Service
 class NotificationService {
-    fun notifyUserDeviceWhenPossible(title: String, message: String, device: Device, data: Map<String,String>) {
+
+    @Async
+    fun notifyUserDeviceWhenPossible(title: String?, message: String?, device: Device, data: Map<String,String>) {
         //Check if user has granted notification permission on this device
         if (device.fcmToken == null) return
 

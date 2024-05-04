@@ -13,7 +13,9 @@ import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
+import org.springframework.scheduling.annotation.EnableAsync
 
+@EnableAsync
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
 @EnableMongoRepositories("co.gatedaccess.web.data.repo")
 class App
@@ -24,6 +26,8 @@ fun main(args: Array<String>) {
     val startedEvent = ApplicationListener<ApplicationStartedEvent> { event ->
 
         val profiles = StandardEnvironment().activeProfiles
+        // profiles is sometimes empty when running on a production server because it
+        // has not been loaded from the application.properties file at this point
         val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"
 
         if (!runningOnProd) {

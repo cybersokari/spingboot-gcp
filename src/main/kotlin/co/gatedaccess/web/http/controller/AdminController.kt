@@ -32,7 +32,6 @@ class AdminController : BaseController() {
     )
     @PostMapping("/community/request/{accept}")
     fun handleCommunityJoinRequest(
-        @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
         @RequestBody @Valid requestId: JoinRequestId,
         @PathVariable accept: Boolean
@@ -56,7 +55,6 @@ class AdminController : BaseController() {
     )
     @PostMapping("/guard")
     fun addSecurityGuard(
-        @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
         @RequestBody @Valid guardData: GuardInputBody,
     ): ResponseEntity<*> {
@@ -74,7 +72,6 @@ class AdminController : BaseController() {
 
     @DeleteMapping("/guard/{guard_id}")
     fun removeSecurityGuard(
-        @RequestHeader("x-device-id") deviceId: String,
         @RequestAttribute("user") user: Member,
         @PathVariable("guard_id") guardId: String,
     ): ResponseEntity<*> {

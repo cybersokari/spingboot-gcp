@@ -16,20 +16,24 @@ This project contains 2 profiles:
 
 To run the desired profile use `mvn spring-boot:run -P dev|prod`
 
-## Setup MongoDB
+### Setup MongoDB
 
 
-## Creating Routes
+### Creating Routes
 Routes can be found in `src/main/***/http/controller`
 There is a `BaseController.kt` abstract class that every `@RestController` can must inherit.
-## Creating Mongo Documents and Repositories
+
+### Creating Mongo Documents and Repositories
 Documents can be found in `src/main/***/model`
 Repositories can be found in `src/main/***/repository`
 
 
 ### Logging
 This app uses [Logback](https://logback.qos.ch/manual) for logging. You can find the config in `/src/main/resources` folder
-When running in `prod` Logs are sent to [Cloud Logging](https://cloud.google.com/logging) via [Logback Cloud logging plugin](https://cloud.google.com/logging/docs/setup/java), `dev` writes to console
+When running in `prod` Logs are sent to [Cloud Logging](https://cloud.google.com/logging) via [Logback Cloud logging plugin](https://cloud.google.com/logging/docs/setup/java).
+The Logback plugin only reports logs from the LF4J logging API, so we only use the `org.slf4j.Logger` interface for logging.
+When running in `dev` profile, logs are configured to write to the console.
+
 
 Use this [setup to configure Docker](https://docs.docker.com/config/containers/logging/gcplogs/) to work with Cloud Logging when moving to a new VM
 
@@ -39,10 +43,10 @@ Our custom Ops Agent config can be found in the ``config.yaml`` file. Use the fo
 $ gcloud compute scp config.yaml gated-vm:/etc/google-cloud-ops-agent/config.yaml
 ```
 
-## Secrets Management 🔒
+### Secrets Management 🔒
 We use Google Cloud Secrets Manager to manage secrets (API keys, passwords, database URLs, etc.)
 
-## Deployments
+### Deployments
 
 The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes
 
@@ -69,10 +73,10 @@ While will not need to log into the VM to get Telementry information, you can SS
 Use Cloud logging to inspect the logs and health of the machine.
 
 
-## Tests 🧪
-### Unit test
-### Integration test
+### Tests 🧪
+#### Unit test
+#### Integration test
 
 ---
 
-Here are tips on [how to optimize java application](https://cloud.google.com/run/docs/tips/java).
+Here are some tips on [how to optimize java application](https://cloud.google.com/run/docs/tips/java).
