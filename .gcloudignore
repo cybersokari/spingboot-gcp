@@ -16,5 +16,7 @@
 # Target directory for maven builds
 target/
 .github
+.idea
+.vscode
 
 config.yaml

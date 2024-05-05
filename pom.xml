@@ -134,9 +134,6 @@
                     </from>
                     <to>
                         <image>${image.path}</image>
-                        <tags>
-                            <tag>latest</tag>
-                        </tags>
                     </to>
                 </configuration>
             </plugin>

@@ -1,14 +1,14 @@
 package co.gatedaccess.web.util
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.env.Environment
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
 
 @Component
 class CodeGenerator {
-    @Autowired
-    lateinit var environment: Environment
+
+    @Value("\${visitor.access-code.length}")
+    val accessCodeLength: Int? = null
 
     /**
      * Returns a numeric string with a specified length
@@ -16,10 +16,9 @@ class CodeGenerator {
      * @return code
      */
     fun getCode(): String {
-        val codeLength: Int = environment.getRequiredProperty("visitor.access-code.length", Int::class.java)
         val sb = StringBuilder()
         val random = SecureRandom()
-        for (i in 0 until codeLength) {
+        for (i in 0 until accessCodeLength!!) {
             sb.append(random.nextInt(10)) // Append a random digit (0-9)
         }
         return sb.toString()

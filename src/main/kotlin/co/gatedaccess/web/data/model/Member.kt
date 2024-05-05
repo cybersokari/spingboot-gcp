@@ -30,7 +30,6 @@ open class Member {
     @NonNull
     var gender: String? = null
 
-
     @Indexed(unique = true)
     var phone: String? = null
 

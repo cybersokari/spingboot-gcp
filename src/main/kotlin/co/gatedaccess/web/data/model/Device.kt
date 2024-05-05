@@ -19,7 +19,7 @@ class Device {
     @Field("fcm_token")
     var fcmToken: String? = null
 
-    @Indexed(unique = true)
+    @field:Indexed(unique = true)
     @Field("member_id")
     var memberId: String? = null
 

@@ -26,7 +26,7 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
         @Nonnull response: HttpServletResponse,
         @Nonnull handler: Any
     ): Boolean {
-        println("Admin interceptor is working")
+
         var idToken = request.getHeader("Authorization")
 
         if (idToken != null) {

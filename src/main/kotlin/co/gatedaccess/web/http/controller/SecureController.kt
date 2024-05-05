@@ -1,8 +1,12 @@
 package co.gatedaccess.web.http.controller
 
+import co.gatedaccess.web.data.model.Access
 import co.gatedaccess.web.data.model.JoinRequest
 import co.gatedaccess.web.data.model.Member
+import co.gatedaccess.web.data.model.SecurityGuard
+import co.gatedaccess.web.http.body.AccessInfoBody
 import co.gatedaccess.web.service.CommunityService
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -28,8 +32,9 @@ class SecureController : BaseController() {
         responseCode = "200",
         content = [Content(schema = Schema(implementation = String::class))]
     )
-    @PostMapping("/community/invite")
-    fun requestToJoinCommunity(
+    @PostMapping("/invite")
+    @Operation(summary = "Invite user to community")
+    fun inviteUserToCommunity(
         @RequestAttribute("user") user: Member,
         @Valid @RequestBody request: JoinRequest
     ): ResponseEntity<*> {
@@ -39,5 +44,45 @@ class SecureController : BaseController() {
             ResponseEntity.internalServerError()
                 .body(e.localizedMessage)
         }
+    }
+
+    @ApiResponse(
+        description = "Success",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = Access::class))]
+    )
+    @ApiResponse(
+        description = "User does not have a community",
+        responseCode = "500",
+        content = [Content(schema = Schema(implementation = String::class))]
+    )
+    @Operation(summary = "Create access code for visitor")
+    @PostMapping("/access")
+    fun getAccessCode(
+        @RequestAttribute("user") user: Member,
+        @Valid @RequestBody info: AccessInfoBody
+    )
+            : ResponseEntity<*> {
+        return communityService.getAccessCodeForVisitor(info, user)
+    }
+
+    @ApiResponse(
+        description = "Check in successful",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = Access::class))]
+    )
+    @ApiResponse(
+        description = "Access code not found",
+        responseCode = "204",
+        content = [Content(schema = Schema(implementation = String::class))]
+    )
+    @Operation(summary = "Check in visitor")
+    @GetMapping("/check-in/{code}")
+    fun checkIn(
+        @RequestAttribute("user") user: SecurityGuard,
+        @PathVariable code: String
+    )
+            : ResponseEntity<*> {
+        return communityService.checkInVisitor(code, user)
     }
 }

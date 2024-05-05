@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -65,7 +66,8 @@ class DefaultController: BaseController() {
     @ApiResponse(
         description = "Otp reference",
         responseCode = "200",
-        content = [Content(schema = Schema(implementation = OtpRefBody::class))]
+        content = [Content(schema = Schema(implementation = OtpRefBody::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
     )
     @ApiResponse(
         description = "Invalid OTP",

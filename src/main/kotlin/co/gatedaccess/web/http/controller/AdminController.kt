@@ -2,8 +2,9 @@ package co.gatedaccess.web.http.controller
 
 import co.gatedaccess.web.data.model.JoinRequestId
 import co.gatedaccess.web.data.model.Member
-import co.gatedaccess.web.http.body.GuardInputBody
+import co.gatedaccess.web.http.body.GuardInfoBody
 import co.gatedaccess.web.service.CommunityService
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -30,6 +31,7 @@ class AdminController : BaseController() {
         responseCode = "202",
         content = [Content(schema = Schema(implementation = String::class))]
     )
+    @Operation(summary = "Handle community join request")
     @PostMapping("/community/request/{accept}")
     fun handleCommunityJoinRequest(
         @RequestAttribute("user") user: Member,
@@ -38,7 +40,6 @@ class AdminController : BaseController() {
     ): ResponseEntity<*> {
         return communityService.handleCommunityJoinRequest(user.id!!, requestId, accept)
     }
-
 
     /**
      * Add security guard to community
@@ -53,10 +54,11 @@ class AdminController : BaseController() {
         responseCode = "400",
         content = [Content(schema = Schema(implementation = String::class))]
     )
+    @Operation(summary = "Add security guard to community")
     @PostMapping("/guard")
     fun addSecurityGuard(
         @RequestAttribute("user") user: Member,
-        @RequestBody @Valid guardData: GuardInputBody,
+        @RequestBody @Valid guardData: GuardInfoBody,
     ): ResponseEntity<*> {
         return communityService.addSecurityGuardToCommunity(guardData, user.id!!)
     }
@@ -69,7 +71,7 @@ class AdminController : BaseController() {
         responseCode = "200",
         content = [Content(schema = Schema(implementation = String::class))]
     )
-
+    @Operation(summary = "Remove security guard from community")
     @DeleteMapping("/guard/{guard_id}")
     fun removeSecurityGuard(
         @RequestAttribute("user") user: Member,
@@ -77,25 +79,5 @@ class AdminController : BaseController() {
     ): ResponseEntity<*> {
         return communityService.removeSecurityGuardFromCommunity(guardId, user.id!!)
     }
-
-//    @PostMapping("{admin_id}")
-//    fun addAdmin(
-//        @RequestHeader("x-device-id") deviceId: String,
-//        @RequestAttribute("user") userId: String,
-//        @PathVariable("admin_id") adminIdToAdd: String
-//    ): ResponseEntity<*> {
-//        println("Admin controller is working")
-//        return ResponseEntity.noContent().build<Any>()
-//    }
-//
-//    @DeleteMapping("{admin_id}")
-//    fun removeAdmin(
-//        @RequestHeader("x-device-id") deviceId: String,
-//        @RequestAttribute("user") userId: String,
-//        @PathVariable("admin_id") adminIdToDelete: String,
-//    ): ResponseEntity<*> {
-//        println("Admin controller is working")
-//        return ResponseEntity.noContent().build<Any>()
-//    }
 
 }
