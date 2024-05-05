@@ -50,7 +50,7 @@ jobs:
         run: mvn -B package -DskipTests
 
       - name: Read variables
-        run: echo "IMAGE_PATH=${{env.IMAGE_PATH}}" && echo "DOCKER_CRED_HELPER=${{env.DOCKER_CRED_HELPER}}" && echo "VM_NAME=${{env.VM_NAME}}" && echo "ZONE=${{env.ZONE}}"
+        run: echo "IMAGE_PATH=${{vars.IMAGE_PATH}}" && echo "DOCKER_CRED_HELPER=${{vars.DOCKER_CRED_HELPER}}" && echo "VM_NAME=${{vars.VM_NAME}}" && echo "ZONE=${{vars.ZONE}}"
 
       - name: Login to Artifact Registry
         run: gcloud auth configure-docker $DOCKER_CRED_HELPER -q
