@@ -49,10 +49,13 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -DskipTests
 
-      - name: Login to Artifact Registry
-        run: gcloud auth configure-docker ${{env.DOCKER_CRED_HELPER}} -q
+      - name: Read variables
+        run: echo "IMAGE_PATH=${{env.IMAGE_PATH}}" && echo "DOCKER_CRED_HELPER=${{env.DOCKER_CRED_HELPER}}" && echo "VM_NAME=${{env.VM_NAME}}" && echo "ZONE=${{env.ZONE}}"
 
-#      - name: Push image to Artifact Registry
+      - name: Login to Artifact Registry
+        run: gcloud auth configure-docker $DOCKER_CRED_HELPER -q
+
+      #      - name: Push image to Artifact Registry
 #        run: gcloud container images upload us-central1-docker.pkg.dev/gatedaccessdev/cove-repo/vm:latest
       - name: Update VM with new image
-        run: gcloud compute instances update-container ${{env.VM_NAME}} --zone=${{env.ZONE}} --container-image=${{env.DOCKER_CRED_HELPER}}/${{env.IMAGE_PATH}}
+        run: gcloud compute instances update-container $VM_NAME --zone=$ZONE --container-image=$DOCKER_CRED_HELPER/$IMAGE_PATH
