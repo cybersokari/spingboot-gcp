@@ -24,9 +24,6 @@ class CommunityService {
     private lateinit var notificationService: NotificationService
 
     @Autowired
-    var environment: Environment? = null
-
-    @Autowired
     lateinit var communityRepo: CommunityRepo
 
     @Autowired
@@ -50,13 +47,13 @@ class CommunityService {
     fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
 
         try {
-            val access = Access()
-            val communityId = member.community!!.id!!
 
-            while (access.createdAt == null) {
-                // Check for MongoDb CreatedDate to know if save is successful
-                val accessId = AccessId(communityId = communityId, code = codeGenerator.getCode())
-                access.id = accessId
+            val communityId = member.community!!.id!!
+            val access = Access()
+
+            while (access.createdAt == null) {// Check for MongoDb CreatedDate to know if save is successful
+
+                access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())
                 access.validUntil = info.validUntil
                 access.headCount = info.headCount
                 access.host = member
@@ -78,11 +75,11 @@ class CommunityService {
 
     }
 
-    fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity<*> {
+    fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity<Any> {
         try {
             val accessId = AccessId(communityId = guard.communityId!!, code = code)
             var access = accessRepo.findByIdAndValidUntilIsAfter(accessId, Date())
-                ?: return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponseMessage.ACCESS_CODE_INVALID)
+                ?: return ResponseEntity.noContent().build()
 
             if (access.checkedInAt == null) {
                 access.checkedInAt = Date()
@@ -91,9 +88,9 @@ class CommunityService {
             access = accessRepo.save(access) // Update access
             return ResponseEntity.ok().body(access)
 
-        } catch (e: NullPointerException) {
-            logger.error("Community not found for guard ${guard.phone}")
-            return ResponseEntity.internalServerError().body("Community not found for guard ${guard.phone}")
+        } catch (e: Exception) {
+            logger.error(e.localizedMessage)
+            return ResponseEntity.internalServerError().build()
         }
     }
 
