@@ -50,7 +50,7 @@ jobs:
         run: mvn -B package -DskipTests
 
       - name: Login to Artifact Registry
-        run: gcloud auth configure-docker ${{env.DOCKER_CRED_HELPER}}
+        run: gcloud auth configure-docker ${{env.DOCKER_CRED_HELPER}} -q
 
 #      - name: Push image to Artifact Registry
 #        run: gcloud container images upload us-central1-docker.pkg.dev/gatedaccessdev/cove-repo/vm:latest
