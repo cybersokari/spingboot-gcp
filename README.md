@@ -1,6 +1,6 @@
 # Cove Web Service Repo
 
-![coverage][coverage_badge]
+![Deployment](https://github.com/cybersokari/gated_access_service/actions/workflows/deploy.yml/badge.svg)
 ## Before diving in 🙌
 
 - Our recommend IDE for this project is IntelliJ, but you can use any IDE that supports Springboot
