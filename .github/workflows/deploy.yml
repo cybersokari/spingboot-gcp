@@ -48,5 +48,6 @@ jobs:
         run: gcloud auth configure-docker ${{vars.DOCKER_CRED_HELPER}} -q
 
       - name: Update VM with new image
-        run: gcloud compute instances update-container ${{vars.VM_NAME}} --zone=${{vars.ZONE}} \
-          --container-image=${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
+        run: |
+          gcloud compute instances update-container ${{vars.VM_NAME}} --zone=${{vars.ZONE}} \
+            --container-image=${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
