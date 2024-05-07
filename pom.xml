@@ -8,11 +8,11 @@
         <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>co.gatedaccess</groupId>
-    <artifactId>gated_access_service</artifactId>
+    <groupId>ng.cove</groupId>
+    <artifactId>web</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>gated_access_service</name>
-    <description>gated_access_service</description>
+    <name>cove-web</name>
+    <description>API Endpoints for Cove</description>
     <properties>
         <java.version>17</java.version>
         <kotlin.version>1.9.23</kotlin.version>
