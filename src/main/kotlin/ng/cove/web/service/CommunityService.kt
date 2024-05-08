@@ -48,21 +48,20 @@ class CommunityService {
         try {
 
             val communityId = member.community!!.id!!
-            val access = Access()
+            var access = Access()
 
             while (access.createdAt == null) {// Check for MongoDb CreatedDate to know if save is successful
 
                 access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())
+                access.durationOfVisit = info.durationOfVisitInSec
                 access.validUntil = info.validUntil
                 access.headCount = info.headCount
                 access.host = member
 
                 try {
-                    accessRepo.save(access)
-                    break
+                    access = accessRepo.save(access)
                 } catch (_: DuplicateKeyException) {
                     logger.warn("Access code already exists in community ${member.community!!.id}, trying again")
-                    continue
                 }
             }
             return ResponseEntity.ok().body(access)

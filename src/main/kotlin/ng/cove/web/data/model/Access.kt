@@ -40,16 +40,16 @@ class Access {
     @field:Field("checked_out_at")
     val checkedOutAt: Date? = null
 
-    @DBRef
+    @DBRef(lazy = true)
     @field:Field("checked_in_by")
     var checkedInBy : SecurityGuard? = null
 
-    @DBRef
+    @DBRef(lazy = true)
     @field:Field("checked_out_by")
     val checkedOutBy : SecurityGuard? = null
 
-    @field:Field(value = "duration_of_visit", targetType = FieldType.TIMESTAMP)
-    val durationOfVisit: Duration? = null
+    @field:Field(value = "duration_of_visit")
+    var durationOfVisit: Long? = null
 
     @field:Indexed
     @field:NonNull

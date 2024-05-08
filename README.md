@@ -1,6 +1,6 @@
 # Cove Web Service Repo
 
-![Deployment](https://github.com/cybersokari/cove_web/actions/workflows/deploy.yml/badge.svg?branch=main)
+![Deployment](https://github.com/sprinthubmobile/cove_web/actions/workflows/deploy.yml/badge.svg?branch=main)
 ## Before diving in 🙌
 
 - Our recommend IDE for this project is IntelliJ, but you can use any IDE that supports Springboot
@@ -48,6 +48,8 @@ We use Google Cloud Secrets Manager to manage secrets (API keys, passwords, data
 
 ### Deployments
 
+Deployments are currently automated via GitHub actions. The workflow file is located at ``/.github/workflows/deploy.yml``
+
 The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes
 
 ### Publishing a new version to Google Artifact Registry
@@ -71,6 +73,13 @@ While will not need to log into the VM to get Telementry information, you can SS
 2. Run ``docker attach [container-id]`` to attach to the container and start seeing logs. Note that you will only see logs from when you attach, not the past logs.
 
 Use Cloud logging to inspect the logs and health of the machine.
+
+### Running the production docker image on local machine
+1. Install and start docker daemon
+2. Run ``mvn compile jib:dockerBuild`` to build the docker image
+3. Temporarily allow the production Mongo Atlas to accept traffic from anywhere on the internet.
+4. Install Gcloud CLI and authenticate it ``gcloud auth application-default login``
+5. Run ``docker-compose up`` from the project root folder.
 
 
 ### Tests 🧪

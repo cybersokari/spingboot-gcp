@@ -1,0 +1,11 @@
+# Use this file to run the image locally after building the image using 'mvn compile jib:dockerBuild'
+services:
+  cove:
+    image: us-central1-docker.pkg.dev/gatedaccessdev/cove-repo/vm
+    ports:
+      - 8080:80
+    volumes:
+      - $HOME/.config/gcloud/application_default_credentials.json:/gcp/cred.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
+      - GCLOUD_PROJECT=gatedaccessdev

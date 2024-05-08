@@ -8,8 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
-@EnableWebMvc
-class WebConfig(private val context: WebApplicationContext) : WebMvcConfigurer {
+class WebConfig(val context: WebApplicationContext) : WebMvcConfigurer {
     override fun addInterceptors(registry: InterceptorRegistry) {
 
         registry.addInterceptor(SecureInterceptor(context))

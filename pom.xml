@@ -139,6 +139,11 @@
                     <to>
                         <image>${image.path}</image>
                     </to>
+                    <container>
+                        <ports>
+                            <port>80</port>
+                        </ports>
+                    </container>
                 </configuration>
             </plugin>
             <!--Spring Boot Maven-->
@@ -236,19 +241,6 @@
     <profiles>
         <profile>
             <id>prod</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>src/main/resources/service-account.json</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>dev</id>

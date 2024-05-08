@@ -8,8 +8,16 @@
             </filter>
             <flushLevel>WARN</flushLevel> <!-- Optional : default ERROR -->
         </appender>
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] %highlight(%-5level %logger{36}) [%file:%line] -
+                    %yellow(%msg%n)
+                </pattern>
+            </encoder>
+        </appender>
         <root level="WARN">
             <appender-ref ref="CLOUD"/>
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
