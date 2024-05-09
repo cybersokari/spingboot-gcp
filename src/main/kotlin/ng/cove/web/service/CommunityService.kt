@@ -48,27 +48,27 @@ class CommunityService {
         try {
 
             val communityId = member.community!!.id!!
-            val access = Access()
-
-            while (access.createdAt == null) {// Check for MongoDb CreatedDate to know if save is successful
-
+            var access: Access? = null
+            while (access == null) {
+                access = Access()
                 access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())
+                access.durationOfVisit = info.durationOfVisitInSec
                 access.validUntil = info.validUntil
                 access.headCount = info.headCount
                 access.host = member
+                access.createdAt = Date()
 
-                try {
+                access = try {
                     accessRepo.save(access)
-                    break
-                } catch (_: DuplicateKeyException) {
-                    logger.warn("Access code already exists in community ${member.community!!.id}, trying again")
-                    continue
+                } catch (e: DuplicateKeyException) {
+                    logger.warn("Access code duplication for community: ${member.community!!.id}")
+                    null // Set access to null to try again with another code
                 }
             }
             return ResponseEntity.ok().body(access)
 
         } catch (e: NullPointerException) {
-            logger.error("Community not found for user ${member.phone}")
+            logger.error("Access code generation failed: ${e.localizedMessage}")
             return ResponseEntity.internalServerError().body("Community not found for user ${member.phone}")
         }
 

@@ -36,7 +36,7 @@ $ sudo chmod u+o /etc/google-cloud-ops-agent/
 ```
 ### Deploy custom Ops Agent Config
 ```shell
-gcloud compute scp config.yaml [vm-name]:/etc/google-cloud-ops-agent/config.yaml
+$ gcloud compute scp config.yaml [vm-name]:/etc/google-cloud-ops-agent/config.yaml
 ```
 Replace `[vm-name]` with the name of the new VM
 
