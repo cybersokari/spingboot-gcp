@@ -10,6 +10,7 @@ import ng.cove.web.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
@@ -17,9 +18,7 @@ import java.util.concurrent.TimeUnit
 import javax.annotation.Nonnull
 
 @Component
-class SecureInterceptor(private val context: WebApplicationContext) : HandlerInterceptor {
-
-    val userService = context.getBean(UserService::class.java)
+class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
 
     override fun preHandle(
         request: HttpServletRequest,
@@ -49,6 +48,7 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                     userId = firebaseToken.uid
                 }
 
+                val userService = context.getBean(UserService::class.java)
                 /** Get User model from DB and attach to request**/
                 if (userType == UserType.Guard) {
                     val guard = userService.getGuardById(userId)!!
@@ -62,7 +62,9 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                 LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)
             }
         }
-        response.sendError(HttpStatus.UNAUTHORIZED.value(), "User is not logged in")
+
+        response.status = HttpStatus.UNAUTHORIZED.value()
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
         return false
     }
 

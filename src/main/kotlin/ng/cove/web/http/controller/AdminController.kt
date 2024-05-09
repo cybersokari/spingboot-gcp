@@ -12,7 +12,10 @@ import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-
+@ApiResponse(
+    description = "Unauthorized",
+    responseCode = "401"
+)
 @RestController
 @RequestMapping("/admin")
 class AdminController : BaseController() {
