@@ -6,24 +6,23 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingRequestHeaderException
+import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.NoHandlerFoundException
 
 
-@RestController
+@ControllerAdvice
 abstract class BaseController {
 
-    // Exception handler for MissingRequestHeaderException
     @ExceptionHandler(MissingRequestHeaderException::class)
     fun handleMissingHeader(@NonNull ex: MissingRequestHeaderException): ResponseEntity<String> {
         return ResponseEntity.badRequest().body("Required header '" + ex.headerName + "' is missing.")
     }
 
-    // Exception handler for MethodArgumentNotValidException
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleMethodArgumentNotValid(@NonNull ex: MethodArgumentNotValidException): ResponseEntity<String> {
-        return ResponseEntity.badRequest().body("Required argument '" + ex.parameter.parameterName + "' is missing.")
+        return ResponseEntity.badRequest()
+            .body(ex.bindingResult.fieldError?.defaultMessage ?: "Required argument is missing.")
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)

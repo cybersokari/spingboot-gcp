@@ -10,11 +10,6 @@ class CodeGenerator {
     @Value("\${visitor.access-code.length}")
     val accessCodeLength: Int? = null
 
-    /**
-     * Returns a numeric string with a specified length
-     *
-     * @return code
-     */
     fun getCode(): String {
         val sb = StringBuilder()
         val random = SecureRandom()

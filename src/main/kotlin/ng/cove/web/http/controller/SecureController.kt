@@ -1,16 +1,16 @@
 package ng.cove.web.http.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import jakarta.validation.Valid
 import ng.cove.web.data.model.Access
 import ng.cove.web.data.model.JoinRequest
 import ng.cove.web.data.model.Member
 import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.http.body.AccessInfoBody
 import ng.cove.web.service.CommunityService
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

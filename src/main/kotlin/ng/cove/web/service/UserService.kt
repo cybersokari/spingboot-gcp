@@ -1,15 +1,17 @@
 package ng.cove.web.service
 
+import com.google.firebase.auth.FirebaseAuth
 import ng.cove.web.component.SmsOtpService
+import ng.cove.web.data.model.Member
+import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.data.model.UserType
 import ng.cove.web.data.repo.MemberRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import ng.cove.web.http.body.LoginBody
-import ng.cove.web.util.CodeGenerator
-import com.google.firebase.auth.FirebaseAuth
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.util.*
@@ -17,17 +19,13 @@ import java.util.*
 
 @Service
 class UserService {
-
-    val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @Autowired
     lateinit var memberRepo: MemberRepo
 
     @Autowired
     lateinit var guardRepo: SecurityGuardRepo
-
-    @Autowired
-    private val codeGenerator: CodeGenerator? = null
 
     @Autowired
     lateinit var smsOtp: SmsOtpService
@@ -103,7 +101,8 @@ class UserService {
             //Revoke refresh token for old devices if any
             try {
                 firebaseAuth.revokeRefreshTokens(userId)
-            }catch (_: Exception){}
+            } catch (_: Exception) {
+            }
 
             // Set Admin claim for JWT
             val claims = mapOf("type" to userTypeForClaims.name)
@@ -116,87 +115,14 @@ class UserService {
         }
     }
 
-//    fun getCustomTokenForClientLogin(token: String?, provider: String): ResponseEntity<*> {
-//        try {
-//            val transport: HttpTransport = GoogleNetHttpTransport.newTrustedTransport()
-//            val jsonFactory: JsonFactory = GsonFactory.getDefaultInstance()
-//
-//            if (provider.equals("google", ignoreCase = true)) {
-//                val verifier = GoogleIdTokenVerifier.Builder(
-//                    transport,
-//                    jsonFactory
-//                ) // Specify the CLIENT_ID of the app that accesses the backend:
-//                    .setAudience(listOf(googleClientId)) // Or, if multiple clients access the backend:
-//                    .build()
-//
-//                val googleIdToken = verifier.verify(token)
-//                if (googleIdToken != null) {
-//                    val payload = googleIdToken.payload
-//
-//                    // Print user identifier
-//                    val googleUserId = payload.subject
-//
-//                    // Get profile information from payload
-//                    val email = payload.email
-//                    //boolean emailVerified = payload.getEmailVerified();
-//                    val name = payload["name"] as String?
-//                    val photoUrl = payload["picture"] as String?
-//                    //String locale = (String) payload.get("locale");
-//                    val familyName = payload["family_name"] as String?
-//                    val givenName = payload["given_name"] as String?
-//
-//                    val userId: String?
-//                    if (memberRepo!!.existsMemberByEmail(email)) {
-//                        userId = memberRepo!!.findMemberById(email).id
-//                    } else {
-//                        val member = Member.Builder()
-//                            .withPhotoUrl(photoUrl)
-//                            .withFirstName(givenName)
-//                            .withLastName(familyName)
-//                            .withGoogleUserId(googleUserId)
-//                            .withEmailVerifiedAt(Date())
-//                            .withEmail(email).build()
-//                        userId = memberRepo!!.save(member).id
-//                    }
-//                    val customFirebaseToken = FirebaseAuth.getInstance().createCustomToken(userId)
-//                    return ResponseEntity.ok(TokenBody(customFirebaseToken))
-//                } else {
-//                    return ResponseEntity.badRequest().body("Invalid google token")
-//                }
-//            } else {
-//                val verifier = IdTokenVerifier.Builder()
-//                    .setIssuer("https://appleid.apple.com")
-//                    .setAudience(listOf("your_client_id")) // Replace with your client ID
-//                    .setIssuers(listOf("https://appleid.apple.com"))
-//                    .build()
-//
-//                val idToken = IdToken.parse(jsonFactory, token)
-//                verifier.verify(idToken)
-//
-//                //TODO: implement Apple Auth
-//                return ResponseEntity.badRequest()
-//                    .body(String.format("The %s provider is not supported at this time", provider))
-//            }
-//        } catch (e: Exception) {
-//            return ResponseEntity.badRequest().body(e.localizedMessage)
-//        }
-//    }
+    @Cacheable(value = ["member"])
+    fun getMemberById(id: String): Member? {
+        return memberRepo.findById(id).orElse(null)
+    }
 
-//    fun getCommunityInviteCode(userId: String): ResponseEntity<Any> {
-//        var member = memberRepo?.findMemberById(userId)
-//
-//        member?.let {
-//            while (it.inviteCode == null) {
-//                //Recursively try to update users invite code if the update fails due to possible duplicate
-//                try {
-//                    it.inviteCode = codeGenerator!!.getCode(CodeType.Community)
-//                    member = memberRepo!!.save(it)
-//                } catch (ignore: DuplicateKeyException) {
-//                }
-//            }
-//            return ResponseEntity.ok(Optional.of(it.inviteCode!!))
-//        }
-//
-//        return ResponseEntity.badRequest().body("no user with this id: $userId")
-//    }
+    @Cacheable(value = ["guard"])
+    fun getGuardById(id: String): SecurityGuard? {
+        return guardRepo.findById(id).orElse(null)
+    }
+
 }

@@ -1,5 +1,6 @@
 package ng.cove.web
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
@@ -10,18 +11,36 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 import org.springframework.boot.context.event.ApplicationStartedEvent
+import org.springframework.cache.annotation.EnableCaching
+import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.context.ApplicationListener
+import org.springframework.context.annotation.Bean
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import org.springframework.scheduling.annotation.EnableAsync
+import java.util.concurrent.TimeUnit
 
+@EnableCaching
 @EnableAsync
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
 @EnableMongoRepositories("ng.cove.web.data.repo")
-class App
+class App {
+
+    @Bean
+    fun caffeineConfig(): Caffeine<Any, Any> {
+        return Caffeine.newBuilder().expireAfterWrite(60, TimeUnit.MINUTES)
+    }
+
+    @Bean
+    fun cacheManager(caffeine: Caffeine<Any, Any>): CaffeineCacheManager {
+        val cacheManager = CaffeineCacheManager()
+        cacheManager.setCaffeine(caffeine)
+        return cacheManager
+    }
+}
 
 fun main(args: Array<String>) {
-    val app = SpringApplication(ng.cove.web.App::class.java)
+    val app = SpringApplication(App::class.java)
 
     val startedEvent = ApplicationListener<ApplicationStartedEvent> { event ->
 

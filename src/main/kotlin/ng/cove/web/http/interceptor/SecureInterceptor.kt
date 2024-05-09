@@ -1,17 +1,15 @@
 package ng.cove.web.http.interceptor
 
-import ng.cove.web.data.model.UserType
-import ng.cove.web.data.repo.MemberRepo
-import ng.cove.web.data.repo.SecurityGuardRepo
 import com.google.api.core.ApiFuture
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import ng.cove.web.data.model.UserType
+import ng.cove.web.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
@@ -19,7 +17,9 @@ import java.util.concurrent.TimeUnit
 import javax.annotation.Nonnull
 
 @Component
-class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
+class SecureInterceptor(private val context: WebApplicationContext) : HandlerInterceptor {
+
+    val userService = context.getBean(UserService::class.java)
 
     override fun preHandle(
         request: HttpServletRequest,
@@ -34,16 +34,15 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
                 idToken =
                     idToken.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1] //Remove Bearer prefix
 
-
-                val userId : String
-                val userType : UserType
+                val userId: String
+                val userType: UserType
                 // Running on dev, skip token decode
                 if (StandardEnvironment().activeProfiles[0] == "dev") {
                     userType = UserType.Admin // Manually update this to any type when running on dev
                     userId = idToken
                     println("Bearer is: $idToken")
                 } else {
-                    val tokenAsync : ApiFuture<FirebaseToken> = FirebaseAuth.getInstance()
+                    val tokenAsync: ApiFuture<FirebaseToken> = FirebaseAuth.getInstance()
                         .verifyIdTokenAsync(idToken, true)
                     val firebaseToken = tokenAsync[10, TimeUnit.SECONDS]
                     userType = UserType.valueOf(firebaseToken.claims["type"] as String)
@@ -51,18 +50,16 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
                 }
 
                 /** Get User model from DB and attach to request**/
-                if(userType == UserType.Guard){
-                    val guardRepo = context.getBean(SecurityGuardRepo::class.java)
-                    val guard = guardRepo.findById(userId).orElseThrow()!!
+                if (userType == UserType.Guard) {
+                    val guard = userService.getGuardById(userId)!!
                     request.setAttribute("user", guard)
-                }else{
-                    val memberRepo = context.getBean(MemberRepo::class.java)
-                    val member = memberRepo.findById(userId).orElseThrow()!!
+                } else {
+                    val member = userService.getMemberById(userId)!!
                     request.setAttribute("user", member)
                 }
                 return true
             } catch (e: Exception) {
-                LoggerFactory.getLogger(this::class.java.simpleName).info(e.localizedMessage)
+                LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)
             }
         }
         response.sendError(HttpStatus.UNAUTHORIZED.value(), "User is not logged in")
