@@ -11,8 +11,8 @@ class AccessId {
 
     @Field("code")
     @JsonProperty("code")
-    lateinit var code: String
+    var code: String
     @Field("community_id")
     @JsonProperty("community_id")
-    lateinit var communityId: String
+    var communityId: String
 }

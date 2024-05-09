@@ -8,10 +8,12 @@ import ng.cove.web.data.model.UserType
 import ng.cove.web.data.repo.MemberRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import ng.cove.web.http.body.LoginBody
+import ng.cove.web.util.CacheNames
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.util.*
@@ -19,6 +21,7 @@ import java.util.*
 
 @Service
 class UserService {
+
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @Autowired
@@ -29,6 +32,9 @@ class UserService {
 
     @Autowired
     lateinit var smsOtp: SmsOtpService
+
+    @Autowired
+    lateinit var cacheManager: CaffeineCacheManager
 
 
     fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
@@ -78,6 +84,8 @@ class UserService {
                 if (member.community!!.adminIds!!.contains(userId)) {
                     userTypeForClaims = UserType.Admin
                 }
+                // Update cache
+                cacheManager.getCache(CacheNames.MEMBERS)?.put(userId, member)
 
             } else {
                 val guard = guardRepo.findByPhone(phone)!!
@@ -93,6 +101,8 @@ class UserService {
                 guard.deviceName = login.deviceName
                 guard.lastLoginAt = Date()
                 guardRepo.save(guard)
+                // Update cache
+                cacheManager.getCache(CacheNames.GUARDS)?.put(userId, guard)
             }
 
 
@@ -115,12 +125,12 @@ class UserService {
         }
     }
 
-    @Cacheable(value = ["member"])
+    @Cacheable(value = [CacheNames.MEMBERS])
     fun getMemberById(id: String): Member? {
         return memberRepo.findById(id).orElse(null)
     }
 
-    @Cacheable(value = ["guard"])
+    @Cacheable(value = [CacheNames.GUARDS])
     fun getGuardById(id: String): SecurityGuard? {
         return guardRepo.findById(id).orElse(null)
     }
