@@ -58,4 +58,8 @@ class SecurityGuard {
     var lastLoginAt: Date? = null
     /** Device info end**/
 
+    @JsonIgnore
+    @Field("test_otp")
+    var testOtp: String? = null
+
 }
