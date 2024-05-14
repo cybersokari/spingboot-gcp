@@ -1,14 +1,14 @@
 package ng.cove.web.component
 
-import ng.cove.web.http.body.OtpRefBody
 import com.google.gson.JsonObject
+import ng.cove.web.http.body.OtpRefBody
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
-import java.time.ZoneId
 import java.util.*
 
 
@@ -19,6 +19,10 @@ class SmsOtpService {
     // Set in ApplicationStartup
     var termiiApiKey: String? = null
 
+    @Value("\${otp.expiry-mins}")
+    var otpExpiryMins: Int = 1
+
+
     fun sendOtp(phone: String): OtpRefBody? {
 
         val requestBody = JsonObject()
@@ -28,17 +32,14 @@ class SmsOtpService {
         requestBody.addProperty("message_type", "NUMERIC")
         requestBody.addProperty("channel", "dnd")
         requestBody.addProperty("pin_attempts", 5)
-        val expiryInMinutes = 10
-        requestBody.addProperty("pin_time_to_live", expiryInMinutes)
+        requestBody.addProperty("pin_time_to_live", otpExpiryMins)
         requestBody.addProperty("pin_length", 6)
         requestBody.addProperty("pin_placeholder", "<otp>")
         requestBody.addProperty("message_text", "Your login OTP is: <otp>")
 
         val url = "https://api.ng.termii.com/api/sms/otp/send"
         val client = RestClient.builder().baseUrl(url).defaultHeaders { h ->
-            run {
-                h.contentType = MediaType.APPLICATION_JSON
-            }
+            h.contentType = MediaType.APPLICATION_JSON
         }.build()
 
         try {
@@ -54,12 +55,10 @@ class SmsOtpService {
 
             val ref = result["pinId"] as String
             val futureDateTime = Date().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-                .plusMinutes(expiryInMinutes.toLong())
-            val expiry = Date.from(futureDateTime.atZone(ZoneId.systemDefault()).toInstant())
+                .plusSeconds(otpExpiryMins.toLong() * 60)
+            val expiry = Date.from(futureDateTime)
 
-            return OtpRefBody(ref, phone, expiry)
+            return OtpRefBody(ref, phone, expiry, null)
         } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return null
