@@ -12,9 +12,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Component
 class CommunityService {
@@ -41,9 +43,12 @@ class CommunityService {
     lateinit var codeGenerator: CodeGenerator
 
     @Autowired
-    lateinit var levyRepo: LevyRepo
+    lateinit var levyService: LevyService
 
-    private val logger = LoggerFactory.getLogger(this::class.simpleName)
+    @Autowired
+    lateinit var assignedLevyRepo: AssignedLevyRepo
+
+    private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
 
     fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
@@ -236,12 +241,14 @@ class CommunityService {
 
     }
 
-    fun createLevy(levy: Levy, admin: Member): ResponseEntity<*> {
-        levy.communityId = admin.community!!.id
-        return try {
-            ResponseEntity.ok(levyRepo.save(levy))
-        }catch (e :DuplicateKeyException){
-            ResponseEntity.badRequest().body("Levy with this name already exists")
+
+    @Scheduled(fixedRate = 12, timeUnit = TimeUnit.HOURS)
+    private fun createLevyPayments() {
+        val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
+        duePayments.forEach {
+            levyService.createPaymentForAssignedLevy(it)
         }
+
     }
+
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.mongodb.lang.NonNull
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
@@ -33,6 +34,8 @@ class Levy {
 
     @field:NonNull
     @field:NotNull
+    @Min(1, message = "Amount must be greater than 0")
+    @Field("amount")
     var amount: Double? = null
 
     @field:NonNull

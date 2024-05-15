@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.repository.MongoRepository
 
-interface MemberRepo : MongoRepository<Member?, String?> {
+interface MemberRepo : MongoRepository<Member, String?> {
 
     fun findByPhoneAndCommunityIsNotNull(phone: String): Member?
 
