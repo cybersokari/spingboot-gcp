@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import ng.cove.web.data.model.Levy
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 @ApiResponse(
@@ -81,6 +83,25 @@ class AdminController : BaseController() {
         @PathVariable("guard_id") guardId: String,
     ): ResponseEntity<*> {
         return communityService.removeSecurityGuardFromCommunity(guardId, user.id!!)
+    }
+
+    @ApiResponse(
+        description = "Levy created",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = Levy::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @ApiResponse(
+        description = "Levy name already exists",
+        responseCode = "400",
+        content = [Content(schema = Schema(implementation = Levy::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @Operation(summary = "Create a new levy")
+    @PostMapping("/levy")
+    fun createLevy(@RequestAttribute("user") user: Member,
+                   @RequestBody levy: Levy): ResponseEntity<*> {
+        return communityService.createLevy(levy, user)
     }
 
 }

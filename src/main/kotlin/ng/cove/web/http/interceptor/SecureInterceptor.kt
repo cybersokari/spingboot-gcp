@@ -10,7 +10,6 @@ import ng.cove.web.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
@@ -64,7 +63,6 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
         }
 
         response.status = HttpStatus.UNAUTHORIZED.value()
-        response.contentType = MediaType.APPLICATION_JSON_VALUE
         return false
     }
 

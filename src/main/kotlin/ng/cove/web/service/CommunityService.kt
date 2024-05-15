@@ -40,6 +40,9 @@ class CommunityService {
     @Autowired
     lateinit var codeGenerator: CodeGenerator
 
+    @Autowired
+    lateinit var levyRepo: LevyRepo
+
     private val logger = LoggerFactory.getLogger(this::class.simpleName)
 
 
@@ -137,12 +140,13 @@ class CommunityService {
             memberRepo.save(member)
 
             joinRequest.acceptedAt = Date()
+            joinRequest.approvedBy = adminUserId
             joinRequestRepo.save(joinRequest)
             //Delete all pending request with this phone number
             joinRequestRepo.deleteAllByIdPhoneAndAcceptedAtIsNull(requestId.phone)
 
             //TODO:Notify referrer of acceptance
-            return ResponseEntity.status(HttpStatus.OK).body("Request accepted")
+            return ResponseEntity.ok("Request accepted")
         } catch (_: NoSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponseMessage.REQUEST_CANT_BE_FOUND)
@@ -180,8 +184,7 @@ class CommunityService {
             joinRequestRepo.save(request)
 
             //TODO: Notify community admin
-            return ResponseEntity.ok()
-                .body("Request to join community sent")
+            return ResponseEntity.ok("Request to join community sent")
 
         } catch (_: NoSuchElementException) {
             return ResponseEntity.badRequest().body("Referrer not found")
@@ -231,5 +234,14 @@ class CommunityService {
         }
 
 
+    }
+
+    fun createLevy(levy: Levy, admin: Member): ResponseEntity<*> {
+        levy.communityId = admin.community!!.id
+        return try {
+            ResponseEntity.ok(levyRepo.save(levy))
+        }catch (e :DuplicateKeyException){
+            ResponseEntity.badRequest().body("Levy with this name already exists")
+        }
     }
 }

@@ -4,7 +4,6 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
@@ -21,7 +20,7 @@ class MongoConfig : AbstractMongoClientConfiguration() {
         // has not been loaded from the application.properties file at this point
         val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"
 
-        if (runningOnProd){
+        if (runningOnProd) {
             //Auto-closable client
             SecretManagerServiceClient.create().use {
                 val gcpProjectId = "gatedaccessdev"
@@ -31,10 +30,14 @@ class MongoConfig : AbstractMongoClientConfiguration() {
                 //Close the client
                 return MongoClients.create(String(dbSecretPayload.readAllBytes()))
             }
-        }else{
+        } else {
             return MongoClients.create("mongodb://localhost:27017/dev")
         }
 
+    }
+
+    override fun autoIndexCreation(): Boolean {
+        return true
     }
 
 }
