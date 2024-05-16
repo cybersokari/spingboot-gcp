@@ -25,11 +25,11 @@ class AssignedLevy {
 
     @Field("levy_id")
     @field:NonNull
-    val levyId: String? = null
+    var levyId: String? = null
 
     @Field("member_id")
     @field:NonNull
-    val memberId: String? = null
+    var memberId: String? = null
 
     @Field("assigned_by")
     @field:NonNull

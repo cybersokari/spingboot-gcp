@@ -16,7 +16,6 @@ import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.StandardEnvironment
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 import java.util.concurrent.TimeUnit
@@ -25,7 +24,6 @@ import java.util.concurrent.TimeUnit
 @EnableCaching
 @EnableScheduling
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
-@EnableMongoRepositories("ng.cove.web.data.repo")
 class App {
 
     @Bean

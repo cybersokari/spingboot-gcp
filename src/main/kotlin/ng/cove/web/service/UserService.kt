@@ -18,16 +18,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.caffeine.CaffeineCacheManager
+import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.*
 
 
 @Service
 class UserService {
 
+    @Autowired
+    private lateinit var environment: Environment
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @Autowired
@@ -65,7 +71,9 @@ class UserService {
             return ResponseEntity.ok().body(OtpRefBody(it, phone, future, 100))
         }
 
-        val aDayAgo = Date.from(Date().toInstant().minusSeconds(Duration.ofDays(1).seconds))
+        val now = LocalDateTime.now().minusHours(24).atZone(ZoneId.systemDefault())
+        val aDayAgo = Date.from(Instant.from(now))
+
         var trialCount = otpRepo.countByCreatedAtIsAfter(aDayAgo).toInt()
         if (trialCount >= maxDailyOtpTrial) {
             return ResponseEntity.badRequest().body("Trial exceeded try again later")
@@ -95,7 +103,6 @@ class UserService {
             ?: return ResponseEntity.badRequest().body("Invalid code")
 
             val userId: String
-            var userTypeForClaims = userType
 
             if (userType == UserType.Member) {
                 val member = memberRepo.findByPhone(phone)!!
@@ -110,10 +117,6 @@ class UserService {
                 memberRepo.save(member)
 
                 userId = member.id!!
-                // Switch admin user type for JWT claims
-                if (member.community!!.adminIds!!.contains(userId)) {
-                    userTypeForClaims = UserType.Admin
-                }
                 // Update cache
                 cacheManager.getCache(CacheNames.MEMBERS)?.put(userId, member)
 
@@ -136,7 +139,6 @@ class UserService {
             }
 
             val firebaseAuth = FirebaseAuth.getInstance()
-
             //Revoke refresh token for old devices if any
             try {
                 firebaseAuth.revokeRefreshTokens(userId)
@@ -144,8 +146,9 @@ class UserService {
             }
 
             // Set Admin claim for JWT
-            val claims = mapOf("type" to userTypeForClaims.name)
-            val customToken = firebaseAuth.createCustomToken(userId, claims)
+            val claims = mapOf("type" to userType.name)
+
+            val customToken  = firebaseAuth.createCustomToken(userId, claims)
 
             return ResponseEntity.ok().body(customToken)
         } catch (e: Exception) {

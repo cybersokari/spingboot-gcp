@@ -5,10 +5,14 @@ import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
+@Profile("!test")
 @Configuration
+@EnableMongoRepositories("ng.cove.web.data.repo")
 class MongoConfig : AbstractMongoClientConfiguration() {
     override fun getDatabaseName(): String {
         return "dev"

@@ -243,7 +243,7 @@ class CommunityService {
 
 
     @Scheduled(fixedRate = 12, timeUnit = TimeUnit.HOURS)
-    private fun createLevyPayments() {
+    fun createLevyPayments() {
         val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
         duePayments.forEach {
             levyService.createPaymentForAssignedLevy(it)

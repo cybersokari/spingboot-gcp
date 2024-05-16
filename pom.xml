@@ -30,6 +30,12 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+<!--        <dependency>-->
+<!--            <groupId>de.flapdoodle.embed</groupId>-->
+<!--            <artifactId>de.flapdoodle.embed.mongo</artifactId>-->
+<!--            <version>4.13.1</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-errorreporting</artifactId>
@@ -148,7 +154,9 @@
                 </executions>
                 <configuration>
                     <from>
-                        <image>eclipse-temurin:17-jre@sha256:15b50cf95210242511c17e1ec8281fd691ad7d34f163c250a21298943d65de87</image>
+                        <image>
+                            eclipse-temurin:17-jre@sha256:15b50cf95210242511c17e1ec8281fd691ad7d34f163c250a21298943d65de87
+                        </image>
                     </from>
                     <to>
                         <image>${image.path}</image>
@@ -258,6 +266,9 @@
         </profile>
         <profile>
             <id>dev</id>
+        </profile>
+        <profile>
+            <id>test</id>
         </profile>
     </profiles>
 </project>
