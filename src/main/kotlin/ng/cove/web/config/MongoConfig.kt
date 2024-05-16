@@ -9,17 +9,18 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
+import org.springframework.web.context.WebApplicationContext
 
 @Profile("!test")
 @Configuration
 @EnableMongoRepositories("ng.cove.web.data.repo")
-class MongoConfig : AbstractMongoClientConfiguration() {
+class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfiguration() {
     override fun getDatabaseName(): String {
         return "dev"
     }
 
     override fun mongoClient(): MongoClient {
-        val profiles = StandardEnvironment().activeProfiles
+        val profiles = context.environment.activeProfiles
         // profiles is sometimes empty when running on a production server because it
         // has not been loaded from the application.properties file at this point
         val runningOnProd = profiles.isEmpty() || profiles[0] == "prod"

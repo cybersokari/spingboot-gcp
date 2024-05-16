@@ -35,14 +35,13 @@ class SecureInterceptor(val context: WebApplicationContext) : HandlerInterceptor
                 val userId: String
                 val userType: UserType
                 // Running on dev, skip token decode
-                if (StandardEnvironment().activeProfiles[0] == "dev") {
+                if (context.environment.activeProfiles[0] == "dev") {
                     userType = UserType.Member // Manually update this to any type when running on dev
                     userId = idToken
                     println("Bearer is: $idToken")
                 } else {
-                    val tokenAsync: ApiFuture<FirebaseToken> = FirebaseAuth.getInstance()
-                        .verifyIdTokenAsync(idToken, true)
-                    val firebaseToken = tokenAsync[10, TimeUnit.SECONDS]
+                    val firebaseToken: FirebaseToken = FirebaseAuth.getInstance()
+                        .verifyIdToken(idToken, true)
                     userType = UserType.valueOf(firebaseToken.claims["type"] as String)
                     userId = firebaseToken.uid
                 }

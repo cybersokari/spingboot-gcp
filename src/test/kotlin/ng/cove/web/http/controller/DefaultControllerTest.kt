@@ -8,6 +8,7 @@ import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.Community
 import ng.cove.web.data.model.Member
 import ng.cove.web.http.body.OtpRefBody
+import ng.cove.web.service.UserService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -43,8 +44,8 @@ import java.util.*
 @ActiveProfiles("test")
 class DefaultControllerTest : AppTests() {
 
-    private lateinit var member: Member
-    private lateinit var community: Community
+    lateinit var member: Member
+    lateinit var community: Community
 
     @Autowired
     lateinit var webApplicationContext: WebApplicationContext
@@ -52,12 +53,16 @@ class DefaultControllerTest : AppTests() {
     @MockBean
     lateinit var smsOtpService: SmsOtpService
 
+    @MockBean
+    lateinit var mockUserService: UserService
+
     lateinit var mockMvc: MockMvc
 
     lateinit var staticFirebaseAuth: MockedStatic<FirebaseAuth>
     lateinit var staticLocalDateTime: MockedStatic<LocalDateTime>
 
 
+    // Mocked FirebaseAuth for testing
     val auth: FirebaseAuth = Mockito.mock(FirebaseAuth::class.java)
 
     // Fixed date for testing
