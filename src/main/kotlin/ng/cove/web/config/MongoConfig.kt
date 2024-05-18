@@ -15,9 +15,7 @@ import org.springframework.web.context.WebApplicationContext
 @Configuration
 @EnableMongoRepositories("ng.cove.web.data.repo")
 class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfiguration() {
-    override fun getDatabaseName(): String {
-        return "dev"
-    }
+    override fun getDatabaseName(): String = "dev"
 
     override fun mongoClient(): MongoClient {
         val profiles = context.environment.activeProfiles
@@ -41,8 +39,6 @@ class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfi
 
     }
 
-    override fun autoIndexCreation(): Boolean {
-        return true
-    }
+    override fun autoIndexCreation(): Boolean = true
 
 }

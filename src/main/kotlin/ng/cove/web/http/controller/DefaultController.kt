@@ -14,7 +14,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-//@RequestMapping("/v1") Dont use it, it will break the '/secure' path interceptor
 @RestController
 class DefaultController: BaseController() {
 

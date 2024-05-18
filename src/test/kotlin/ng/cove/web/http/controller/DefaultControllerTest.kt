@@ -1,124 +1,28 @@
 package ng.cove.web.http.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.firebase.auth.FirebaseAuth
-import ng.cove.web.App
 import ng.cove.web.AppTests
-import ng.cove.web.component.SmsOtpService
-import ng.cove.web.data.model.Community
-import ng.cove.web.data.model.Member
 import ng.cove.web.http.body.OtpRefBody
-import ng.cove.web.service.UserService
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.MockedStatic
 import org.mockito.Mockito
-import org.mockito.Mockito.mockStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.mockito.kotlin.any
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockServletContext
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.context.web.WebAppConfiguration
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
-import java.time.Clock
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 
 
-@ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [App::class])
-@WebAppConfiguration("")
-@ActiveProfiles("test")
+//@WebAppConfiguration("")
 class DefaultControllerTest : AppTests() {
 
-    lateinit var member: Member
-    lateinit var community: Community
-
-    @Autowired
-    lateinit var webApplicationContext: WebApplicationContext
-
-    @MockBean
-    lateinit var smsOtpService: SmsOtpService
-
-    @MockBean
-    lateinit var mockUserService: UserService
-
-    lateinit var mockMvc: MockMvc
-
-    lateinit var staticFirebaseAuth: MockedStatic<FirebaseAuth>
-    lateinit var staticLocalDateTime: MockedStatic<LocalDateTime>
-
-
-    // Mocked FirebaseAuth for testing
-    val auth: FirebaseAuth = Mockito.mock(FirebaseAuth::class.java)
-
-    // Fixed date for testing
-    private final val instantExpected: String = "2024-05-22T10:15:30Z"
-    private final var clock: Clock = Clock.fixed(Instant.parse(instantExpected), ZoneId.systemDefault())
-    var dateTime: LocalDateTime = LocalDateTime.now(clock)
-
-    @Value("\${otp.trial-limit}")
-    var maxDailyOtpTrial: Int = 0
-
-
-    @BeforeEach
-    fun setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build()
-
-        community = Community()
-        community.id = "2133232323423"
-        community.name = "Test Community"
-        community.address = "123 Test Street"
-
-        member = Member()
-        member.id = "user_id"
-        member.firstName = "Janet"
-        member.lastName = "Doe"
-        member.phone = "23481234567"
-
-        community.superAdminId = member.id
-        community.adminIds = setOf(member.id!!)
-
-        member.community = community
-
-        // Mock LocalDateTime
-        staticLocalDateTime = mockStatic(LocalDateTime::class.java)
-        staticLocalDateTime.`when`<LocalDateTime>(LocalDateTime::now).thenReturn(dateTime)
-        // Mock FirebaseAuth
-        staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
-        staticFirebaseAuth.`when`<Any>(FirebaseAuth::getInstance).thenReturn(auth)
-
-    }
-
-    @AfterEach
-    fun tearDown() {
-        staticFirebaseAuth.close()
-        staticLocalDateTime.close()
-    }
-
     @Test
-    fun givenWac_whenServletContext_thenItProvidesDefaultController() {
-        val servletContext = webApplicationContext.servletContext
-        assertNotNull(servletContext)
-        assertTrue(servletContext is MockServletContext)
-        assertNotNull(webApplicationContext.getBean(DefaultController::class.java))
-    }
-
-    @Test
-    fun validUserPhoneGetOtp() {
+    fun givenPhoneRegistered_whenUserPhoneGetOtp_thenSuccess() {
         val phone = member.phone!!
         Mockito.`when`(memberRepo.findByPhoneAndCommunityIsNotNull(phone)).thenReturn(member)
         val now = Date()
@@ -127,12 +31,15 @@ class DefaultControllerTest : AppTests() {
         Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
         val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
-        println("Test result: ${result.contentAsString}")
+
         assertTrue(result.status == 200)
+        verify(memberRepo, times(1)).findByPhoneAndCommunityIsNotNull(any())
+        verify(memberPhoneOtpRepo, times(1)).countByCreatedAtIsAfter(any())
+        verify(smsOtpService, times(1)).sendOtp(phone)
     }
 
     @Test
-    fun unknownUserPhoneGetError() {
+    fun givenPhoneNotRegistered_whenUserPhoneGetOtp_thenError() {
         val phone = member.phone!!
         Mockito.`when`(memberRepo.findByPhoneAndCommunityIsNotNull(phone)).thenReturn(null)
         val now = Date()
@@ -140,12 +47,18 @@ class DefaultControllerTest : AppTests() {
         val otpRefBody = OtpRefBody("", phone, now, 2)
         Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
-        val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+
+        val result = mockMvc.perform(
+            get("/user/login").param("phone", phone)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andReturn().response
+
+        println("Test result: ${result.contentAsString}")
         assertTrue(result.status == 400, "Should return 400")
     }
 
     @Test
-    fun otpLimitExceededError() {
+    fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
         val phone = member.phone!!
         Mockito.`when`(memberRepo.findByPhoneAndCommunityIsNotNull(phone)).thenReturn(member)
 
@@ -155,15 +68,16 @@ class DefaultControllerTest : AppTests() {
         val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
 
         assertTrue(result.status == 400, "Should return 400")
+        verify(memberPhoneOtpRepo, times(1)).countByCreatedAtIsAfter(any())
     }
 
 
     @Test
-    fun verifyUserPhoneOtp() {
+    fun givenValidOtp_whenLoginVerifyOtp_return200() {
         val phone = member.phone!!
-        val otp = "223355"
-        val ref = "wew342342432"
-        val token = "test_token"
+        val otp = faker.number().randomNumber(6, true).toString()
+        val ref = faker.random().hex(15)
+        val token = faker.random().hex(55)
         Mockito.`when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
         Mockito.`when`(memberRepo.findByPhone(phone)).thenReturn(member)
 
@@ -172,26 +86,21 @@ class DefaultControllerTest : AppTests() {
             .thenReturn(token)
 
         val login = mapOf(
-            "phone" to phone,
             "otp" to otp,
             "ref" to ref,
-            "device_id" to "device_id",
-            "device_name" to "Samsung Galaxy S20"
+            "device_id" to faker.random().hex(30),
+            "device_name" to faker.device().modelName()
         )
         val result = mockMvc.post("/user/login/verify") {
             contentType = MediaType.APPLICATION_JSON
-            content = ObjectMapper().writeValueAsString(login)
+            content = mapper.writeValueAsString(login)
         }.andReturn().response
 
+        assertEquals(200, result.status)
         assertEquals(token, result.contentAsString)
 
-    }
-
-    @Test
-    fun loginSecurityGuard() {
-    }
-
-    @Test
-    fun verifyGuardPhoneOtp() {
+        verify(smsOtpService, times(1)).verifyOtp(otp, ref)
+        verify(memberRepo, times(1)).findByPhone(phone)
+        verify(auth, times(1)).createCustomToken(any(), any())
     }
 }

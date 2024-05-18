@@ -18,12 +18,13 @@ class LevyServiceTest : AppTests() {
     private lateinit var levyService: LevyService
 
     private lateinit var admin: Member
-    private lateinit var community: Community
     private lateinit var createdLevy: Levy
     private lateinit var levyData: Levy
 
+
     @BeforeEach
-    fun setUp() {
+    override fun setUp() {
+        super.setUp()
         community = Community()
         community.id = "2133232323423"
         community.name = "Test Community"
@@ -52,9 +53,7 @@ class LevyServiceTest : AppTests() {
         createdLevy.id = "levy_id"
     }
 
-    @AfterEach
-    fun tearDown() {
-    }
+
 
     @Test
     fun createLevy() {

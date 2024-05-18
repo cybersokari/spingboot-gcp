@@ -2,9 +2,7 @@ package ng.cove.web.service
 
 import com.google.firebase.auth.FirebaseAuth
 import ng.cove.web.component.SmsOtpService
-import ng.cove.web.data.model.Member
 import ng.cove.web.data.model.PhoneOtp
-import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.data.model.UserType
 import ng.cove.web.data.repo.MemberPhoneOtpRepo
 import ng.cove.web.data.repo.MemberRepo
@@ -16,24 +14,19 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.caffeine.CaffeineCacheManager
-import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.*
 
 
 @Service
 class UserService {
 
-    @Autowired
-    private lateinit var environment: Environment
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @Autowired
@@ -63,7 +56,6 @@ class UserService {
             guardRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                 ?: return ResponseEntity.badRequest().body("$phone is not guard of a community")
         }
-
 
         // Check if user is a tester
         getTesterId(phone, userType)?.let {
@@ -97,7 +89,6 @@ class UserService {
     fun verifyPhoneOtp(login: LoginBody, userType: UserType): ResponseEntity<*> {
 
         try {
-
             // If user is tester return the phone number, otherwise verify OTP
             val phone = getTesterPhone(login.ref, login.otp, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
             ?: return ResponseEntity.badRequest().body("Invalid code")
@@ -148,7 +139,7 @@ class UserService {
             // Set Admin claim for JWT
             val claims = mapOf("type" to userType.name)
 
-            val customToken  = firebaseAuth.createCustomToken(userId, claims)
+            val customToken = firebaseAuth.createCustomToken(userId, claims)
 
             return ResponseEntity.ok().body(customToken)
         } catch (e: Exception) {
@@ -171,16 +162,6 @@ class UserService {
         } else {
             guardRepo.findByIdAndTestOtp(id, otp)?.phone
         }
-    }
-
-    @Cacheable(value = [CacheNames.MEMBERS])
-    fun getMemberById(id: String): Member? {
-        return memberRepo.findById(id).orElse(null)
-    }
-
-    @Cacheable(value = [CacheNames.GUARDS])
-    fun getGuardById(id: String): SecurityGuard? {
-        return guardRepo.findById(id).orElse(null)
     }
 
 }
