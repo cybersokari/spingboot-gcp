@@ -11,7 +11,6 @@ interface MemberRepo : MongoRepository<Member, String?> {
     fun findByPhoneAndCommunityIsNotNull(phone: String): Member?
     fun findByPhone(phone: String): Member?
     fun existsByPhoneAndCommunityIsNotNull(phone: String): Boolean
-    fun findByFirstNameEquals(name: String, pageable: Pageable): Page<Member>
     fun findFirstByTestOtpIsNotNullAndPhone(phone: String): Member?
     fun findByIdAndTestOtp(id: String, testOtp: String): Member?
 }

@@ -90,6 +90,7 @@ class AppTest {
         community.adminIds = setOf(member.id!!)
 
         member.community = community
+
     }
 
     @BeforeAll

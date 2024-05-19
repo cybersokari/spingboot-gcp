@@ -92,7 +92,7 @@ class UserService {
 
         try {
             // If user is tester return the phone number, otherwise verify OTP
-            val phone = getTesterPhone(login.ref, login.otp, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
+            val phone = verifyTesterOtp(login, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
             ?: return ResponseEntity.badRequest().body("Invalid code")
 
             val userId: String
@@ -161,11 +161,12 @@ class UserService {
         }
     }
 
-    fun getTesterPhone(id: String, otp: String, userType: UserType): String? {
+    // Return null if user is not a tester
+    fun verifyTesterOtp(login: LoginBody, userType: UserType): String? {
         return if (userType == UserType.Member) {
-            memberRepo.findByIdAndTestOtp(id, otp)?.phone
+            memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
         } else {
-            guardRepo.findByIdAndTestOtp(id, otp)?.phone
+            guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
         }
     }
 

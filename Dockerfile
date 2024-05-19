@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-
+# Dockerfile for running test
 FROM eclipse-temurin:17-jdk-jammy as base
 WORKDIR /build
 COPY --chmod=0755 mvnw mvnw
