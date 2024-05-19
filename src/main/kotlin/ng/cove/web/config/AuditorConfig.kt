@@ -8,7 +8,6 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing
 
 @Configuration
 @EnableMongoAuditing(auditorAwareRef = "auditorProvider")
-@Profile("!test")
 class AuditorConfig {
     @Bean
     fun auditorProvider(): AuditorAware<String> {

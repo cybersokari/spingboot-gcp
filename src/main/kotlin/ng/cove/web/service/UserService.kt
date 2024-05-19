@@ -1,5 +1,6 @@
 package ng.cove.web.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.firebase.auth.FirebaseAuth
 import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
@@ -63,10 +64,9 @@ class UserService {
             return ResponseEntity.ok().body(OtpRefBody(it, phone, future, 100))
         }
 
-        val now = LocalDateTime.now().minusHours(24).atZone(ZoneId.systemDefault())
-        val aDayAgo = Date.from(Instant.from(now))
+        val aDayAgo = Date.from(Instant.now().minus(Duration.ofDays(1)))
 
-        var trialCount = otpRepo.countByCreatedAtIsAfter(aDayAgo).toInt()
+        var trialCount = otpRepo.countByPhoneAndCreatedAtIsAfter(phone, aDayAgo).toInt()
         if (trialCount >= maxDailyOtpTrial) {
             return ResponseEntity.badRequest().body("Trial exceeded try again later")
         }

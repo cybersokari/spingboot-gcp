@@ -7,7 +7,10 @@ import net.datafaker.Faker
 import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.Community
 import ng.cove.web.data.model.Member
-import ng.cove.web.data.repo.*
+import ng.cove.web.data.repo.CommunityRepo
+import ng.cove.web.data.repo.JoinRequestRepo
+import ng.cove.web.data.repo.MemberPhoneOtpRepo
+import ng.cove.web.data.repo.MemberRepo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.MockedStatic
@@ -20,45 +23,25 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import java.time.Clock
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
+
 
 @SpringBootTest(classes = [App::class])
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 class AppTests {
 
-    @MockBean
+    @Autowired
     lateinit var communityRepo: CommunityRepo
 
-    @MockBean
+    @Autowired
     lateinit var memberRepo: MemberRepo
 
-    @MockBean
-    lateinit var securityGuardRepo: SecurityGuardRepo
-
-    @MockBean
+    @Autowired
     lateinit var joinRequestRepo: JoinRequestRepo
 
-    @MockBean
-    lateinit var accessRepo: AccessRepo
-
-    @MockBean
-    lateinit var assignedLevyRepo: AssignedLevyRepo
-
-    @MockBean
-    lateinit var levyPaymentRepo: LevyPaymentRepo
-
-    @MockBean
+    @Autowired
     lateinit var memberPhoneOtpRepo: MemberPhoneOtpRepo
 
-    @MockBean
-    lateinit var occupantRepo: OccupantRepo
-
-    @MockBean
-    lateinit var levyRepo: LevyRepo
 
     lateinit var member: Member
     lateinit var community: Community
@@ -70,15 +53,9 @@ class AppTests {
     lateinit var mockMvc: MockMvc
 
     lateinit var staticFirebaseAuth: MockedStatic<FirebaseAuth>
-    lateinit var staticLocalDateTime: MockedStatic<LocalDateTime>
 
     // Mocked FirebaseAuth for testing
     val auth: FirebaseAuth = Mockito.mock(FirebaseAuth::class.java)
-
-    // Fixed date for testing
-    private final val instantExpected: String = "2024-05-22T10:15:30Z"
-    private final var clock: Clock = Clock.fixed(Instant.parse(instantExpected), ZoneId.systemDefault())
-    var dateTime: LocalDateTime = LocalDateTime.now(clock)
 
     @Value("\${otp.trial-limit}")
     var maxDailyOtpTrial: Int = 0
@@ -105,19 +82,22 @@ class AppTests {
 
         member.community = community
 
-        // Mock LocalDateTime
-        staticLocalDateTime = mockStatic(LocalDateTime::class.java)
-        staticLocalDateTime.`when`<LocalDateTime>(LocalDateTime::now).thenReturn(dateTime)
+
         // Mock FirebaseAuth
         staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
         staticFirebaseAuth.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
-
     }
 
     @AfterEach
     fun tearDown() {
         staticFirebaseAuth.close()
-        staticLocalDateTime.close()
+
+//        communityRepo.deleteAll()
+//        memberRepo.deleteAll()
+//        joinRequestRepo.deleteAll()
+//        memberPhoneOtpRepo.deleteAll()
     }
+
+
 
 }

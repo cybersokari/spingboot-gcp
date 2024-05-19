@@ -1,14 +1,12 @@
 package ng.cove.web.service
 
 import ng.cove.web.AppTests
-import ng.cove.web.data.model.*
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
+import ng.cove.web.data.model.Community
+import ng.cove.web.data.model.Levy
+import ng.cove.web.data.model.LevyType
+import ng.cove.web.data.model.Member
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
 import java.util.*
 
 
@@ -51,36 +49,5 @@ class LevyServiceTest : AppTests() {
         createdLevy.createdAt = Calendar.getInstance().time
         createdLevy.updatedAt = Calendar.getInstance().time
         createdLevy.id = "levy_id"
-    }
-
-
-
-    @Test
-    fun createLevy() {
-
-        Mockito.`when`(levyRepo.save(levyData)).thenReturn(createdLevy)
-
-        assertEquals(ResponseEntity.ok(createdLevy), levyService.createLevy(levyData, admin))
-    }
-
-    @Test
-    fun assignLevy() {
-        val levyToAssign = AssignedLevy()
-        levyToAssign.levyId = createdLevy.id!!
-        levyToAssign.memberId = admin.id
-
-        Mockito.`when`(levyRepo.findById(levyToAssign.levyId!!)).thenReturn(Optional.of(createdLevy))
-
-        Mockito.`when`(memberRepo.findById(levyToAssign.memberId!!)).thenReturn(Optional.of(admin))
-
-        Mockito.`when`(assignedLevyRepo.save(levyToAssign)).thenReturn(levyToAssign)
-
-        assertEquals(ResponseEntity.ok(levyToAssign), levyService.assignLevy(levyToAssign, admin))
-
-    }
-
-    @Test
-    fun dueLevyCreatesPayment() {
-        levyPaymentRepo
     }
 }

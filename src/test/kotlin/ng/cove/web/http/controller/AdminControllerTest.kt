@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseToken
 import ng.cove.web.AppTests
 import ng.cove.web.data.model.*
 import ng.cove.web.service.CacheService
-import org.apache.tomcat.util.http.parser.Authorization
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -40,7 +39,7 @@ class AdminControllerTest : AppTests() {
         `when`(auth.verifyIdToken(any(), any())).thenReturn(null)
 
         val unknownToken = faker.random().hex(21)
-        val result = mockMvc.delete("/admin/guard/{guard_id}", 1){
+        val result = mockMvc.delete("/admin/guard/{guard_id}", 1) {
             header("Authorization", "Bearer $unknownToken")
         }.andReturn().response
 
@@ -91,8 +90,7 @@ class AdminControllerTest : AppTests() {
                 address = faker.address().fullAddress()
             }
 
-            `when`(communityRepo.findCommunityByIdAndAdminIdsContains(community.id!!, member.id!!))
-                .thenReturn(community)
+            communityRepo.save(community)
 
             val requestId = JoinRequestId().apply {
                 communityId = community.id!!
@@ -107,10 +105,7 @@ class AdminControllerTest : AppTests() {
                 gender = Gender.female
             }
 
-            `when`(joinRequestRepo.findById(any())).thenReturn(Optional.of(request))
-            `when`(memberRepo.findByPhone(newMember.phone!!)).thenReturn(null)
-            `when`(memberRepo.save(any())).thenReturn(newMember)
-
+            joinRequestRepo.save(request)
 
             val result = mockMvc.post("/admin/community/request/{accept}", true) {
                 header("Authorization", "Bearer $idToken")
