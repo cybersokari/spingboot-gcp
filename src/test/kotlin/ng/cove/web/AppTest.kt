@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 
 
@@ -32,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource("/application–test.properties")
 class AppTest {
 
     @Autowired
@@ -54,6 +56,7 @@ class AppTest {
 
 
     lateinit var staticFirebaseAuth: MockedStatic<FirebaseAuth>
+
     // Mocked FirebaseAuth for testing
     val auth: FirebaseAuth = Mockito.mock(FirebaseAuth::class.java)
 
@@ -67,7 +70,7 @@ class AppTest {
     lateinit var community: Community
 
     @Autowired
-    lateinit var mongoTemplate : MongoTemplate
+    lateinit var mongoTemplate: MongoTemplate
 
     @BeforeEach
     fun setUp() {
@@ -90,7 +93,7 @@ class AppTest {
     }
 
     @BeforeAll
-    fun setupAll(){
+    fun setupAll() {
         // Mock FirebaseAuth
         staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
         staticFirebaseAuth.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
@@ -103,7 +106,7 @@ class AppTest {
     }
 
     @AfterAll
-    fun tearDownAll(){
+    fun tearDownAll() {
         staticFirebaseAuth.close()
     }
 
