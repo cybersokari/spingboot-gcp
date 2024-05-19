@@ -6,5 +6,6 @@ import java.util.Date
 
 interface MemberPhoneOtpRepo: MongoRepository<PhoneOtp, String> {
     fun countByPhoneAndCreatedAtIsAfter(phone: String, createdAt: Date): Long
+    fun deleteAllByPhone(phone: String)
     fun countByPhone(phone: String): Long
 }

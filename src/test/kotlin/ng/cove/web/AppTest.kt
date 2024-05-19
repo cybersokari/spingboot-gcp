@@ -11,8 +11,10 @@ import ng.cove.web.data.repo.CommunityRepo
 import ng.cove.web.data.repo.JoinRequestRepo
 import ng.cove.web.data.repo.MemberPhoneOtpRepo
 import ng.cove.web.data.repo.MemberRepo
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInstance
 import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.mockStatic
@@ -21,14 +23,18 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 
 
 @SpringBootTest(classes = [App::class])
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-class AppTests {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource("/application–test.properties")
+class AppTest {
 
     @Autowired
     lateinit var communityRepo: CommunityRepo
@@ -42,15 +48,12 @@ class AppTests {
     @Autowired
     lateinit var memberPhoneOtpRepo: MemberPhoneOtpRepo
 
-
-    lateinit var member: Member
-    lateinit var community: Community
-
     @MockBean
     lateinit var smsOtpService: SmsOtpService
 
     @Autowired
     lateinit var mockMvc: MockMvc
+
 
     lateinit var staticFirebaseAuth: MockedStatic<FirebaseAuth>
 
@@ -63,9 +66,15 @@ class AppTests {
     final val faker = Faker()
     val mapper = ObjectMapper().apply { propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE }
 
+    lateinit var member: Member
+    lateinit var community: Community
+
+    @Autowired
+    lateinit var mongoTemplate: MongoTemplate
 
     @BeforeEach
     fun setUp() {
+
         community = Community()
         community.id = faker.random().hex(20)
         community.name = "${faker.address().state()} Community"
@@ -81,23 +90,24 @@ class AppTests {
         community.adminIds = setOf(member.id!!)
 
         member.community = community
+    }
 
-
+    @BeforeAll
+    fun setupAll() {
         // Mock FirebaseAuth
         staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
         staticFirebaseAuth.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
+
+        //TODO: Investigate why 'phone_otp' collection index is always duplicate in Embedded db
+        mongoTemplate.collectionNames.forEach {
+            mongoTemplate.getCollection(it).dropIndexes()
+            mongoTemplate.getCollection(it).drop()
+        }
     }
 
-    @AfterEach
-    fun tearDown() {
+    @AfterAll
+    fun tearDownAll() {
         staticFirebaseAuth.close()
-
-//        communityRepo.deleteAll()
-//        memberRepo.deleteAll()
-//        joinRequestRepo.deleteAll()
-//        memberPhoneOtpRepo.deleteAll()
     }
-
-
 
 }

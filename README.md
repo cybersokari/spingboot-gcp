@@ -1,6 +1,7 @@
 # Cove Web Service Repo
 
 ![Deployment](https://github.com/sprinthubmobile/cove_web/actions/workflows/deploy.yml/badge.svg?branch=main)
+![Test](https://github.com/sprinthubmobile/cove_web/actions/workflows/test.yml/badge.svg)
 ## Before diving in 🙌
 
 - Our recommend IDE for this project is IntelliJ, but you can use any IDE that supports Springboot

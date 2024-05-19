@@ -1,6 +1,5 @@
 package ng.cove.web.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.firebase.auth.FirebaseAuth
 import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
@@ -20,8 +19,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 
 
@@ -75,7 +72,12 @@ class UserService {
         return if (otpResult != null) {
             trialCount++
             otpResult.dailyTrialLeft = maxDailyOtpTrial - trialCount
-            otpRepo.save(PhoneOtp(phone, otpResult.ref, userType, otpResult.expireAt))
+            val phoneOtp = PhoneOtp()
+            phoneOtp.phone = phone
+            phoneOtp.ref = otpResult.ref
+            phoneOtp.type = userType
+            phoneOtp.expireAt = otpResult.expireAt
+            otpRepo.save(phoneOtp)
             ResponseEntity.ok().body(otpResult)
         } else {
             ResponseEntity.internalServerError().body("OTP provider error")
@@ -130,9 +132,12 @@ class UserService {
             }
 
             val firebaseAuth = FirebaseAuth.getInstance()
-            //Revoke refresh token for old devices if any
+
             try {
+                //Revoke refresh token for old devices if any
                 firebaseAuth.revokeRefreshTokens(userId)
+                // Clear OTP limit for this user
+                otpRepo.deleteAllByPhone(phone)
             } catch (_: Exception) {
             }
 

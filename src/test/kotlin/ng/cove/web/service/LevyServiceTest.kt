@@ -1,6 +1,6 @@
 package ng.cove.web.service
 
-import ng.cove.web.AppTests
+import ng.cove.web.AppTest
 import ng.cove.web.data.model.Community
 import ng.cove.web.data.model.Levy
 import ng.cove.web.data.model.LevyType
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
 
-class LevyServiceTest : AppTests() {
+class LevyServiceTest : AppTest() {
 
     @Autowired
     private lateinit var levyService: LevyService
