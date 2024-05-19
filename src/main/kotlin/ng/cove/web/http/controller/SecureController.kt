@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = "401"
+    responseCode = "401",
+    content = [Content(schema = Schema(implementation = String::class))]
 )
 @RestController
 @RequestMapping("/secure")

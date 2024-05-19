@@ -22,7 +22,7 @@ class PhoneOtp {
 
     var phone: String? = null
 
-    @Indexed(unique = true)
+    @Indexed(unique = true, sparse = true)
     var ref: String? = null
 
     private var type: UserType = UserType.Member

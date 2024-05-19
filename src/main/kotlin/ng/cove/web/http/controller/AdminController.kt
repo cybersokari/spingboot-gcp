@@ -9,12 +9,17 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import ng.cove.web.data.model.AssignedLevy
+import ng.cove.web.data.model.Levy
+import ng.cove.web.service.LevyService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = "401"
+    responseCode = "401",
+    content = [Content(schema = Schema(implementation = String::class))]
 )
 @RestController
 @RequestMapping("/admin")
@@ -22,6 +27,9 @@ class AdminController : BaseController() {
 
     @Autowired
     lateinit var communityService: CommunityService
+
+    @Autowired
+    lateinit var levyService: LevyService
 
 
     @ApiResponse(
@@ -82,5 +90,43 @@ class AdminController : BaseController() {
     ): ResponseEntity<*> {
         return communityService.removeSecurityGuardFromCommunity(guardId, user.id!!)
     }
+
+    @ApiResponse(
+        description = "Levy created",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = Levy::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @ApiResponse(
+        description = "Levy name already exists",
+        responseCode = "400",
+        content = [Content(schema = Schema(implementation = Levy::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @Operation(summary = "Create a new levy")
+    @PostMapping("/levy")
+    fun createLevy(@RequestAttribute("user") user: Member,
+                   @RequestBody levy: Levy): ResponseEntity<*> {
+        return levyService.createLevy(levy, user)
+    }
+
+    @ApiResponse(
+        description = "Levy assigned",
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = AssignedLevy::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @ApiResponse(
+        description = "Levy already assigned",
+        responseCode = "400",
+        content = [Content(schema = Schema(implementation = Map::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @PostMapping("/levy/assign", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun assignLevy(@RequestAttribute("user") user: Member,
+                   @Valid @RequestBody levy: AssignedLevy): ResponseEntity<*>{
+        return levyService.assignLevy(levy, user)
+    }
+
 
 }

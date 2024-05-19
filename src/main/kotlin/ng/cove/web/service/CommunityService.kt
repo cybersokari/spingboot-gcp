@@ -12,11 +12,14 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import java.util.concurrent.TimeUnit
 
-@Component
+@Service
 class CommunityService {
 
     @Autowired
@@ -40,7 +43,13 @@ class CommunityService {
     @Autowired
     lateinit var codeGenerator: CodeGenerator
 
-    private val logger = LoggerFactory.getLogger(this::class.simpleName)
+    @Autowired
+    lateinit var levyService: LevyService
+
+    @Autowired
+    lateinit var assignedLevyRepo: AssignedLevyRepo
+
+    private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
 
     fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
@@ -107,7 +116,7 @@ class CommunityService {
         accept: Boolean
     ): ResponseEntity<*> {
 
-        val community = communityRepo.findCommunityByIdAndSuperAdminId(requestId.communityId, adminUserId)
+        val community = communityRepo.findCommunityByIdAndAdminIdsContains(requestId.communityId, adminUserId)
             ?: return ResponseEntity.badRequest()
                 .body(ApiResponseMessage.USER_NOT_SUPER_ADMIN)
 
@@ -128,21 +137,22 @@ class CommunityService {
 
             // Update or create a Member
             val memberPhone = joinRequest.id!!.phone
-            val member = memberRepo.findByPhone(memberPhone) ?: Member()
+            var member = memberRepo.findByPhone(memberPhone) ?: Member()
 
             member.firstName = joinRequest.firstName
             member.lastName = joinRequest.lastName
             member.community = community
             member.phone = memberPhone
-            memberRepo.save(member)
+            member = memberRepo.save(member)
 
             joinRequest.acceptedAt = Date()
+            joinRequest.approvedBy = adminUserId
             joinRequestRepo.save(joinRequest)
             //Delete all pending request with this phone number
             joinRequestRepo.deleteAllByIdPhoneAndAcceptedAtIsNull(requestId.phone)
 
             //TODO:Notify referrer of acceptance
-            return ResponseEntity.status(HttpStatus.OK).body("Request accepted")
+            return ResponseEntity.ok(member)
         } catch (_: NoSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponseMessage.REQUEST_CANT_BE_FOUND)
@@ -180,8 +190,7 @@ class CommunityService {
             joinRequestRepo.save(request)
 
             //TODO: Notify community admin
-            return ResponseEntity.ok()
-                .body("Request to join community sent")
+            return ResponseEntity.ok("Request to join community sent")
 
         } catch (_: NoSuchElementException) {
             return ResponseEntity.badRequest().body("Referrer not found")
@@ -232,4 +241,15 @@ class CommunityService {
 
 
     }
+
+
+    @Scheduled(fixedRate = 12, timeUnit = TimeUnit.HOURS)
+    fun createLevyPayments() {
+        val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
+        duePayments.forEach {
+            levyService.createPaymentForAssignedLevy(it)
+        }
+
+    }
+
 }

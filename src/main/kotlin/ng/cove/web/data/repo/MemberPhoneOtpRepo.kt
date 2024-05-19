@@ -5,5 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository
 import java.util.Date
 
 interface MemberPhoneOtpRepo: MongoRepository<PhoneOtp, String> {
-    fun countByCreatedAtIsAfter(createdAt: Date): Long
+    fun countByPhoneAndCreatedAtIsAfter(phone: String, createdAt: Date): Long
+    fun countByPhone(phone: String): Long
 }

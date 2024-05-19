@@ -1,6 +1,6 @@
 package ng.cove.web.data.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.mongodb.lang.NonNull
@@ -22,7 +22,7 @@ class JoinRequest {
 
     @NonNull
     @Field("referrer_id")
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     var referrerId: String? = null
 
     @field:NonNull
@@ -45,7 +45,11 @@ class JoinRequest {
     @CreatedDate
     var createdAt: Date? = null
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Field("accepted_at")
     var acceptedAt: Date? = null
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Field("approved_by")
+    var approvedBy: String? = null
 }
