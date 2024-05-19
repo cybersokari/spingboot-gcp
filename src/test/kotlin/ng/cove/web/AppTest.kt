@@ -12,7 +12,6 @@ import ng.cove.web.data.repo.JoinRequestRepo
 import ng.cove.web.data.repo.MemberPhoneOtpRepo
 import ng.cove.web.data.repo.MemberRepo
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
@@ -25,7 +24,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.getCollectionName
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 
@@ -97,7 +95,7 @@ class AppTest {
         staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
         staticFirebaseAuth.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
 
-        //TODO: Investigate why this index is always duplicate in Embedded db
+        //TODO: Investigate why 'phone_otp' collection index is always duplicate in Embedded db
         mongoTemplate.collectionNames.forEach {
             mongoTemplate.getCollection(it).dropIndexes()
             mongoTemplate.getCollection(it).drop()

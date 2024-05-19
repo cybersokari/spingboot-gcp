@@ -4,8 +4,11 @@ import ng.cove.web.AppTest
 import ng.cove.web.data.model.PhoneOtp
 import ng.cove.web.data.model.UserType
 import ng.cove.web.http.body.OtpRefBody
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -13,6 +16,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.http.MediaType
+import org.springframework.test.context.event.annotation.AfterTestClass
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -67,57 +71,70 @@ class DefaultControllerTest : AppTest() {
         assertTrue(result.status == 400, "Should return 400")
     }
 
-    @Test
-    fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
-        memberRepo.save(member)
-        val phoneOtps = buildList {
-            repeat(maxDailyOtpTrial) {
-                val momentsAgo = Date.from(Instant.now().minus(Duration.ofHours(faker.random().nextLong(1, 8))))
-                val phoneOtp = PhoneOtp()
-                phoneOtp.phone = member.phone!!
-                phoneOtp.ref = faker.random().hex(20)
-                phoneOtp.type = UserType.Member
-                phoneOtp.expireAt = momentsAgo
-                add(phoneOtp)
+    @Nested
+    inner class OTPVerificationTest{
+
+        @BeforeEach
+        fun setUp(){
+            memberRepo.save(member)
+            val phoneOtps = buildList {
+                repeat(maxDailyOtpTrial) {
+                    val momentsAgo = Instant.now().minus(Duration.ofHours(faker.random().nextLong(1, 8)))
+                    val phoneOtp = PhoneOtp()
+                    phoneOtp.phone = member.phone!!
+                    phoneOtp.ref = faker.random().hex(20)
+                    phoneOtp.type = UserType.Member
+                    phoneOtp.expireAt = Date.from(momentsAgo)
+                    add(phoneOtp)
+                }
             }
+            memberPhoneOtpRepo.saveAll(phoneOtps)
         }
-        memberPhoneOtpRepo.saveAll(phoneOtps)
+        @AfterEach
+        fun tearDown(){
+            memberPhoneOtpRepo.deleteAllByPhone(member.phone!!)
+        }
+        @Test
+        fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
-        val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+            val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
 
-        assertEquals(400, result.status, "Should return 400")
-        verifyNoInteractions(smsOtpService)
+            assertEquals(400, result.status, "Should return 400")
+            verifyNoInteractions(smsOtpService)
+        }
+
+
+        @Test
+        fun givenValidOtp_whenLoginVerifyOtp_return200() {
+
+            val phone = member.phone!!
+            val otp = faker.number().randomNumber(6, true).toString()
+            val ref = faker.random().hex(15)
+            Mockito.`when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
+
+            val customJWT = faker.random().hex(55)
+            Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+                .thenReturn(customJWT)
+
+            val login = mapOf(
+                "otp" to otp,
+                "ref" to ref,
+                "device_id" to faker.random().hex(30),
+                "device_name" to faker.device().modelName()
+            )
+            val result = mockMvc.post("/user/login/verify") {
+                contentType = MediaType.APPLICATION_JSON
+                content = mapper.writeValueAsString(login)
+            }.andReturn().response
+
+            assertEquals(200, result.status)
+            assertEquals(customJWT, result.contentAsString, "Custom JWT is returned")
+            assertEquals(0, memberPhoneOtpRepo.countByPhone(phone), "OTP limit data is cleared")
+
+            verify(smsOtpService, times(1)).verifyOtp(otp, ref)
+            verify(auth, times(1)).createCustomToken(any(), any())
+        }
     }
 
 
-    @Test
-    fun givenValidOtp_whenLoginVerifyOtp_return200() {
-        val phone = member.phone!!
-        val otp = faker.number().randomNumber(6, true).toString()
-        val ref = faker.random().hex(15)
-        val token = faker.random().hex(55)
-        Mockito.`when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
-        memberRepo.save(member)
-
-        Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
-            .thenReturn(token)
-
-        val login = mapOf(
-            "otp" to otp,
-            "ref" to ref,
-            "device_id" to faker.random().hex(30),
-            "device_name" to faker.device().modelName()
-        )
-        val result = mockMvc.post("/user/login/verify") {
-            contentType = MediaType.APPLICATION_JSON
-            content = mapper.writeValueAsString(login)
-        }.andReturn().response
-
-        assertEquals(200, result.status)
-        assertEquals(token, result.contentAsString)
-
-        verify(smsOtpService, times(1)).verifyOtp(otp, ref)
-//        verify(memberRepo, times(1)).findByPhone(phone)
-        verify(auth, times(1)).createCustomToken(any(), any())
-    }
 }
