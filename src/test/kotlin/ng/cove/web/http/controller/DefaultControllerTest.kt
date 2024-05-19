@@ -1,6 +1,6 @@
 package ng.cove.web.http.controller
 
-import ng.cove.web.AppTests
+import ng.cove.web.AppTest
 import ng.cove.web.data.model.PhoneOtp
 import ng.cove.web.data.model.UserType
 import ng.cove.web.http.body.OtpRefBody
@@ -22,14 +22,18 @@ import java.util.*
 
 
 //@WebAppConfiguration("")
-class DefaultControllerTest : AppTests() {
+class DefaultControllerTest : AppTest() {
 
     @Test
     fun givenPhoneRegistered_whenUserPhoneGetOtp_thenSuccess() {
         val phone = member.phone!!
         memberRepo.save(member)
         val ref = faker.random().hex(20)
-        val phoneOtp = PhoneOtp(phone, ref, UserType.Member, Date())
+        val phoneOtp = PhoneOtp()
+        phoneOtp.phone = phone
+        phoneOtp.ref = ref
+        phoneOtp.type = UserType.Member
+        phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
@@ -44,7 +48,11 @@ class DefaultControllerTest : AppTests() {
     fun givenPhoneNotRegistered_whenUserPhoneGetOtp_thenError() {
         val phone = member.phone!!
         val ref = faker.random().hex(20)
-        val phoneOtp = PhoneOtp(phone, ref, UserType.Member, Date())
+        val phoneOtp = PhoneOtp()
+        phoneOtp.phone = phone
+        phoneOtp.ref = ref
+        phoneOtp.type = UserType.Member
+        phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
@@ -65,7 +73,12 @@ class DefaultControllerTest : AppTests() {
         val phoneOtps = buildList {
             repeat(maxDailyOtpTrial) {
                 val momentsAgo = Date.from(Instant.now().minus(Duration.ofHours(faker.random().nextLong(1, 8))))
-                add(PhoneOtp(member.phone!!, faker.random().hex(20), UserType.Member, momentsAgo))
+                val phoneOtp = PhoneOtp()
+                phoneOtp.phone = member.phone!!
+                phoneOtp.ref = faker.random().hex(20)
+                phoneOtp.type = UserType.Member
+                phoneOtp.expireAt = momentsAgo
+                add(phoneOtp)
             }
         }
         memberPhoneOtpRepo.saveAll(phoneOtps)

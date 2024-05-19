@@ -6,6 +6,7 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 import ng.cove.web.component.SmsOtpService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit
 @EnableAsync
 @EnableCaching
 @EnableScheduling
-@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
+@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
 class App {
 
     @Bean

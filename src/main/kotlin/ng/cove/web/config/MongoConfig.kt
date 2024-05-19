@@ -22,7 +22,14 @@ class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfi
 
     var embeddedMongo: TransitionWalker.ReachedState<RunningMongodProcess>? = null
 
-    override fun getDatabaseName(): String = "dev"
+    override fun getDatabaseName(): String {
+        val profiles = context.environment.activeProfiles
+        return if (profiles.getOrNull(0) == "test"){
+            "test"
+        }else {
+            "dev"
+        }
+    }
 
     override fun mongoClient(): MongoClient {
         val profiles = context.environment.activeProfiles
@@ -44,6 +51,7 @@ class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfi
                 }
             }
             else -> {
+
                 // Embedded Mongo instance for testing
                 embeddedMongo = Mongod.instance().start(Version.Main.V7_0)
                 val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress

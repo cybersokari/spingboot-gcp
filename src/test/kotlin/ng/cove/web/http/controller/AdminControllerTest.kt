@@ -2,7 +2,7 @@ package ng.cove.web.http.controller
 
 
 import com.google.firebase.auth.FirebaseToken
-import ng.cove.web.AppTests
+import ng.cove.web.AppTest
 import ng.cove.web.data.model.*
 import ng.cove.web.service.CacheService
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,10 +18,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.post
-import java.util.*
 
 @ActiveProfiles("test")
-class AdminControllerTest : AppTests() {
+class AdminControllerTest : AppTest() {
     @MockBean
     lateinit var cacheService: CacheService
 
