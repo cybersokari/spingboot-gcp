@@ -83,7 +83,7 @@ class LevyServiceTest : AppTest() {
         val now = Instant.now()
         assertTrue(
             createdPayment.nextPaymentDue!!.toInstant().isAfter(now),
-            "Next payment update to future"
+            "Next payment updated to future"
         )
     }
 

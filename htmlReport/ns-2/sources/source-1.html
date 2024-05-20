@@ -1,0 +1,210 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SmsOtpService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web.component</a>
+</div>
+
+<h1>Coverage Summary for Class: SmsOtpService (ng.cove.web.component)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SmsOtpService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.component
+&nbsp;
+&nbsp;import com.google.gson.JsonObject
+&nbsp;import ng.cove.web.http.body.OtpRefBody
+&nbsp;import org.slf4j.Logger
+&nbsp;import org.slf4j.LoggerFactory
+&nbsp;import org.springframework.beans.factory.annotation.Value
+&nbsp;import org.springframework.http.HttpStatus
+&nbsp;import org.springframework.http.MediaType
+&nbsp;import org.springframework.stereotype.Service
+&nbsp;import org.springframework.web.client.RestClient
+&nbsp;import java.util.*
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;@Service</b>
+&nbsp;class SmsOtpService {
+<b class="nc">&nbsp;    val logger: Logger = LoggerFactory.getLogger(this::class.java)</b>
+&nbsp;
+&nbsp;    // Set in ApplicationStartup
+<b class="nc">&nbsp;    var termiiApiKey: String? = null</b>
+&nbsp;
+&nbsp;    @Value(&quot;\${otp.expiry-mins}&quot;)
+<b class="nc">&nbsp;    var otpExpiryMins: Int = 1</b>
+&nbsp;
+&nbsp;
+&nbsp;    fun sendOtp(phone: String): OtpRefBody? {
+&nbsp;
+<b class="nc">&nbsp;        val requestBody = JsonObject()</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;api_key&quot;, termiiApiKey)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;from&quot;, &quot;N-Alert&quot;)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;to&quot;, phone)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;message_type&quot;, &quot;NUMERIC&quot;)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;channel&quot;, &quot;dnd&quot;)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin_attempts&quot;, 5)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin_time_to_live&quot;, otpExpiryMins)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin_length&quot;, 6)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin_placeholder&quot;, &quot;&lt;otp&gt;&quot;)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;message_text&quot;, &quot;Your login OTP is: &lt;otp&gt;&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;        val url = &quot;https://api.ng.termii.com/api/sms/otp/send&quot;</b>
+<b class="nc">&nbsp;        val client = RestClient.builder().baseUrl(url).defaultHeaders { h -&gt;</b>
+<b class="nc">&nbsp;            h.contentType = MediaType.APPLICATION_JSON</b>
+<b class="nc">&nbsp;        }.build()</b>
+&nbsp;
+<b class="nc">&nbsp;        try {</b>
+&nbsp;
+<b class="nc">&nbsp;            val result = client.post()</b>
+<b class="nc">&nbsp;                .body(requestBody.toString())</b>
+<b class="nc">&nbsp;                .retrieve().toEntity(Map::class.java).body!!</b>
+&nbsp;
+&nbsp;            // Log error when Termii returns any other status
+<b class="nc">&nbsp;            result[&quot;status&quot;].takeIf { it != 200 }?.let {</b>
+<b class="nc">&nbsp;                throw Exception(&quot;SMS OTP provide error code: $it&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            val ref = result[&quot;pinId&quot;] as String</b>
+<b class="nc">&nbsp;            val futureDateTime = Date().toInstant()</b>
+<b class="nc">&nbsp;                .plusSeconds(otpExpiryMins.toLong() * 60)</b>
+<b class="nc">&nbsp;            val expiry = Date.from(futureDateTime)</b>
+&nbsp;
+<b class="nc">&nbsp;            return OtpRefBody(ref, phone, expiry, null)</b>
+<b class="nc">&nbsp;        } catch (e: Exception) {</b>
+<b class="nc">&nbsp;            logger.error(e.localizedMessage)</b>
+<b class="nc">&nbsp;            return null</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    fun verifyOtp(otp: String, ref: String): String? {
+<b class="nc">&nbsp;        val requestBody = JsonObject()</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;api_key&quot;, termiiApiKey)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin_id&quot;, ref)</b>
+<b class="nc">&nbsp;        requestBody.addProperty(&quot;pin&quot;, otp)</b>
+&nbsp;
+<b class="nc">&nbsp;        val url = &quot;https://api.ng.termii.com/api/sms/otp/verify&quot;</b>
+<b class="nc">&nbsp;        val client = RestClient.builder().baseUrl(url).defaultHeaders { h -&gt;</b>
+<b class="nc">&nbsp;            run {</b>
+<b class="nc">&nbsp;                h.contentType = MediaType.APPLICATION_JSON</b>
+<b class="nc">&nbsp;            }</b>
+<b class="nc">&nbsp;        }.build()</b>
+<b class="nc">&nbsp;        try {</b>
+<b class="nc">&nbsp;            val result = client.post().body(requestBody.toString())</b>
+<b class="nc">&nbsp;                .retrieve().toEntity(Map::class.java)</b>
+&nbsp;
+<b class="nc">&nbsp;            if (result.statusCode != HttpStatus.OK)</b>
+<b class="nc">&nbsp;                return null</b>
+&nbsp;
+<b class="nc">&nbsp;            return result.body!![&quot;msisdn&quot;] as String</b>
+<b class="nc">&nbsp;        } catch (e: Exception) {</b>
+<b class="nc">&nbsp;            logger.error(e.localizedMessage)</b>
+<b class="nc">&nbsp;            return null</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-20 11:57</div>
+</div>
+</body>
+</html>
