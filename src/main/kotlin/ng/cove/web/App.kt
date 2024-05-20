@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
 
 @EnableAsync
 @EnableCaching
-@EnableScheduling
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
 class App {
 

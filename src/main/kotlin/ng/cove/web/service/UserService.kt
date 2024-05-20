@@ -104,7 +104,6 @@ class UserService {
                     member.phoneVerifiedAt = Date()
                 }
 
-                member.deviceId = login.deviceId
                 member.deviceName = login.deviceName
                 member.lastLoginAt = Date()
                 memberRepo.save(member)
@@ -123,7 +122,6 @@ class UserService {
                 userId = guard.id!!
 
                 // Update device info
-                guard.deviceId = login.deviceId
                 guard.deviceName = login.deviceName
                 guard.lastLoginAt = Date()
                 guardRepo.save(guard)

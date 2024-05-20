@@ -58,11 +58,6 @@ open class Member {
     var deviceName: String? = null
 
     @JsonIgnore
-    @Indexed(unique = true, sparse = true)
-    @Field("device_id")
-    var deviceId: String? = null
-
-    @JsonIgnore
     @Field("fcm_token")
     var fcmToken: String? = null
 

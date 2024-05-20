@@ -29,7 +29,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 
 
-@SpringBootTest(classes = [App::class])
+@SpringBootTest(classes = [App::class], properties = ["schedule.levy.duration.secs = 2"])
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

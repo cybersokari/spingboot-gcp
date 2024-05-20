@@ -9,12 +9,17 @@ import ng.cove.web.data.repo.MemberRepo
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.WebApplicationContext
 import java.util.*
 
 @Service
 class LevyService {
+
+    @Autowired
+    private lateinit var webApplicationContext: WebApplicationContext
 
     @Autowired
     lateinit var levyRepo: LevyRepo
@@ -63,7 +68,8 @@ class LevyService {
         }
     }
 
-
+    /** Each payment creation runs in this transaction so that the failure of one
+    does not affect the creation of others from [createLevyPayments]*/
     @Transactional
     fun createPaymentForAssignedLevy(assignedLevy: AssignedLevy) {
         logger.info("Creating payment for ${assignedLevy.memberId}")
@@ -92,5 +98,15 @@ class LevyService {
         assignedLevy.nextPaymentDue = cal.time
         assignedLevyRepo.save(assignedLevy)
         logger.info("Levy ${levy.title} due date updated to: ${assignedLevy.nextPaymentDue}")
+    }
+
+    @Scheduled(fixedDelayString = "\${schedule.levy.duration.secs}")
+    fun createLevyPayments() {
+        val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
+        duePayments.forEach {
+            // Use context to avoid Transaction self invocation
+            webApplicationContext.getBean(this::class.java).createPaymentForAssignedLevy(it)
+        }
+
     }
 }

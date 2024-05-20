@@ -12,12 +12,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Service
 class CommunityService {
@@ -239,16 +236,6 @@ class CommunityService {
             return ResponseEntity.badRequest().body(e.localizedMessage)
         }
 
-
-    }
-
-
-    @Scheduled(fixedRate = 12, timeUnit = TimeUnit.HOURS)
-    fun createLevyPayments() {
-        val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
-        duePayments.forEach {
-            levyService.createPaymentForAssignedLevy(it)
-        }
 
     }
 
