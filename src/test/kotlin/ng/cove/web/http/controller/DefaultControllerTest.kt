@@ -1,6 +1,7 @@
 package ng.cove.web.http.controller
 
 import ng.cove.web.AppTest
+import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
 import ng.cove.web.data.model.UserType
 import ng.cove.web.http.body.OtpRefBody
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.*
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
@@ -23,6 +25,9 @@ import java.util.*
 
 //@WebAppConfiguration("")
 class DefaultControllerTest : AppTest() {
+
+    @MockBean
+    lateinit var smsOtpService: SmsOtpService
 
     @BeforeEach
     override fun setUp() {

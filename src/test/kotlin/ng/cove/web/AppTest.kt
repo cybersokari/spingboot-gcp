@@ -48,9 +48,6 @@ class AppTest {
     @Autowired
     lateinit var memberPhoneOtpRepo: MemberPhoneOtpRepo
 
-    @MockBean
-    lateinit var smsOtpService: SmsOtpService
-
     @Autowired
     lateinit var mockMvc: MockMvc
 

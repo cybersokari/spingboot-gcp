@@ -18,12 +18,16 @@ import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.web.client.RestTemplate
 import java.util.concurrent.TimeUnit
 
 @EnableAsync
 @EnableCaching
 @SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
 class App {
+
+    @Bean
+    fun restTemplate() = RestTemplate()
 
     @Bean
     fun caffeineConfig(): Caffeine<Any, Any> {
