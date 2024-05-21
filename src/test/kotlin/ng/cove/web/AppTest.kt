@@ -3,8 +3,15 @@ package ng.cove.web
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.google.firebase.auth.FirebaseAuth
+import com.mongodb.client.MongoClient
+import com.mongodb.client.MongoClients
+import de.flapdoodle.embed.mongo.commands.ServerAddress
+import de.flapdoodle.embed.mongo.distribution.Version
+import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+import de.flapdoodle.embed.mongo.transitions.Mongod
+import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess
+import de.flapdoodle.reverse.TransitionWalker
 import net.datafaker.Faker
-import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.Community
 import ng.cove.web.data.model.Member
 import ng.cove.web.data.repo.CommunityRepo
@@ -20,13 +27,17 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Import
+import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import javax.annotation.PreDestroy
 
 
 @SpringBootTest(classes = [App::class], properties = ["schedule.levy.duration.secs = 2"])
@@ -34,6 +45,8 @@ import org.springframework.test.web.servlet.MockMvc
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource("/application–test.properties")
+@Import(value = [EmbeddedMongoConfig::class])
+@EnableAutoConfiguration(exclude = [EmbeddedMongoAutoConfiguration::class])
 class AppTest {
 
     @Autowired
@@ -108,4 +121,28 @@ class AppTest {
         staticFirebaseAuth.close()
     }
 
+}
+
+@TestConfiguration
+class EmbeddedMongoConfig : AbstractMongoClientConfiguration() {
+
+    var embeddedMongo: TransitionWalker.ReachedState<RunningMongodProcess>? = null
+
+    override fun getDatabaseName(): String = "test"
+
+    override fun mongoClient(): MongoClient {
+        // Embedded Mongo instance for testing
+        embeddedMongo = Mongod.instance().start(Version.Main.V7_0)
+        val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress
+        val host = serverAddress.host
+        val port = serverAddress.port
+        return MongoClients.create("mongodb://$host:$port/test")
+    }
+
+    @PreDestroy
+    fun onShutDown() {
+        embeddedMongo?.close()
+    }
+
+    override fun autoIndexCreation(): Boolean = true
 }

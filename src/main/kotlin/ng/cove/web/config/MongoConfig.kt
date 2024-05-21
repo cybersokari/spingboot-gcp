@@ -4,32 +4,16 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
-import de.flapdoodle.embed.mongo.commands.ServerAddress
-import de.flapdoodle.embed.mongo.distribution.Version
-import de.flapdoodle.embed.mongo.transitions.Mongod
-import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess
-import de.flapdoodle.reverse.TransitionWalker
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import org.springframework.web.context.WebApplicationContext
-import javax.annotation.PreDestroy
 
-//@Profile("!test")
+@Profile("!test")
 @Configuration
-@EnableMongoRepositories("ng.cove.web.data.repo")
 class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfiguration() {
 
-    var embeddedMongo: TransitionWalker.ReachedState<RunningMongodProcess>? = null
-
-    override fun getDatabaseName(): String {
-        val profiles = context.environment.activeProfiles
-        return if (profiles.getOrNull(0) == "test"){
-            "test"
-        }else {
-            "dev"
-        }
-    }
+    override fun getDatabaseName(): String = "dev"
 
     override fun mongoClient(): MongoClient {
         val profiles = context.environment.activeProfiles
@@ -50,24 +34,10 @@ class MongoConfig(val context: WebApplicationContext) : AbstractMongoClientConfi
                     return MongoClients.create(String(dbSecretPayload.readAllBytes()))
                 }
             }
-            else -> {
 
-                // Embedded Mongo instance for testing
-                embeddedMongo = Mongod.instance().start(Version.Main.V7_0)
-                val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress
-                val host = serverAddress.host
-                val port = serverAddress.port
-                return MongoClients.create("mongodb://$host:$port/test")
-            }
+            else -> throw Exception("This profile has no db configuration")
         }
 
     }
-
-    @PreDestroy
-    fun onShutDown() {
-        embeddedMongo?.close()
-    }
-
     override fun autoIndexCreation(): Boolean = true
-
 }
