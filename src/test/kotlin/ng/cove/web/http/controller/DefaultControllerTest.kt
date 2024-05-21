@@ -183,6 +183,12 @@ class DefaultControllerTest : AppTest() {
             assertEquals(200, result.status)
             verifyNoInteractions(smsOtpService)
         }
+
+        @Test
+        fun givenRouteIsNotConfigured_whenRouteIsCalled_thenReturn404(){
+            val result = mockMvc.post("/").andReturn().response
+            assertTrue(result.status == 404)
+        }
     }
 
 

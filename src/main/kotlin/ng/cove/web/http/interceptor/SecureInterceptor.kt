@@ -5,7 +5,8 @@ import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import ng.cove.web.data.model.UserType
-import ng.cove.web.service.CacheService
+import ng.cove.web.data.repo.MemberRepo
+import ng.cove.web.data.repo.SecurityGuardRepo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.context.WebApplicationContext
@@ -39,13 +40,14 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                     userId = firebaseToken.uid
                 }
 
-                val cacheService = context.getBean(CacheService::class.java)
                 /** Get User model from DB and attach to request**/
                 if (userType == UserType.Guard) {
-                    val guard = cacheService.getGuardById(userId)!!
+                    val repo = context.getBean(SecurityGuardRepo::class.java)
+                    val guard = repo.findSecurityGuardById(userId)!!
                     request.setAttribute("user", guard)
                 } else {
-                    val member = cacheService.getMemberById(userId)!!
+                    val repo = context.getBean(MemberRepo::class.java)
+                    val member = repo.findMemberById(userId)!!
                     request.setAttribute("user", member)
                 }
                 return true

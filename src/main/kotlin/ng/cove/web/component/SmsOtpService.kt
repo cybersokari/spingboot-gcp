@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import java.time.Instant
 import java.util.*
 
 const val SEND_URL: String = "https://api.ng.termii.com/api/sms/otp/send"
@@ -20,7 +21,10 @@ const val VERIFY_URL = "https://api.ng.termii.com/api/sms/otp/verify"
 
 
 @Service
-class SmsOtpService {
+class SmsOtpService(
+    @Autowired
+    val template: RestTemplate
+) {
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -30,23 +34,21 @@ class SmsOtpService {
     @Value("\${otp.expiry-mins}")
     var otpExpiryMins: Int = 1
 
-    @Autowired
-    lateinit var template : RestTemplate
 
     fun sendOtp(phone: String): OtpRefBody? {
 
-        val requestBody = JsonObject()
-        requestBody.addProperty("api_key", termiiApiKey)
-        requestBody.addProperty("from", "N-Alert")
-        requestBody.addProperty("to", phone)
-        requestBody.addProperty("message_type", "NUMERIC")
-        requestBody.addProperty("channel", "dnd")
-        requestBody.addProperty("pin_attempts", 5)
-        requestBody.addProperty("pin_time_to_live", otpExpiryMins)
-        requestBody.addProperty("pin_length", 6)
-        requestBody.addProperty("pin_placeholder", "<otp>")
-        requestBody.addProperty("message_text", "Your login OTP is: <otp>")
-
+        val requestBody = JsonObject().apply {
+            addProperty("api_key", termiiApiKey)
+            addProperty("from", "N-Alert")
+            addProperty("to", phone)
+            addProperty("message_type", "NUMERIC")
+            addProperty("channel", "dnd")
+            addProperty("pin_attempts", 5)
+            addProperty("pin_time_to_live", otpExpiryMins)
+            addProperty("pin_length", 6)
+            addProperty("pin_placeholder", "<otp>")
+            addProperty("message_text", "Your login OTP is: <otp>")
+        }
 
         val headers: HttpHeaders = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON
@@ -64,7 +66,7 @@ class SmsOtpService {
             }
 
             val ref = result["pinId"] as String
-            val futureDateTime = Date().toInstant()
+            val futureDateTime = Instant.now()
                 .plusSeconds(otpExpiryMins.toLong() * 60)
             val expiry = Date.from(futureDateTime)
 
@@ -77,11 +79,11 @@ class SmsOtpService {
     }
 
     fun verifyOtp(otp: String, ref: String): String? {
-        val requestBody = JsonObject()
-        requestBody.addProperty("api_key", termiiApiKey)
-        requestBody.addProperty("pin_id", ref)
-        requestBody.addProperty("pin", otp)
-
+        val requestBody = JsonObject().apply {
+            addProperty("api_key", termiiApiKey)
+            addProperty("pin_id", ref)
+            addProperty("pin", otp)
+        }
 
         val headers: HttpHeaders = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON

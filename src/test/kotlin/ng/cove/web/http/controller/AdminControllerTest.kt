@@ -4,7 +4,6 @@ package ng.cove.web.http.controller
 import com.google.firebase.auth.FirebaseToken
 import ng.cove.web.AppTest
 import ng.cove.web.data.model.*
-import ng.cove.web.service.CacheService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -12,8 +11,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.*
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.mockito.kotlin.any
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.delete
@@ -21,15 +22,12 @@ import org.springframework.test.web.servlet.post
 
 @ActiveProfiles("test")
 class AdminControllerTest : AppTest() {
-    @MockBean
-    lateinit var cacheService: CacheService
 
     @Test
     fun givenUserNoJWT_WhenDeleteGuard_ThenReturns401() {
         val result = mockMvc.delete("/admin/guard/{guard_id}", 1).andReturn().response
         assertEquals(401, result.status)
         verifyNoInteractions(auth)
-        verify(cacheService, never()).getMemberById(member.id!!)
     }
 
     @Test
@@ -44,7 +42,6 @@ class AdminControllerTest : AppTest() {
 
         assertEquals(401, result.status)
         verify(auth, times(1)).verifyIdToken(unknownToken, true)
-        verify(cacheService, never()).getMemberById(member.id!!)
     }
 
     @Nested
@@ -57,11 +54,9 @@ class AdminControllerTest : AppTest() {
         fun setUp() {
             //auth user
             reset(auth)
-            reset(cacheService)
             `when`(auth.verifyIdToken(idToken, true)).thenReturn(firebaseToken)
             `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.Member.name))
             `when`(firebaseToken.uid).thenReturn(member.id)
-            `when`(cacheService.getMemberById(member.id!!)).thenReturn(member)
         }
 
 
@@ -76,7 +71,6 @@ class AdminControllerTest : AppTest() {
             assertEquals(401, result.status)
             verify(firebaseToken, times(1)).uid
             verify(firebaseToken, times(1)).claims
-            verify(cacheService, times(1)).getMemberById(member.id!!)
         }
 
         @Test
@@ -105,6 +99,7 @@ class AdminControllerTest : AppTest() {
             }
 
             joinRequestRepo.save(request)
+            memberRepo.save(member)
 
             val result = mockMvc.post("/admin/community/request/{accept}", true) {
                 header("Authorization", "Bearer $idToken")

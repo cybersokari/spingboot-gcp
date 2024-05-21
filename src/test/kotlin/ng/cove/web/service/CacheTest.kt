@@ -11,13 +11,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 
-class CacheServiceTest : AppTest() {
+class CacheTest : AppTest() {
 
     @Autowired
     lateinit var cacheManager: CaffeineCacheManager
-
-    @Autowired
-    lateinit var cacheService: CacheService
 
     @Test
     fun givenMemberThatShouldBeCached_whenMemberIsQueriedById_thenMemberIsAddedToCache() {
@@ -29,7 +26,7 @@ class CacheServiceTest : AppTest() {
 
         assertNull(cachedMember, "Cache is empty before query")
 
-        val queriedMember = cacheService.getMemberById(id)!!
+        val queriedMember = memberRepo.findMemberById(id)!!
         cachedMember = cacheManager.getCache(cacheName)!!.get(id, Member::class.java)
 
         assertNotNull(cachedMember, "Cache is not empty before query")

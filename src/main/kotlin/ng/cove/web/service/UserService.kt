@@ -110,7 +110,7 @@ class UserService {
 
                 userId = member.id!!
                 // Update cache
-                cacheManager.getCache(CacheNames.MEMBERS)?.put(userId, member)
+                cacheManager.getCache(CacheNames.MEMBERS)?.evict(userId)
 
             } else {
                 val guard = guardRepo.findByPhone(phone)!!
@@ -126,7 +126,7 @@ class UserService {
                 guard.lastLoginAt = Date()
                 guardRepo.save(guard)
                 // Update cache
-                cacheManager.getCache(CacheNames.GUARDS)?.put(userId, guard)
+                cacheManager.getCache(CacheNames.GUARDS)?.evict(userId)
             }
 
             val firebaseAuth = FirebaseAuth.getInstance()
