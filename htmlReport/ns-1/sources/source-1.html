@@ -44,7 +44,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     100%
   </span>
   <span class="absValue">
-    (3/3)
+    (4/4)
   </span>
 </td>
 <td class="coverageStat">
@@ -52,7 +52,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     100%
   </span>
   <span class="absValue">
-    (5/5)
+    (6/6)
   </span>
 </td>
 </tr>
@@ -72,7 +72,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     100%
   </span>
   <span class="absValue">
-    (3/3)
+    (4/4)
   </span>
 </td>
 <td class="coverageStat">
@@ -80,7 +80,7 @@ Current scope:     <a href="../../index.html">all classes</a>
     100%
   </span>
   <span class="absValue">
-    (5/5)
+    (6/6)
   </span>
 </td>
 </tr>
@@ -111,12 +111,16 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.context.annotation.Bean
 &nbsp;import org.springframework.scheduling.annotation.EnableAsync
 &nbsp;import org.springframework.scheduling.annotation.EnableScheduling
+&nbsp;import org.springframework.web.client.RestTemplate
 &nbsp;import java.util.concurrent.TimeUnit
 &nbsp;
 <b class="fc">&nbsp;@EnableAsync</b>
 &nbsp;@EnableCaching
 &nbsp;@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
 &nbsp;class App {
+&nbsp;
+&nbsp;    @Bean
+<b class="fc">&nbsp;    fun restTemplate() = RestTemplate()</b>
 &nbsp;
 &nbsp;    @Bean
 &nbsp;    fun caffeineConfig(): Caffeine&lt;Any, Any&gt; {
@@ -196,7 +200,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 11:57</div>
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
 </div>
 </body>
 </html>

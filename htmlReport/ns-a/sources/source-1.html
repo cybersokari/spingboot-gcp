@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > OccupantRepo</title>
+  <title>Coverage Report > MemberPhoneOtpRepo</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">ng.cove.web.data.repo</a>
 </div>
 
-<h1>Coverage Summary for Class: OccupantRepo (ng.cove.web.data.repo)</h1>
+<h1>Coverage Summary for Class: MemberPhoneOtpRepo (ng.cove.web.data.repo)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">OccupantRepo</td>
+  <td class="name">MemberPhoneOtpRepo</td>
 </tr>
 
 </table>
@@ -41,15 +41,14 @@ Current scope:     <a href="../../index.html">all classes</a>
 <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.data.repo
 &nbsp;
-&nbsp;import ng.cove.web.data.model.Occupant
+&nbsp;import ng.cove.web.data.model.PhoneOtp
 &nbsp;import org.springframework.data.mongodb.repository.MongoRepository
+&nbsp;import java.util.Date
 &nbsp;
-&nbsp;interface OccupantRepo : MongoRepository&lt;Occupant?, String?&gt; {
-&nbsp;    fun findByGuardianCommunityIdAndFirstNameOrLastNameContainingIgnoreCase(
-&nbsp;        id: String?,
-&nbsp;        s1: String?,
-&nbsp;        s2: String?
-&nbsp;    ): Occupant?
+&nbsp;interface MemberPhoneOtpRepo: MongoRepository&lt;PhoneOtp, String&gt; {
+&nbsp;    fun countByPhoneAndCreatedAtIsAfter(phone: String, createdAt: Date): Long
+&nbsp;    fun deleteAllByPhone(phone: String)
+&nbsp;    fun countByPhone(phone: String): Long
 &nbsp;}
 </code>
 </pre>
@@ -74,7 +73,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 11:57</div>
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
 </div>
 </body>
 </html>
