@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
@@ -28,6 +29,9 @@ class DefaultControllerTest : AppTest() {
 
     @MockBean
     lateinit var smsOtpService: SmsOtpService
+
+    @Value("\${otp.trial-limit}")
+    var maxDailyOtpTrial: Int = 0
 
     @BeforeEach
     override fun setUp() {

@@ -26,14 +26,12 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
-import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
@@ -70,17 +68,11 @@ class AppTest {
     // Mocked FirebaseAuth for testing
     val auth: FirebaseAuth = Mockito.mock(FirebaseAuth::class.java)
 
-    @Value("\${otp.trial-limit}")
-    var maxDailyOtpTrial: Int = 0
-
     final val faker = Faker()
     val mapper = ObjectMapper().apply { propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE }
 
     lateinit var member: Member
     lateinit var community: Community
-
-    @Autowired
-    lateinit var mongoTemplate: MongoTemplate
 
     @BeforeEach
     fun setUp() {
@@ -108,12 +100,6 @@ class AppTest {
         // Mock FirebaseAuth
         staticFirebaseAuth = mockStatic(FirebaseAuth::class.java)
         staticFirebaseAuth.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
-
-        //TODO: Investigate why 'phone_otp' collection index is always duplicate in Embedded db
-        mongoTemplate.collectionNames.forEach {
-            mongoTemplate.getCollection(it).dropIndexes()
-            mongoTemplate.getCollection(it).drop()
-        }
     }
 
     @AfterAll
@@ -136,13 +122,11 @@ class EmbeddedMongoConfig : AbstractMongoClientConfiguration() {
         val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress
         val host = serverAddress.host
         val port = serverAddress.port
-        return MongoClients.create("mongodb://$host:$port/test")
+        return MongoClients.create("mongodb://$host:$port")
     }
 
     @PreDestroy
     fun onShutDown() {
         embeddedMongo?.close()
     }
-
-    override fun autoIndexCreation(): Boolean = true
 }
