@@ -1,0 +1,137 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CodeGenerator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web.util</a>
+</div>
+
+<h1>Coverage Summary for Class: CodeGenerator (ng.cove.web.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CodeGenerator</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (1/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (1/7)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.util
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Value
+&nbsp;import org.springframework.stereotype.Component
+&nbsp;import java.security.SecureRandom
+&nbsp;
+<b class="fc">&nbsp;@Component</b>
+&nbsp;class CodeGenerator {
+&nbsp;
+&nbsp;    @Value(&quot;\${visitor.access-code.length}&quot;)
+<b class="nc">&nbsp;    val accessCodeLength: Int? = null</b>
+&nbsp;
+&nbsp;    fun getCode(): String {
+<b class="nc">&nbsp;        val sb = StringBuilder()</b>
+<b class="nc">&nbsp;        val random = SecureRandom()</b>
+<b class="nc">&nbsp;        for (i in 0 until accessCodeLength!!) {</b>
+<b class="nc">&nbsp;            sb.append(random.nextInt(10)) // Append a random digit (0-9)</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return sb.toString()</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
+</div>
+</body>
+</html>

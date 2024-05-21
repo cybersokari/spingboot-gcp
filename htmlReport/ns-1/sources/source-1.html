@@ -1,0 +1,206 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > App</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web</a>
+</div>
+
+<h1>Coverage Summary for Class: App (ng.cove.web)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">App</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">App$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">App$$SpringCGLIB$$FastClass$$0</td>
+  </tr>
+  <tr>
+    <td class="name">App$$SpringCGLIB$$FastClass$$1</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web
+&nbsp;
+&nbsp;import com.github.benmanes.caffeine.cache.Caffeine
+&nbsp;import com.google.auth.oauth2.GoogleCredentials
+&nbsp;import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
+&nbsp;import com.google.cloud.secretmanager.v1.SecretVersionName
+&nbsp;import com.google.firebase.FirebaseApp
+&nbsp;import com.google.firebase.FirebaseOptions
+&nbsp;import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+&nbsp;import ng.cove.web.component.SmsOtpService
+&nbsp;import org.springframework.boot.SpringApplication
+&nbsp;import org.springframework.boot.autoconfigure.SpringBootApplication
+&nbsp;import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+&nbsp;import org.springframework.boot.context.event.ApplicationStartedEvent
+&nbsp;import org.springframework.cache.annotation.EnableCaching
+&nbsp;import org.springframework.cache.caffeine.CaffeineCacheManager
+&nbsp;import org.springframework.context.ApplicationListener
+&nbsp;import org.springframework.context.annotation.Bean
+&nbsp;import org.springframework.scheduling.annotation.EnableAsync
+&nbsp;import org.springframework.scheduling.annotation.EnableScheduling
+&nbsp;import org.springframework.web.client.RestTemplate
+&nbsp;import java.util.concurrent.TimeUnit
+&nbsp;
+<b class="fc">&nbsp;@EnableAsync</b>
+&nbsp;@EnableCaching
+&nbsp;@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
+&nbsp;class App {
+&nbsp;
+&nbsp;    @Bean
+<b class="fc">&nbsp;    fun restTemplate() = RestTemplate()</b>
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    fun caffeineConfig(): Caffeine&lt;Any, Any&gt; {
+<b class="fc">&nbsp;        return Caffeine.newBuilder().expireAfterWrite(60, TimeUnit.MINUTES)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    fun cacheManager(caffeine: Caffeine&lt;Any, Any&gt;): CaffeineCacheManager {
+<b class="fc">&nbsp;        val cacheManager = CaffeineCacheManager()</b>
+<b class="fc">&nbsp;        cacheManager.setCaffeine(caffeine)</b>
+<b class="fc">&nbsp;        return cacheManager</b>
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;fun main(args: Array&lt;String&gt;) {
+&nbsp;    val app = SpringApplication(App::class.java)
+&nbsp;
+&nbsp;    val startedEvent = ApplicationListener&lt;ApplicationStartedEvent&gt; { event -&gt;
+&nbsp;
+&nbsp;        val profiles = event.applicationContext.environment.activeProfiles
+&nbsp;        // profiles is sometimes empty when running on a production server because it
+&nbsp;        // has not been loaded from the application.properties file at this point
+&nbsp;        val profile = profiles.getOrNull(0) ?: &quot;prod&quot;
+&nbsp;
+&nbsp;        when (profile) {
+&nbsp;            &quot;test&quot; -&gt; {}
+&nbsp;            &quot;dev&quot; -&gt; FirebaseApp.initializeApp()
+&nbsp;            &quot;prod&quot; -&gt; {
+&nbsp;                // Get secrets from GCP
+&nbsp;                val gcpProjectId = &quot;gatedaccessdev&quot;
+&nbsp;                val firebaseSecret = SecretVersionName.of(gcpProjectId, &quot;firebase-service-account&quot;, &quot;1&quot;)
+&nbsp;                val termiiSecret = SecretVersionName.of(gcpProjectId, &quot;termii-key&quot;, &quot;1&quot;)
+&nbsp;
+&nbsp;                // Auto-closable
+&nbsp;                SecretManagerServiceClient.create().use {
+&nbsp;                    // Set Termii API Key to service
+&nbsp;                    val termiiSecretPayload =
+&nbsp;                        it.accessSecretVersion(termiiSecret).payload.data.toByteArray().inputStream()
+&nbsp;                    val smsOtpService = event.applicationContext.getBean(SmsOtpService::class.java)
+&nbsp;                    smsOtpService.termiiApiKey = String(termiiSecretPayload.readAllBytes())
+&nbsp;                    // Init Firebase with service account
+&nbsp;                    val serviceAccountStream =
+&nbsp;                        it.accessSecretVersion(firebaseSecret).payload.data.toByteArray().inputStream()
+&nbsp;                    val options = FirebaseOptions.builder()
+&nbsp;                        .setCredentials(GoogleCredentials.fromStream(serviceAccountStream))
+&nbsp;                        .build()
+&nbsp;                    FirebaseApp.initializeApp(options)
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    app.addListeners(startedEvent)
+&nbsp;    app.run(*args)
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,197 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SecureController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web.http.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: SecureController (ng.cove.web.http.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SecureController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    20%
+  </span>
+  <span class="absValue">
+    (1/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    11.1%
+  </span>
+  <span class="absValue">
+    (1/9)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.http.controller
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation
+&nbsp;import io.swagger.v3.oas.annotations.media.Content
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse
+&nbsp;import jakarta.validation.Valid
+&nbsp;import ng.cove.web.data.model.Access
+&nbsp;import ng.cove.web.data.model.JoinRequest
+&nbsp;import ng.cove.web.data.model.Member
+&nbsp;import ng.cove.web.data.model.SecurityGuard
+&nbsp;import ng.cove.web.http.body.AccessInfoBody
+&nbsp;import ng.cove.web.service.CommunityService
+&nbsp;import org.springframework.beans.factory.annotation.Autowired
+&nbsp;import org.springframework.http.ResponseEntity
+&nbsp;import org.springframework.web.bind.annotation.*
+&nbsp;
+&nbsp;@ApiResponse(
+&nbsp;    description = &quot;Unauthorized&quot;,
+&nbsp;    responseCode = &quot;401&quot;,
+&nbsp;    content = [Content(schema = Schema(implementation = String::class))]
+&nbsp;)
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/secure&quot;)
+<b class="fc">&nbsp;class SecureController : BaseController() {</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var communityService: CommunityService</b>
+&nbsp;
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;Request already sent&quot;,
+&nbsp;        responseCode = &quot;208&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = String::class))]
+&nbsp;    )
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;Request sent&quot;,
+&nbsp;        responseCode = &quot;200&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = String::class))]
+&nbsp;    )
+&nbsp;    @PostMapping(&quot;/invite&quot;)
+&nbsp;    @Operation(summary = &quot;Invite user to community&quot;)
+&nbsp;    fun inviteUserToCommunity(
+&nbsp;        @RequestAttribute(&quot;user&quot;) user: Member,
+&nbsp;        @Valid @RequestBody request: JoinRequest
+&nbsp;    ): ResponseEntity&lt;*&gt; {
+<b class="nc">&nbsp;        return try {</b>
+<b class="nc">&nbsp;            communityService.inviteUserToCommunity(request, user)</b>
+<b class="nc">&nbsp;        } catch (e: Exception) {</b>
+<b class="nc">&nbsp;            ResponseEntity.internalServerError()</b>
+<b class="nc">&nbsp;                .body(e.localizedMessage)</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;Success&quot;,
+&nbsp;        responseCode = &quot;200&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = Access::class))]
+&nbsp;    )
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;User does not have a community&quot;,
+&nbsp;        responseCode = &quot;500&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = String::class))]
+&nbsp;    )
+&nbsp;    @Operation(summary = &quot;Create access code for visitor&quot;)
+&nbsp;    @PostMapping(&quot;/access&quot;)
+&nbsp;    fun getAccessCode(
+&nbsp;        @RequestAttribute(&quot;user&quot;) user: Member,
+&nbsp;        @Valid @RequestBody info: AccessInfoBody
+&nbsp;    )
+&nbsp;            : ResponseEntity&lt;*&gt; {
+<b class="nc">&nbsp;        return communityService.getAccessCodeForVisitor(info, user)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;Check in successful&quot;,
+&nbsp;        responseCode = &quot;200&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = Access::class))]
+&nbsp;    )
+&nbsp;    @ApiResponse(
+&nbsp;        description = &quot;Access code not found&quot;,
+&nbsp;        responseCode = &quot;204&quot;,
+&nbsp;        content = [Content(schema = Schema(implementation = String::class))]
+&nbsp;    )
+&nbsp;    @Operation(summary = &quot;Check in visitor&quot;)
+&nbsp;    @GetMapping(&quot;/check-in/{code}&quot;)
+&nbsp;    fun checkIn(
+&nbsp;        @RequestAttribute(&quot;user&quot;) user: SecurityGuard,
+&nbsp;        @PathVariable code: String
+&nbsp;    )
+&nbsp;            : ResponseEntity&lt;*&gt; {
+<b class="nc">&nbsp;        return communityService.checkInVisitor(code, user)</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
+</div>
+</body>
+</html>

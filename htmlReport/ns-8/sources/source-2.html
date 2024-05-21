@@ -1,0 +1,358 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CommunityService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web.service</a>
+</div>
+
+<h1>Coverage Summary for Class: CommunityService (ng.cove.web.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CommunityService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (5/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.5%
+  </span>
+  <span class="absValue">
+    (4/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    19.8%
+  </span>
+  <span class="absValue">
+    (22/111)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.service
+&nbsp;
+&nbsp;import com.google.firebase.auth.FirebaseAuth
+&nbsp;import com.mongodb.DuplicateKeyException
+&nbsp;import ng.cove.web.data.model.*
+&nbsp;import ng.cove.web.data.repo.*
+&nbsp;import ng.cove.web.http.body.AccessInfoBody
+&nbsp;import ng.cove.web.http.body.GuardInfoBody
+&nbsp;import ng.cove.web.util.ApiResponseMessage
+&nbsp;import ng.cove.web.util.CodeGenerator
+&nbsp;import org.slf4j.LoggerFactory
+&nbsp;import org.springframework.beans.factory.annotation.Autowired
+&nbsp;import org.springframework.http.HttpStatus
+&nbsp;import org.springframework.http.ResponseEntity
+&nbsp;import org.springframework.stereotype.Service
+&nbsp;import org.springframework.transaction.annotation.Transactional
+&nbsp;import java.util.*
+&nbsp;
+<b class="fc">&nbsp;@Service</b>
+&nbsp;class CommunityService {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private lateinit var notificationService: NotificationService
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    lateinit var communityRepo: CommunityRepo</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    lateinit var memberRepo: MemberRepo</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    lateinit var joinRequestRepo: JoinRequestRepo</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var securityGuardRepo: SecurityGuardRepo</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var accessRepo: AccessRepo</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var codeGenerator: CodeGenerator</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var levyService: LevyService</b>
+&nbsp;
+&nbsp;    @Autowired
+<b class="nc">&nbsp;    lateinit var assignedLevyRepo: AssignedLevyRepo</b>
+&nbsp;
+<b class="fc">&nbsp;    private val logger = LoggerFactory.getLogger(CommunityService::class.java)</b>
+&nbsp;
+&nbsp;
+&nbsp;    fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity&lt;*&gt; {
+&nbsp;
+<b class="nc">&nbsp;        try {</b>
+&nbsp;
+<b class="nc">&nbsp;            val communityId = member.community!!.id!!</b>
+<b class="nc">&nbsp;            var access: Access? = null</b>
+<b class="nc">&nbsp;            while (access == null) {</b>
+<b class="nc">&nbsp;                access = Access()</b>
+<b class="nc">&nbsp;                access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())</b>
+<b class="nc">&nbsp;                access.durationOfVisit = info.durationOfVisitInSec</b>
+<b class="nc">&nbsp;                access.validUntil = info.validUntil</b>
+<b class="nc">&nbsp;                access.headCount = info.headCount</b>
+<b class="nc">&nbsp;                access.host = member</b>
+<b class="nc">&nbsp;                access.createdAt = Date()</b>
+&nbsp;
+<b class="nc">&nbsp;                access = try {</b>
+<b class="nc">&nbsp;                    accessRepo.save(access)</b>
+<b class="nc">&nbsp;                } catch (e: DuplicateKeyException) {</b>
+<b class="nc">&nbsp;                    logger.warn(&quot;Access code duplication for community: ${member.community!!.id}&quot;)</b>
+<b class="nc">&nbsp;                    null // Set access to null to try again with another code</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            return ResponseEntity.ok().body(access)</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (e: NullPointerException) {</b>
+<b class="nc">&nbsp;            logger.error(&quot;Access code generation failed: ${e.localizedMessage}&quot;)</b>
+<b class="nc">&nbsp;            return ResponseEntity.internalServerError().body(&quot;Community not found for user ${member.phone}&quot;)</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity&lt;Any&gt; {
+<b class="nc">&nbsp;        try {</b>
+<b class="nc">&nbsp;            val accessId = AccessId(communityId = guard.communityId!!, code = code)</b>
+<b class="nc">&nbsp;            var access = accessRepo.findByIdAndValidUntilIsAfter(accessId, Date())</b>
+<b class="nc">&nbsp;                ?: return ResponseEntity.noContent().build()</b>
+&nbsp;
+<b class="nc">&nbsp;            if (access.checkedInAt == null) {</b>
+<b class="nc">&nbsp;                access.checkedInAt = Date()</b>
+<b class="nc">&nbsp;                access.checkedInBy = guard</b>
+&nbsp;            }
+<b class="nc">&nbsp;            access = accessRepo.save(access) // Update access</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok().body(access)</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (e: Exception) {</b>
+<b class="nc">&nbsp;            logger.error(e.localizedMessage)</b>
+<b class="nc">&nbsp;            return ResponseEntity.internalServerError().build()</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @param adminUserId Identity of the admin of the community
+&nbsp;     * @param requestId
+&nbsp;     * @param accept      if the request was accepted or rejected
+&nbsp;     * @return status of the request
+&nbsp;     */
+&nbsp;    @Transactional
+&nbsp;    fun handleCommunityJoinRequest(
+&nbsp;        adminUserId: String,
+&nbsp;        requestId: JoinRequestId,
+&nbsp;        accept: Boolean
+&nbsp;    ): ResponseEntity&lt;*&gt; {
+&nbsp;
+<b class="pc">&nbsp;        val community = communityRepo.findCommunityByIdAndAdminIdsContains(requestId.communityId, adminUserId)</b>
+<b class="nc">&nbsp;            ?: return ResponseEntity.badRequest()</b>
+<b class="nc">&nbsp;                .body(ApiResponseMessage.USER_NOT_SUPER_ADMIN)</b>
+&nbsp;
+<b class="fc">&nbsp;        try {</b>
+<b class="fc">&nbsp;            val joinRequest = joinRequestRepo.findById(requestId).orElseThrow()!!</b>
+&nbsp;
+<b class="pc">&nbsp;            joinRequest.acceptedAt?.let {</b>
+<b class="nc">&nbsp;                return ResponseEntity.accepted()</b>
+<b class="nc">&nbsp;                    .body(ApiResponseMessage.REQUEST_ALREADY_ACCEPTED)</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Admin rejects request
+<b class="pc">&nbsp;            if (!accept) {</b>
+<b class="nc">&nbsp;                joinRequestRepo.deleteById(requestId)</b>
+&nbsp;                //TODO:Notify referrer of rejection
+<b class="nc">&nbsp;                return ResponseEntity.ok().body(&quot;Request rejected&quot;)</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Update or create a Member
+<b class="fc">&nbsp;            val memberPhone = joinRequest.id!!.phone</b>
+<b class="pc">&nbsp;            var member = memberRepo.findByPhone(memberPhone) ?: Member()</b>
+&nbsp;
+<b class="fc">&nbsp;            member.firstName = joinRequest.firstName</b>
+<b class="fc">&nbsp;            member.lastName = joinRequest.lastName</b>
+<b class="fc">&nbsp;            member.community = community</b>
+<b class="fc">&nbsp;            member.phone = memberPhone</b>
+<b class="fc">&nbsp;            member = memberRepo.save(member)</b>
+&nbsp;
+<b class="fc">&nbsp;            joinRequest.acceptedAt = Date()</b>
+<b class="fc">&nbsp;            joinRequest.approvedBy = adminUserId</b>
+<b class="fc">&nbsp;            joinRequestRepo.save(joinRequest)</b>
+&nbsp;            //Delete all pending request with this phone number
+<b class="fc">&nbsp;            joinRequestRepo.deleteAllByIdPhoneAndAcceptedAtIsNull(requestId.phone)</b>
+&nbsp;
+&nbsp;            //TODO:Notify referrer of acceptance
+<b class="fc">&nbsp;            return ResponseEntity.ok(member)</b>
+<b class="nc">&nbsp;        } catch (_: NoSuchElementException) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND)</b>
+<b class="nc">&nbsp;                .body(ApiResponseMessage.REQUEST_CANT_BE_FOUND)</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    fun inviteUserToCommunity(request: JoinRequest, referrer: Member): ResponseEntity&lt;*&gt; {
+<b class="nc">&nbsp;        try {</b>
+&nbsp;
+<b class="nc">&nbsp;            val community = referrer.community</b>
+<b class="nc">&nbsp;                ?: return ResponseEntity.badRequest()</b>
+<b class="nc">&nbsp;                    .body(&quot;Referrer is not part of any community at this time&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;            val requestId = request.id!!</b>
+<b class="nc">&nbsp;            if (community.id != requestId.communityId) {</b>
+<b class="nc">&nbsp;                return ResponseEntity.badRequest()</b>
+<b class="nc">&nbsp;                    .body(&quot;Referrer can only invite a user to their community&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (community.superAdminId == null) {</b>
+<b class="nc">&nbsp;                return ResponseEntity.badRequest().body(&quot;Community does not have an super admin&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (memberRepo.existsByPhoneAndCommunityIsNotNull(requestId.phone)) {</b>
+<b class="nc">&nbsp;                return ResponseEntity.badRequest().body(&quot;User is already part of a community&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (joinRequestRepo.existsByIdAndAcceptedAtIsNull(requestId)) {</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(&quot;User already has a pending request&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            request.referrerId = referrer.id</b>
+<b class="nc">&nbsp;            joinRequestRepo.save(request)</b>
+&nbsp;
+&nbsp;            //TODO: Notify community admin
+<b class="nc">&nbsp;            return ResponseEntity.ok(&quot;Request to join community sent&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (_: NoSuchElementException) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(&quot;Referrer not found&quot;)</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun addSecurityGuardToCommunity(guardData: GuardInfoBody, userId: String): ResponseEntity&lt;*&gt; {
+&nbsp;
+<b class="nc">&nbsp;        val community = communityRepo.findByAdminIdsContains(userId)</b>
+<b class="nc">&nbsp;            ?: return ResponseEntity.badRequest().body(&quot;User not an Admin in a community&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;        val phone = guardData.phone</b>
+<b class="nc">&nbsp;        if (securityGuardRepo.existsByPhone(phone)) {</b>
+<b class="nc">&nbsp;            ResponseEntity.badRequest().body(&quot;$phone is already a Guard in a community&quot;)</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        val guard = SecurityGuard()</b>
+<b class="nc">&nbsp;        guard.phone = guardData.phone</b>
+<b class="nc">&nbsp;        guard.firstName = guardData.firstName</b>
+<b class="nc">&nbsp;        guard.lastName = guardData.lastName</b>
+<b class="nc">&nbsp;        guard.communityId = community.id</b>
+<b class="nc">&nbsp;        securityGuardRepo.save(guard)</b>
+&nbsp;
+<b class="nc">&nbsp;        return ResponseEntity.ok().body(guardData)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun removeSecurityGuardFromCommunity(guardId: String, userId: String): ResponseEntity&lt;*&gt; {
+&nbsp;
+<b class="nc">&nbsp;        val community = communityRepo.findByAdminIdsContains(userId)</b>
+<b class="nc">&nbsp;            ?: return ResponseEntity.badRequest().body(&quot;User not an Admin in a community&quot;)</b>
+&nbsp;
+<b class="nc">&nbsp;        try {</b>
+<b class="nc">&nbsp;            val guardCommunityId = securityGuardRepo.findById(guardId).orElseThrow()!!.communityId</b>
+&nbsp;
+<b class="nc">&nbsp;            if (guardCommunityId == community.id) {</b>
+&nbsp;
+<b class="nc">&nbsp;                securityGuardRepo.deleteById(guardId)</b>
+<b class="nc">&nbsp;                FirebaseAuth.getInstance().revokeRefreshTokens(guardId)</b>
+<b class="nc">&nbsp;                return ResponseEntity.ok().body(&quot;Guard has been removed from community&quot;)</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                return ResponseEntity.badRequest().body(&quot;User not an Admin in Guard&#39;s community&quot;)</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;        } catch (e: NoSuchElementException) {</b>
+<b class="nc">&nbsp;            logger.warn(e.localizedMessage)</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(e.localizedMessage)</b>
+&nbsp;        }
+&nbsp;
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-20 16:46</div>
+</div>
+</body>
+</html>

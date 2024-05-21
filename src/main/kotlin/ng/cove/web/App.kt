@@ -6,7 +6,6 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
-import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 import ng.cove.web.component.SmsOtpService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -16,15 +15,19 @@ import org.springframework.cache.annotation.EnableCaching
 import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 import org.springframework.scheduling.annotation.EnableAsync
-import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.web.client.RestTemplate
 import java.util.concurrent.TimeUnit
 
 @EnableAsync
 @EnableCaching
-@EnableScheduling
-@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
+@EnableMongoRepositories("ng.cove.web.data.repo")
+@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
 class App {
+
+    @Bean
+    fun restTemplate() = RestTemplate()
 
     @Bean
     fun caffeineConfig(): Caffeine<Any, Any> {

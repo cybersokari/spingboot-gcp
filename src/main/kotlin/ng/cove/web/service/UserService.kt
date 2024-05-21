@@ -92,7 +92,7 @@ class UserService {
 
         try {
             // If user is tester return the phone number, otherwise verify OTP
-            val phone = getTesterPhone(login.ref, login.otp, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
+            val phone = verifyTesterOtp(login, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
             ?: return ResponseEntity.badRequest().body("Invalid code")
 
             val userId: String
@@ -104,14 +104,13 @@ class UserService {
                     member.phoneVerifiedAt = Date()
                 }
 
-                member.deviceId = login.deviceId
                 member.deviceName = login.deviceName
                 member.lastLoginAt = Date()
                 memberRepo.save(member)
 
                 userId = member.id!!
                 // Update cache
-                cacheManager.getCache(CacheNames.MEMBERS)?.put(userId, member)
+                cacheManager.getCache(CacheNames.MEMBERS)?.evict(userId)
 
             } else {
                 val guard = guardRepo.findByPhone(phone)!!
@@ -123,12 +122,11 @@ class UserService {
                 userId = guard.id!!
 
                 // Update device info
-                guard.deviceId = login.deviceId
                 guard.deviceName = login.deviceName
                 guard.lastLoginAt = Date()
                 guardRepo.save(guard)
                 // Update cache
-                cacheManager.getCache(CacheNames.GUARDS)?.put(userId, guard)
+                cacheManager.getCache(CacheNames.GUARDS)?.evict(userId)
             }
 
             val firebaseAuth = FirebaseAuth.getInstance()
@@ -161,11 +159,12 @@ class UserService {
         }
     }
 
-    fun getTesterPhone(id: String, otp: String, userType: UserType): String? {
+    // Return null if user is not a tester
+    fun verifyTesterOtp(login: LoginBody, userType: UserType): String? {
         return if (userType == UserType.Member) {
-            memberRepo.findByIdAndTestOtp(id, otp)?.phone
+            memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
         } else {
-            guardRepo.findByIdAndTestOtp(id, otp)?.phone
+            guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
         }
     }
 

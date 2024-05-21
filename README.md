@@ -86,6 +86,17 @@ Use Cloud logging to inspect the logs and health of the machine.
 ### Tests 🧪
 #### Unit test
 #### Integration test
+The goal is to achieve clos to production behaviour as possible. Database and Repositories are powered by
+an [Embedded DB](https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo) that only runs in `test` profile.
+
+1. `Mockito` is used for Mocking external services
+2. `MockMvc` is used for the Integration test
+
+While ``mvn clean test`` is good for running the tests during development, we advise you use the following command to run the `Dockerfile` to verify that the test can run in an
+isolated environment without any preconfiguration on your local machine.
+```shell
+docker build -t java-docker-image-test --progress=plain --no-cache --target=test 
+```
 
 ---
 
