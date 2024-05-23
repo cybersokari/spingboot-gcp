@@ -85,6 +85,8 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import io.swagger.v3.oas.annotations.media.Content
 &nbsp;import io.swagger.v3.oas.annotations.media.Schema
 &nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse
+&nbsp;import io.swagger.v3.oas.annotations.security.SecurityRequirement
+&nbsp;import io.swagger.v3.oas.annotations.security.SecurityRequirements
 &nbsp;import jakarta.validation.Valid
 &nbsp;import org.springframework.beans.factory.annotation.Autowired
 &nbsp;import org.springframework.http.MediaType
@@ -92,6 +94,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.web.bind.annotation.*
 &nbsp;
 &nbsp;@RestController
+&nbsp;@SecurityRequirements
 <b class="fc">&nbsp;class DefaultController: BaseController() {</b>
 &nbsp;
 &nbsp;    @Autowired
@@ -195,7 +198,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

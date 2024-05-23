@@ -27,9 +27,9 @@ class CacheTest : AppTest() {
         assertNull(cachedMember, "Cache is empty before query")
 
         val queriedMember = memberRepo.findMemberById(id)!!
-        cachedMember = cacheManager.getCache(cacheName)!!.get(id, Member::class.java)
+        cachedMember = cacheManager.getCache(cacheName)?.get(id, Member::class.java)
 
         assertNotNull(cachedMember, "Cache is not empty before query")
-        assertEquals(cachedMember, queriedMember, "Member is cached after query")
+        assertEquals(cachedMember, queriedMember, "Queried data is equal to cached data")
     }
 }

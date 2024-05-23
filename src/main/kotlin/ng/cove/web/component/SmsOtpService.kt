@@ -47,7 +47,7 @@ class SmsOtpService(
             addProperty("pin_time_to_live", otpExpiryMins)
             addProperty("pin_length", 6)
             addProperty("pin_placeholder", "<otp>")
-            addProperty("message_text", "Your login OTP is: <otp>")
+            addProperty("message_text", "Your Cove login OTP is: <otp>")
         }
 
         val headers: HttpHeaders = HttpHeaders().apply {

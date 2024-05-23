@@ -68,7 +68,7 @@ class SecureController : BaseController() {
         @Valid @RequestBody info: AccessInfoBody
     )
             : ResponseEntity<*> {
-        return communityService.getAccessCodeForVisitor(info, user)
+        return communityService.bookVisitor(info, user)
     }
 
     @ApiResponse(

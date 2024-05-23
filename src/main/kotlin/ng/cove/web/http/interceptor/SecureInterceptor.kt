@@ -29,7 +29,7 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                 val userId: String
                 val userType: UserType
                 // Running on dev, skip token decode
-                if (context.environment.activeProfiles[0] == "dev") {
+                if (context.environment.activeProfiles.getOrNull(0) == "dev") {
                     userType = UserType.Member // Manually update this to any type when running on dev
                     userId = idToken
                     println("Bearer is: $idToken")

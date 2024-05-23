@@ -7,9 +7,10 @@ import ng.cove.web.data.repo.*
 import ng.cove.web.http.body.AccessInfoBody
 import ng.cove.web.http.body.GuardInfoBody
 import ng.cove.web.util.ApiResponseMessage
-import ng.cove.web.util.CodeGenerator
+import ng.cove.web.util.RandomCodeGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -37,27 +38,22 @@ class CommunityService {
     @Autowired
     lateinit var accessRepo: AccessRepo
 
-    @Autowired
-    lateinit var codeGenerator: CodeGenerator
-
-    @Autowired
-    lateinit var levyService: LevyService
-
-    @Autowired
-    lateinit var assignedLevyRepo: AssignedLevyRepo
+    @Value("\${visitor.access-code.length}")
+    val accessCodeLength = 1
 
     private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
 
-    fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
+    fun bookVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
 
         try {
 
             val communityId = member.community!!.id!!
             var access: Access? = null
+            val generator = RandomCodeGenerator(accessCodeLength)
             while (access == null) {
                 access = Access()
-                access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())
+                access.id = AccessId(communityId = communityId, code = generator.getCode())
                 access.durationOfVisit = info.durationOfVisitInSec
                 access.validUntil = info.validUntil
                 access.headCount = info.headCount

@@ -62,7 +62,6 @@ class AppTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-
     lateinit var authMockedStatic: MockedStatic<FirebaseAuth>
 
     // Mocked FirebaseAuth for testing
@@ -118,15 +117,11 @@ class EmbeddedMongoConfig : AbstractMongoClientConfiguration() {
 
     override fun mongoClient(): MongoClient {
         // Embedded Mongo instance for testing
-        embeddedMongo = Mongod.instance()./**/start(Version.Main.V7_0)
+        embeddedMongo = Mongod.instance().start(Version.Main.V7_0)
         val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress
-        val host = serverAddress.host
-        val port = serverAddress.port
-        return MongoClients.create("mongodb://$host:$port")
+        return MongoClients.create("mongodb://$serverAddress")
     }
 
     @PreDestroy
-    fun onShutDown() {
-        embeddedMongo?.close()
-    }
+    fun onShutDown() = embeddedMongo?.close()
 }

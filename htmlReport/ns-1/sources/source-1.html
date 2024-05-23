@@ -99,7 +99,6 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import com.google.cloud.secretmanager.v1.SecretVersionName
 &nbsp;import com.google.firebase.FirebaseApp
 &nbsp;import com.google.firebase.FirebaseOptions
-&nbsp;import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
 &nbsp;import ng.cove.web.component.SmsOtpService
 &nbsp;import org.springframework.boot.SpringApplication
 &nbsp;import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -109,14 +108,15 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.cache.caffeine.CaffeineCacheManager
 &nbsp;import org.springframework.context.ApplicationListener
 &nbsp;import org.springframework.context.annotation.Bean
+&nbsp;import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 &nbsp;import org.springframework.scheduling.annotation.EnableAsync
-&nbsp;import org.springframework.scheduling.annotation.EnableScheduling
 &nbsp;import org.springframework.web.client.RestTemplate
 &nbsp;import java.util.concurrent.TimeUnit
 &nbsp;
 <b class="fc">&nbsp;@EnableAsync</b>
 &nbsp;@EnableCaching
-&nbsp;@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class, EmbeddedMongoAutoConfiguration::class])
+&nbsp;@EnableMongoRepositories(&quot;ng.cove.web.data.repo&quot;)
+&nbsp;@SpringBootApplication(exclude = [MongoDataAutoConfiguration::class])
 &nbsp;class App {
 &nbsp;
 &nbsp;    @Bean
@@ -200,7 +200,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > MemberRepo</title>
+  <title>Coverage Report > OccupantRepo</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">ng.cove.web.data.repo</a>
 </div>
 
-<h1>Coverage Summary for Class: MemberRepo (ng.cove.web.data.repo)</h1>
+<h1>Coverage Summary for Class: OccupantRepo (ng.cove.web.data.repo)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">MemberRepo</td>
+  <td class="name">OccupantRepo</td>
 </tr>
 
 </table>
@@ -41,19 +41,15 @@ Current scope:     <a href="../../index.html">all classes</a>
 <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.data.repo
 &nbsp;
-&nbsp;import ng.cove.web.data.model.Member
-&nbsp;import org.springframework.cache.annotation.Cacheable
-&nbsp;import org.springframework.data.domain.Page
-&nbsp;import org.springframework.data.domain.Pageable
+&nbsp;import ng.cove.web.data.model.Occupant
 &nbsp;import org.springframework.data.mongodb.repository.MongoRepository
 &nbsp;
-&nbsp;interface MemberRepo : MongoRepository&lt;Member, String?&gt; {
-&nbsp;
-&nbsp;    fun findByPhoneAndCommunityIsNotNull(phone: String): Member?
-&nbsp;    fun findByPhone(phone: String): Member?
-&nbsp;    fun existsByPhoneAndCommunityIsNotNull(phone: String): Boolean
-&nbsp;    fun findFirstByTestOtpIsNotNullAndPhone(phone: String): Member?
-&nbsp;    fun findByIdAndTestOtp(id: String, testOtp: String): Member?
+&nbsp;interface OccupantRepo : MongoRepository&lt;Occupant?, String?&gt; {
+&nbsp;    fun findByGuardianCommunityIdAndFirstNameOrLastNameContainingIgnoreCase(
+&nbsp;        id: String?,
+&nbsp;        s1: String?,
+&nbsp;        s2: String?
+&nbsp;    ): Occupant?
 &nbsp;}
 </code>
 </pre>
@@ -78,7 +74,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

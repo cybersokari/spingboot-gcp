@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -52,9 +52,9 @@ class DefaultControllerTest : AppTest() {
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
-        Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
+        `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
-        val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+        val result = mockMvc.get("/user/login?phone={phone}", phone).andReturn().response
 
         assertTrue(result.status == 200)
         verify(smsOtpService, times(1)).sendOtp(phone)
@@ -71,7 +71,7 @@ class DefaultControllerTest : AppTest() {
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
-        Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
+        `when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
         val result = mockMvc.perform(
             get("/user/login").param("phone", phone)
@@ -133,10 +133,10 @@ class DefaultControllerTest : AppTest() {
             val phone = member.phone!!
             val otp = faker.number().randomNumber(6, true).toString()
             val ref = faker.random().hex(15)
-            Mockito.`when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
+            `when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
 
             val customJWT = faker.random().hex(55)
-            Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
                 .thenReturn(customJWT)
 
             val login = mapOf(
@@ -165,7 +165,7 @@ class DefaultControllerTest : AppTest() {
             memberRepo.save(member)
 
             val customJWT = faker.random().hex(55)
-            Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
                 .thenReturn(customJWT)
 
             val login = mapOf(

@@ -72,10 +72,10 @@ Current scope:     <a href="../../index.html">all classes</a>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    81.5%
+    78.6%
   </span>
   <span class="absValue">
-    (22/27)
+    (22/28)
   </span>
 </td>
 </tr>
@@ -94,7 +94,8 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import jakarta.servlet.http.HttpServletRequest
 &nbsp;import jakarta.servlet.http.HttpServletResponse
 &nbsp;import ng.cove.web.data.model.UserType
-&nbsp;import ng.cove.web.service.CacheService
+&nbsp;import ng.cove.web.data.repo.MemberRepo
+&nbsp;import ng.cove.web.data.repo.SecurityGuardRepo
 &nbsp;import org.slf4j.LoggerFactory
 &nbsp;import org.springframework.http.HttpStatus
 &nbsp;import org.springframework.web.context.WebApplicationContext
@@ -117,7 +118,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;                val userId: String</b>
 <b class="fc">&nbsp;                val userType: UserType</b>
 &nbsp;                // Running on dev, skip token decode
-<b class="pc">&nbsp;                if (context.environment.activeProfiles[0] == &quot;dev&quot;) {</b>
+<b class="pc">&nbsp;                if (context.environment.activeProfiles.getOrNull(0) == &quot;dev&quot;) {</b>
 <b class="nc">&nbsp;                    userType = UserType.Member // Manually update this to any type when running on dev</b>
 <b class="nc">&nbsp;                    userId = idToken</b>
 <b class="nc">&nbsp;                    println(&quot;Bearer is: $idToken&quot;)</b>
@@ -128,13 +129,14 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;                    userId = firebaseToken.uid</b>
 &nbsp;                }
 &nbsp;
-<b class="fc">&nbsp;                val cacheService = context.getBean(CacheService::class.java)</b>
 &nbsp;                /** Get User model from DB and attach to request**/
 <b class="pc">&nbsp;                if (userType == UserType.Guard) {</b>
-<b class="nc">&nbsp;                    val guard = cacheService.getGuardById(userId)!!</b>
+<b class="nc">&nbsp;                    val repo = context.getBean(SecurityGuardRepo::class.java)</b>
+<b class="nc">&nbsp;                    val guard = repo.findSecurityGuardById(userId)!!</b>
 <b class="nc">&nbsp;                    request.setAttribute(&quot;user&quot;, guard)</b>
 &nbsp;                } else {
-<b class="fc">&nbsp;                    val member = cacheService.getMemberById(userId)!!</b>
+<b class="fc">&nbsp;                    val repo = context.getBean(MemberRepo::class.java)</b>
+<b class="fc">&nbsp;                    val member = repo.findMemberById(userId)!!</b>
 <b class="fc">&nbsp;                    request.setAttribute(&quot;user&quot;, member)</b>
 &nbsp;                }
 <b class="fc">&nbsp;                return true</b>
@@ -171,7 +173,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

@@ -77,7 +77,7 @@ Use Cloud logging to inspect the logs and health of the machine.
 
 ### Running the production docker image on local machine
 1. Install and start docker daemon
-2. Run ``mvn compile jib:dockerBuild`` to build the docker image
+2. Run ``mvn clean compile jib:dockerBuild`` to build the docker image
 3. Temporarily allow the production Mongo Atlas to accept traffic from anywhere on the internet.
 4. Install Gcloud CLI and authenticate it ``gcloud auth application-default login``
 5. Run ``docker-compose up`` from the project root folder.
@@ -86,7 +86,7 @@ Use Cloud logging to inspect the logs and health of the machine.
 ### Tests 🧪
 #### Unit test
 #### Integration test
-The goal is to achieve clos to production behaviour as possible. Database and Repositories are powered by
+The goal is to achieve close to production behaviour as possible. Database and Repositories are powered by
 an [Embedded DB](https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo) that only runs in `test` profile.
 
 1. `Mockito` is used for Mocking external services

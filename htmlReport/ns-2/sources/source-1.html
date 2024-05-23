@@ -72,10 +72,10 @@ Current scope:     <a href="../../index.html">all classes</a>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    84.3%
+    85.2%
   </span>
   <span class="absValue">
-    (43/51)
+    (46/54)
   </span>
 </td>
 </tr>
@@ -102,6 +102,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.http.MediaType
 &nbsp;import org.springframework.stereotype.Service
 &nbsp;import org.springframework.web.client.RestTemplate
+&nbsp;import java.time.Instant
 &nbsp;import java.util.*
 &nbsp;
 &nbsp;const val SEND_URL: String = &quot;https://api.ng.termii.com/api/sms/otp/send&quot;
@@ -109,7 +110,10 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;
 <b class="fc">&nbsp;@Service</b>
-&nbsp;class SmsOtpService {
+&nbsp;class SmsOtpService(
+<b class="fc">&nbsp;    @Autowired</b>
+<b class="fc">&nbsp;    val template: RestTemplate</b>
+&nbsp;) {
 &nbsp;
 <b class="fc">&nbsp;    val logger: Logger = LoggerFactory.getLogger(this::class.java)</b>
 &nbsp;
@@ -119,23 +123,21 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    @Value(&quot;\${otp.expiry-mins}&quot;)
 <b class="fc">&nbsp;    var otpExpiryMins: Int = 1</b>
 &nbsp;
-&nbsp;    @Autowired
-<b class="fc">&nbsp;    lateinit var template : RestTemplate</b>
 &nbsp;
 &nbsp;    fun sendOtp(phone: String): OtpRefBody? {
 &nbsp;
-<b class="fc">&nbsp;        val requestBody = JsonObject()</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;api_key&quot;, termiiApiKey)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;from&quot;, &quot;N-Alert&quot;)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;to&quot;, phone)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;message_type&quot;, &quot;NUMERIC&quot;)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;channel&quot;, &quot;dnd&quot;)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin_attempts&quot;, 5)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin_time_to_live&quot;, otpExpiryMins)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin_length&quot;, 6)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin_placeholder&quot;, &quot;&lt;otp&gt;&quot;)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;message_text&quot;, &quot;Your login OTP is: &lt;otp&gt;&quot;)</b>
-&nbsp;
+<b class="fc">&nbsp;        val requestBody = JsonObject().apply {</b>
+<b class="fc">&nbsp;            addProperty(&quot;api_key&quot;, termiiApiKey)</b>
+<b class="fc">&nbsp;            addProperty(&quot;from&quot;, &quot;N-Alert&quot;)</b>
+<b class="fc">&nbsp;            addProperty(&quot;to&quot;, phone)</b>
+<b class="fc">&nbsp;            addProperty(&quot;message_type&quot;, &quot;NUMERIC&quot;)</b>
+<b class="fc">&nbsp;            addProperty(&quot;channel&quot;, &quot;dnd&quot;)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin_attempts&quot;, 5)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin_time_to_live&quot;, otpExpiryMins)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin_length&quot;, 6)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin_placeholder&quot;, &quot;&lt;otp&gt;&quot;)</b>
+<b class="fc">&nbsp;            addProperty(&quot;message_text&quot;, &quot;Your Cove login OTP is: &lt;otp&gt;&quot;)</b>
+<b class="fc">&nbsp;        }</b>
 &nbsp;
 <b class="fc">&nbsp;        val headers: HttpHeaders = HttpHeaders().apply {</b>
 <b class="fc">&nbsp;            contentType = MediaType.APPLICATION_JSON</b>
@@ -153,7 +155,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;            }
 &nbsp;
 <b class="fc">&nbsp;            val ref = result[&quot;pinId&quot;] as String</b>
-<b class="fc">&nbsp;            val futureDateTime = Date().toInstant()</b>
+<b class="fc">&nbsp;            val futureDateTime = Instant.now()</b>
 <b class="fc">&nbsp;                .plusSeconds(otpExpiryMins.toLong() * 60)</b>
 <b class="fc">&nbsp;            val expiry = Date.from(futureDateTime)</b>
 &nbsp;
@@ -166,11 +168,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    fun verifyOtp(otp: String, ref: String): String? {
-<b class="fc">&nbsp;        val requestBody = JsonObject()</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;api_key&quot;, termiiApiKey)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin_id&quot;, ref)</b>
-<b class="fc">&nbsp;        requestBody.addProperty(&quot;pin&quot;, otp)</b>
-&nbsp;
+<b class="fc">&nbsp;        val requestBody = JsonObject().apply {</b>
+<b class="fc">&nbsp;            addProperty(&quot;api_key&quot;, termiiApiKey)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin_id&quot;, ref)</b>
+<b class="fc">&nbsp;            addProperty(&quot;pin&quot;, otp)</b>
+<b class="fc">&nbsp;        }</b>
 &nbsp;
 <b class="fc">&nbsp;        val headers: HttpHeaders = HttpHeaders().apply {</b>
 <b class="fc">&nbsp;            contentType = MediaType.APPLICATION_JSON</b>
@@ -213,7 +215,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>
