@@ -100,7 +100,7 @@ class LevyService {
         logger.info("Levy ${levy.title} due date updated to: ${assignedLevy.nextPaymentDue}")
     }
 
-    @Scheduled(fixedDelayString = "\${schedule.levy.duration.secs}")
+    @Scheduled(fixedDelayString = "\${schedule-levy-duration-secs}")
     fun createLevyPayments() {
         val duePayments = assignedLevyRepo.findAllByNextPaymentDueIsBeforeOrderByNextPaymentDueAsc(Date())
         duePayments.forEach {

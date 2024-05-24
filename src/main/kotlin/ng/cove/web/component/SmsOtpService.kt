@@ -25,13 +25,12 @@ class SmsOtpService(
     @Autowired
     val template: RestTemplate
 ) {
-
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    // Set in ApplicationStartup
+    @Value("\${termii-key}")
     var termiiApiKey: String? = null
 
-    @Value("\${otp.expiry-mins}")
+    @Value("\${otp-expiry-mins}")
     var otpExpiryMins: Int = 1
 
 

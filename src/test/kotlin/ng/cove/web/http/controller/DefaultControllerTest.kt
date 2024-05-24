@@ -30,7 +30,7 @@ class DefaultControllerTest : AppTest() {
     @MockBean
     lateinit var smsOtpService: SmsOtpService
 
-    @Value("\${otp.trial-limit}")
+    @Value("\${otp-trial-limit}")
     var maxDailyOtpTrial: Int = 0
 
     @BeforeEach

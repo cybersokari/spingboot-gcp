@@ -72,7 +72,7 @@ class LevyServiceTest : AppTest() {
 
         /** This [delayInSecs] value is updated by [AppTest]'s @SpringBootTest annotation to fast track
         the execution of this test. The production [delayInSecs] value is not affect*/
-        val delayInSecs = webApplicationContext.environment.getProperty("schedule.levy.duration.secs")
+        val delayInSecs = webApplicationContext.environment.getProperty("schedule-levy-duration-secs")
 
         /** Waiting for [LevyService.createLevyPayments]'s [@Scheduled] annotation
         to take effect */

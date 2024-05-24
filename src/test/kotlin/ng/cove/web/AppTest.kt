@@ -27,6 +27,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -44,7 +45,7 @@ import javax.annotation.PreDestroy
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource("/application.properties")
 @Import(value = [EmbeddedMongoConfig::class])
-@EnableAutoConfiguration(exclude = [EmbeddedMongoAutoConfiguration::class])
+@EnableAutoConfiguration(exclude = [EmbeddedMongoAutoConfiguration::class, MongoDataAutoConfiguration::class])
 class AppTest {
 
     @Autowired
@@ -97,15 +98,13 @@ class AppTest {
     @BeforeAll
     fun setupAll() {
         // Mock FirebaseAuth
-        authMockedStatic = mockStatic(FirebaseAuth::class.java)
-        authMockedStatic.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
+        authMockedStatic = mockStatic(FirebaseAuth::class.java).apply {
+            `when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
+        }
     }
 
     @AfterAll
-    fun tearDownAll() {
-        authMockedStatic.close()
-    }
-
+    fun tearDownAll() = authMockedStatic.close()
 }
 
 @TestConfiguration

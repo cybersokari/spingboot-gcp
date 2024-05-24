@@ -21,10 +21,10 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
         @Nonnull handler: Any
     ): Boolean {
 
-        request.getHeader("Authorization")?.let { it ->
+        request.getHeader("Authorization")?.let { bearer ->
             try {
                 val idToken =
-                    it.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1] //Remove Bearer prefix
+                    bearer.split(" ").dropLastWhile { it.isEmpty() }[1] //Remove Bearer prefix
 
                 val userId: String
                 val userType: UserType

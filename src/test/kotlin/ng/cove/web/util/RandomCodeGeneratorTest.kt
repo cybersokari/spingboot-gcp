@@ -31,7 +31,7 @@ class RandomCodeGeneratorTest {
         val firstCode = generator.getCode()
         val secondCode = generator.getCode()
 
-        assertEquals(firstCode.length, accessCodeLength, "Code length is as configured")
-        assertEquals(firstCode.length, secondCode.length, "Code is the same length")
+        assertEquals(firstCode.length, accessCodeLength, "1st Code length is as configured")
+        assertEquals(secondCode.length, accessCodeLength, "2nd Code length is as configured")
     }
 }

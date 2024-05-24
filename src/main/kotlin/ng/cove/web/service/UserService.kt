@@ -42,7 +42,7 @@ class UserService {
     @Autowired
     lateinit var otpRepo: MemberPhoneOtpRepo
 
-    @Value("\${otp.trial-limit}")
+    @Value("\${otp-trial-limit}")
     var maxDailyOtpTrial: Int = 0
 
 

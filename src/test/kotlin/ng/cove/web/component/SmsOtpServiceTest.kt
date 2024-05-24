@@ -1,6 +1,5 @@
-package ng.cove.web.components
+package ng.cove.web.component
 
-import ng.cove.web.component.SmsOtpService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

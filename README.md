@@ -95,7 +95,7 @@ an [Embedded DB](https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo) th
 While ``mvn clean test`` is good for running the tests during development, we advise you use the following command to run the `Dockerfile` to verify that the test can run in an
 isolated environment without any preconfiguration on your local machine.
 ```shell
-docker build -t java-docker-image-test --progress=plain --no-cache --target=test 
+docker build -t java-docker-image-test --progress=plain --no-cache --target=test .
 ```
 
 ---
