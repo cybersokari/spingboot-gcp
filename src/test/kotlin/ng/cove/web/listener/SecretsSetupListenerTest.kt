@@ -23,11 +23,10 @@ import org.springframework.core.env.Environment
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [StartupListener::class])
-class StartupListenerTest {
+@ContextConfiguration(classes = [SecretsSetupListener::class])
+class SecretsSetupListenerTest {
 
     private lateinit var secretManagerStatic: MockedStatic<SecretManagerServiceClient>
     private val secretManagerClientMock = Mockito.mock(SecretManagerServiceClient::class.java)
@@ -45,7 +44,7 @@ class StartupListenerTest {
     lateinit var environment: Environment
 
     @BeforeEach
-    fun setUpe() {
+    fun setUp() {
         secretVersionNameStatic = mockStatic(SecretVersionName::class.java).apply {
             `when`<SecretVersionName> { SecretVersionName.of(any(), any(), any()) }.thenReturn(secretVersionNameMock)
         }
@@ -71,7 +70,7 @@ class StartupListenerTest {
         Mockito.`when`(secretPayload.data).thenReturn(ByteString.copyFrom(secret, Charsets.UTF_8))
 
         val appPreEvent = ApplicationPreparedEvent(SpringApplication(), null, configurableAppContext)
-        StartupListener().onApplicationEvent(appPreEvent)
+        SecretsSetupListener().onApplicationEvent(appPreEvent)
 
         verify(secretManagerClientMock, times(3)).accessSecretVersion(any<SecretVersionName>())
         verify(secretResponseMock, times(3)).payload

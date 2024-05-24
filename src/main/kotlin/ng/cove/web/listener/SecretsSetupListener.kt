@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationListener
 import org.springframework.core.env.PropertiesPropertySource
 import java.util.*
 
-class StartupListener : ApplicationListener<ApplicationPreparedEvent> {
+class SecretsSetupListener : ApplicationListener<ApplicationPreparedEvent> {
     override fun onApplicationEvent(event: ApplicationPreparedEvent) {
         val profile = event.applicationContext.environment.activeProfiles.getOrNull(0)
         // if empty, default to prod

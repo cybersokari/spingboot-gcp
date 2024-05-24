@@ -1,7 +1,7 @@
 package ng.cove.web
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import ng.cove.web.listener.StartupListener
+import ng.cove.web.listener.SecretsSetupListener
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.cache.annotation.EnableCaching
@@ -37,6 +37,6 @@ class App {
 
 fun main(args: Array<String>) {
     SpringApplication(App::class.java).apply {
-        addListeners(StartupListener())
+        addListeners(SecretsSetupListener())
     }.run(*args)
 }
