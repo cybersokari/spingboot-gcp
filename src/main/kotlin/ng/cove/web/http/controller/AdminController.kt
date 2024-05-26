@@ -1,21 +1,21 @@
 package ng.cove.web.http.controller
 
-import ng.cove.web.data.model.JoinRequestId
-import ng.cove.web.data.model.Member
-import ng.cove.web.http.body.GuardInfoBody
-import ng.cove.web.service.CommunityService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
-import ng.cove.web.data.model.AssignedLevy
-import ng.cove.web.data.model.Levy
-import ng.cove.web.service.LevyService
+import ng.cove.web.data.model.*
+import ng.cove.web.http.ExceptionHandler
+import ng.cove.web.http.body.GuardInfoBody
+import ng.cove.web.http.body.IssuableBillBody
+import ng.cove.web.service.BillService
+import ng.cove.web.service.CommunityService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+
 @ApiResponse(
     description = "Unauthorized",
     responseCode = "401",
@@ -23,14 +23,12 @@ import org.springframework.web.bind.annotation.*
 )
 @RestController
 @RequestMapping("/admin")
-class AdminController : BaseController() {
+class AdminController{
 
     @Autowired
     lateinit var communityService: CommunityService
-
     @Autowired
-    lateinit var levyService: LevyService
-
+    lateinit var billService: BillService
 
     @ApiResponse(
         description = "Request updated",
@@ -42,14 +40,14 @@ class AdminController : BaseController() {
         responseCode = "202",
         content = [Content(schema = Schema(implementation = String::class))]
     )
-    @Operation(summary = "Handle community join request")
-    @PostMapping("/community/request/{accept}")
+    @Operation(summary = "Accept or reject join request")
+    @PostMapping("/community/request/{id}")
     fun handleCommunityJoinRequest(
-        @RequestAttribute("user") user: Member,
-        @RequestBody @Valid requestId: JoinRequestId,
-        @PathVariable accept: Boolean
+        @RequestAttribute("user") user: Admin,
+        @PathVariable("id") requestId: String,
+        @RequestParam accept: Boolean
     ): ResponseEntity<*> {
-        return communityService.handleCommunityJoinRequest(user.id!!, requestId, accept)
+        return communityService.handleCommunityJoinRequest(user, requestId, accept)
     }
 
     /**
@@ -68,7 +66,7 @@ class AdminController : BaseController() {
     @Operation(summary = "Add security guard to community")
     @PostMapping("/guard")
     fun addSecurityGuard(
-        @RequestAttribute("user") user: Member,
+        @RequestAttribute("user") user: Admin,
         @RequestBody @Valid guardData: GuardInfoBody,
     ): ResponseEntity<*> {
         return communityService.addSecurityGuardToCommunity(guardData, user.id!!)
@@ -85,47 +83,60 @@ class AdminController : BaseController() {
     @Operation(summary = "Remove security guard from community")
     @DeleteMapping("/guard/{guard_id}")
     fun removeSecurityGuard(
-        @RequestAttribute("user") user: Member,
+        @RequestAttribute("user") user: Admin,
         @PathVariable("guard_id") guardId: String,
     ): ResponseEntity<*> {
         return communityService.removeSecurityGuardFromCommunity(guardId, user.id!!)
     }
 
     @ApiResponse(
-        description = "Levy created",
+        description = "Bill created",
         responseCode = "200",
-        content = [Content(schema = Schema(implementation = Levy::class),
-            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+        content = [Content(
+            schema = Schema(implementation = Bill::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE
+        )]
     )
     @ApiResponse(
-        description = "Levy name already exists",
+        description = "Bill name already exists",
         responseCode = "400",
-        content = [Content(schema = Schema(implementation = Levy::class),
-            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+        content = [Content(
+            schema = Schema(implementation = Bill::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE
+        )]
     )
-    @Operation(summary = "Create a new levy")
-    @PostMapping("/levy")
-    fun createLevy(@RequestAttribute("user") user: Member,
-                   @RequestBody levy: Levy): ResponseEntity<*> {
-        return levyService.createLevy(levy, user)
+    @Operation(summary = "Create a new Bill")
+    @PostMapping("/bill")
+    fun createBill(
+        @RequestAttribute("user") user: Admin,
+        @RequestBody bill: Bill
+    ): ResponseEntity<*> {
+        return billService.createBill(bill, user)
     }
 
     @ApiResponse(
-        description = "Levy assigned",
+        description = "Bill issued",
         responseCode = "200",
-        content = [Content(schema = Schema(implementation = AssignedLevy::class),
-            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+        content = [Content(
+            schema = Schema(implementation = IssuedBill::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE
+        )]
     )
     @ApiResponse(
-        description = "Levy already assigned",
+        description = "Bill already issued",
         responseCode = "400",
-        content = [Content(schema = Schema(implementation = Map::class),
-            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+        content = [Content(
+            schema = Schema(implementation = Map::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE
+        )]
     )
-    @PostMapping("/levy/assign", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun assignLevy(@RequestAttribute("user") user: Member,
-                   @Valid @RequestBody levy: AssignedLevy): ResponseEntity<*>{
-        return levyService.assignLevy(levy, user)
+    @Operation(summary = "Issue a new Bill")
+    @PostMapping("/bill/issue", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun issueBill(
+        @RequestAttribute("user") user: Admin,
+        @Valid @RequestBody bill: IssuableBillBody
+    ): ResponseEntity<*> {
+        return billService.issueBill(bill, user)
     }
 
 

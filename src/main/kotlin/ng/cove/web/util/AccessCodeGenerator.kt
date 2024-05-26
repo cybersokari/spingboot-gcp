@@ -2,12 +2,12 @@ package ng.cove.web.util
 
 import java.security.SecureRandom
 
-class RandomCodeGenerator(private val accessCodeLength: Int = 1) {
+class AccessCodeGenerator {
 
-    fun getCode(): String {
+    fun getCode(length: Int = 1): String {
         val sb = StringBuilder()
         val random = SecureRandom()
-        for (i in 0 until accessCodeLength) {
+        for (i in 0 until length) {
             sb.append(random.nextInt(10)) // Append a random digit (0-9)
         }
         return sb.toString()

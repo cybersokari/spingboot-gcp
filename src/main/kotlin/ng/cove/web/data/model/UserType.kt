@@ -5,5 +5,5 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 enum class UserType { Member
-, Guard
+, Guard, Admin
 }

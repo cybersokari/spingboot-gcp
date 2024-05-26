@@ -5,6 +5,7 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 import com.google.cloud.secretmanager.v1.SecretPayload
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.google.protobuf.ByteString
+import net.datafaker.Faker
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,12 +21,14 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.context.event.ApplicationPreparedEvent
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.Environment
+import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.util.Properties
 import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [SecretsSetupListener::class])
+@ContextConfiguration
 class SecretsSetupListenerTest {
 
     private lateinit var secretManagerStatic: MockedStatic<SecretManagerServiceClient>
@@ -48,10 +51,14 @@ class SecretsSetupListenerTest {
         secretVersionNameStatic = mockStatic(SecretVersionName::class.java).apply {
             `when`<SecretVersionName> { SecretVersionName.of(any(), any(), any()) }.thenReturn(secretVersionNameMock)
         }
-
         secretManagerStatic = mockStatic(SecretManagerServiceClient::class.java).apply {
             `when`<Any>(SecretManagerServiceClient::create).thenReturn(secretManagerClientMock)
         }
+        val props = Properties().apply {
+            setProperty("secretmanager-project-id", "")
+        }
+        configurableAppContext.environment.propertySources
+            .addFirst(PropertiesPropertySource("gcp", props))
     }
 
     @AfterEach
@@ -63,7 +70,7 @@ class SecretsSetupListenerTest {
     @Test
     fun givenOnApplicationPreparedEvent_whenSecretsAreRetrieved_thenSecretsAreAvailableInProperties() {
 
-        val secret = "test-secret"
+        val secret = Faker().random().hex(20)
         Mockito.`when`(secretManagerClientMock.accessSecretVersion(any<SecretVersionName>()))
             .thenReturn(secretResponseMock)
         Mockito.`when`(secretResponseMock.payload).thenReturn(secretPayload)

@@ -5,11 +5,9 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
-import ng.cove.web.data.model.Access
+import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.JoinRequest
 import ng.cove.web.data.model.Member
-import ng.cove.web.data.model.SecurityGuard
-import ng.cove.web.http.body.AccessInfoBody
 import ng.cove.web.service.CommunityService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -21,8 +19,8 @@ import org.springframework.web.bind.annotation.*
     content = [Content(schema = Schema(implementation = String::class))]
 )
 @RestController
-@RequestMapping("/secure")
-class SecureController : BaseController() {
+@RequestMapping("/member")
+class MemberController{
 
     @Autowired
     lateinit var communityService: CommunityService
@@ -54,7 +52,7 @@ class SecureController : BaseController() {
     @ApiResponse(
         description = "Success",
         responseCode = "200",
-        content = [Content(schema = Schema(implementation = Access::class))]
+        content = [Content(schema = Schema(implementation = Booking::class))]
     )
     @ApiResponse(
         description = "User does not have a community",
@@ -62,32 +60,13 @@ class SecureController : BaseController() {
         content = [Content(schema = Schema(implementation = String::class))]
     )
     @Operation(summary = "Create access code for visitor")
-    @PostMapping("/access")
+    @PostMapping("/visitor/book")
     fun getAccessCode(
         @RequestAttribute("user") user: Member,
-        @Valid @RequestBody info: AccessInfoBody
+        @Valid @RequestBody entry: Booking
     )
             : ResponseEntity<*> {
-        return communityService.bookVisitor(info, user)
+        return communityService.bookVisitor(entry, user)
     }
 
-    @ApiResponse(
-        description = "Check in successful",
-        responseCode = "200",
-        content = [Content(schema = Schema(implementation = Access::class))]
-    )
-    @ApiResponse(
-        description = "Access code not found",
-        responseCode = "204",
-        content = [Content(schema = Schema(implementation = String::class))]
-    )
-    @Operation(summary = "Check in visitor")
-    @GetMapping("/check-in/{code}")
-    fun checkIn(
-        @RequestAttribute("user") user: SecurityGuard,
-        @PathVariable code: String
-    )
-            : ResponseEntity<*> {
-        return communityService.checkInVisitor(code, user)
-    }
 }

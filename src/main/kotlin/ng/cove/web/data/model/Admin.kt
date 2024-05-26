@@ -12,9 +12,9 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document("security_guards")
+@Document(collection = "admins")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-class SecurityGuard : User {
+class Admin : User{
     @Id
     override var id: String? = null
 
@@ -27,12 +27,15 @@ class SecurityGuard : User {
     override var lastName: String? = null
 
     @NonNull
+    var gender: Gender? = null
+
     @Indexed(unique = true)
     override var phone: String? = null
 
-    @Field("phone_verified_at")
+    @Field(value = "phone_verified_at")
     override var phoneVerifiedAt: Date? = null
 
+    @Field(value = "photo_url")
     override var photoUrl: String? = null
 
     @NonNull
@@ -43,6 +46,10 @@ class SecurityGuard : User {
     @CreatedDate
     @Field("created_at")
     override var createdAt: Date? = null
+
+    @LastModifiedDate
+    @Field("last_modified_at")
+    override var lastModifiedAt: Date? = null
 
     /** Device info start**/
     @Field("device_name")
@@ -56,12 +63,6 @@ class SecurityGuard : User {
     override var lastLoginAt: Date? = null
 
     @JsonIgnore
-    @Field("last_modified_at")
-    @LastModifiedDate
-    override var lastModifiedAt: Date? = null
-
-    @JsonIgnore
     @Field("test_otp")
     override var testOtp: String? = null
-
 }

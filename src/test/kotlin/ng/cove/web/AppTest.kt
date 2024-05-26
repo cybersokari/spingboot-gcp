@@ -89,10 +89,10 @@ class AppTest {
             name = "${faker.address().state()} Community"
             address = faker.address().streetAddress()
             superAdminId = member.id
-            adminIds = setOf(member.id!!)
+            admins = setOf(member.id!!)
         }
 
-        member.community = community
+        member.communityId = community.id
     }
 
     @BeforeAll

@@ -6,13 +6,13 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.Date
 
-@Document("levy_payments")
-class LevyPayment {
+@Document("bill_payments")
+class BillPayment {
     @Id
     var id: String? = null
     @field:NonNull
-    @Field("levy_id")
-    var levyId: String? = null
+    @Field("bill_id")
+    var billId: String? = null
     @field:NonNull
     @Field("member_id")
     var memberId: String? = null

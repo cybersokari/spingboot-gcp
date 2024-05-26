@@ -1,4 +1,4 @@
-package ng.cove.web.component
+package ng.cove.web.service
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

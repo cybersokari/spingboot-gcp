@@ -1,4 +1,4 @@
-package ng.cove.web.http.controller
+package ng.cove.web.http
 
 import com.mongodb.lang.NonNull
 import jakarta.servlet.http.HttpServletRequest
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.NoHandlerFoundException
 
 
 @ControllerAdvice
-abstract class BaseController {
+class ExceptionHandler {
 
     @ExceptionHandler(MissingRequestHeaderException::class)
     fun handleMissingHeader(@NonNull ex: MissingRequestHeaderException): ResponseEntity<String> {
@@ -36,5 +36,4 @@ abstract class BaseController {
     ): ResponseEntity<Any> {
         return ResponseEntity.notFound().build()
     }
-
 }

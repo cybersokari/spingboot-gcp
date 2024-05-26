@@ -1,9 +1,10 @@
 package ng.cove.web.http.controller
 
 import ng.cove.web.AppTest
-import ng.cove.web.component.SmsOtpService
+import ng.cove.web.service.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
 import ng.cove.web.data.model.UserType
+import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,7 +25,6 @@ import java.time.Instant
 import java.util.*
 
 
-//@WebAppConfiguration("")
 class DefaultControllerTest : AppTest() {
 
     @MockBean
@@ -54,7 +54,8 @@ class DefaultControllerTest : AppTest() {
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
-        val result = mockMvc.get("/user/login?phone={phone}", phone).andReturn().response
+        val result = mockMvc.get("/login?phone={phone}&type={type}",
+            phone, UserType.Member).andReturn().response
 
         assertTrue(result.status == 200)
         verify(smsOtpService, times(1)).sendOtp(phone)
@@ -74,7 +75,8 @@ class DefaultControllerTest : AppTest() {
         `when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
         val result = mockMvc.perform(
-            get("/user/login").param("phone", phone)
+            get("/login").param("phone", phone)
+                .param("type", UserType.Member.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
 
@@ -87,7 +89,8 @@ class DefaultControllerTest : AppTest() {
         memberRepo.save(member)
 
         val result = mockMvc.perform(
-            get("/user/login").param("phone", member.phone!!)
+            get("/login").param("phone", member.phone!!)
+                .param("type", UserType.Member.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
         assertEquals(200, result.status)
@@ -120,7 +123,8 @@ class DefaultControllerTest : AppTest() {
         @Test
         fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
-            val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+            val result = mockMvc.get("/login?phone={phone}&type={type}",
+                member.phone!!, UserType.Member).andReturn().response
 
             assertEquals(400, result.status, "Should return 400")
             verifyNoInteractions(smsOtpService)
@@ -139,13 +143,13 @@ class DefaultControllerTest : AppTest() {
             `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
                 .thenReturn(customJWT)
 
-            val login = mapOf(
-                "otp" to otp,
-                "ref" to ref,
-                "device_id" to faker.random().hex(30),
-                "device_name" to faker.device().modelName()
-            )
-            val result = mockMvc.post("/user/login/verify") {
+            val login = LoginBody().apply {
+                this.type = UserType.Member
+                this.otp = otp
+                this.ref = ref
+                this.deviceName = faker.device().modelName()
+            }
+            val result = mockMvc.post("/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response
@@ -168,14 +172,15 @@ class DefaultControllerTest : AppTest() {
             `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
                 .thenReturn(customJWT)
 
-            val login = mapOf(
-                "otp" to otp,
-                "ref" to member.id,
-                "device_id" to faker.random().hex(30),
-                "device_name" to faker.device().modelName()
-            )
 
-            val result = mockMvc.post("/user/login/verify") {
+            val login = LoginBody().apply {
+                this.type = UserType.Member
+                this.otp = otp
+                this.ref = member.id!!
+                this.deviceName = faker.device().modelName()
+            }
+
+            val result = mockMvc.post("/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response

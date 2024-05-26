@@ -1,6 +1,6 @@
 package ng.cove.web.data.repo
 
-import ng.cove.web.data.model.Levy
+import ng.cove.web.data.model.Bill
 import org.springframework.data.mongodb.repository.MongoRepository
 
-interface LevyRepo : MongoRepository<Levy, String>
+interface BillRepo : MongoRepository<Bill, String>

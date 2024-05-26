@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.mongodb.lang.NonNull
+import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 import org.springframework.data.annotation.CreatedDate
@@ -15,10 +16,11 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document
+enum class BillType {ONCE, MONTHLY, ANNUAL}
+@Document(collection = "bills")
 @CompoundIndex(name = "community_id_title", def = "{'community_id': 1, 'title': 1}", unique = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-class Levy {
+class Bill {
     @Id
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     var id: String? = null
@@ -35,12 +37,13 @@ class Levy {
     @field:NonNull
     @field:NotNull
     @Min(1, message = "Amount must be greater than 0")
+    @Max(1000000000, message = "Amount must be less than 1 billion")
     @Field("amount")
     var amount: Double? = null
 
     @field:NonNull
     @field:NotNull
-    var type: LevyType? = null
+    var type: BillType? = null
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @CreatedDate

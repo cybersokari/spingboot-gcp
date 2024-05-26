@@ -10,16 +10,16 @@ import kotlin.test.assertNotEquals
 
 @ExtendWith(SpringExtension::class)
 @TestPropertySource("/application.properties")
-class RandomCodeGeneratorTest {
+class AccessCodeGeneratorTest {
 
     @Value("\${visitor.access-code.length}")
     val accessCodeLength = 1
 
     @Test
     fun givenCodeIsGenerated_whenGetCodeIsCalledAgain_theReturnedCodeShouldBeDifferent() {
-        val generator = RandomCodeGenerator()
-        val firstCode = generator.getCode()
-        val secondCode = generator.getCode()
+        val generator = AccessCodeGenerator()
+        val firstCode = generator.getCode(accessCodeLength)
+        val secondCode = generator.getCode(accessCodeLength)
 
         assertEquals(firstCode.length, secondCode.length, "Code is the same length")
         assertNotEquals(firstCode, secondCode, "Codes are different")
@@ -27,9 +27,9 @@ class RandomCodeGeneratorTest {
 
     @Test
     fun givenCodeIsProvided_whenGetCodeIsCalled_theReturnedCodeShouldBeOfConfiguredLength() {
-        val generator = RandomCodeGenerator(accessCodeLength)
-        val firstCode = generator.getCode()
-        val secondCode = generator.getCode()
+        val generator = AccessCodeGenerator()
+        val firstCode = generator.getCode(accessCodeLength)
+        val secondCode = generator.getCode(accessCodeLength)
 
         assertEquals(firstCode.length, accessCodeLength, "1st Code length is as configured")
         assertEquals(secondCode.length, accessCodeLength, "2nd Code length is as configured")

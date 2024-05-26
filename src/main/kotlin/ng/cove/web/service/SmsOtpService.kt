@@ -1,4 +1,4 @@
-package ng.cove.web.component
+package ng.cove.web.service
 
 import com.google.gson.JsonObject
 import ng.cove.web.http.body.OtpRefBody
@@ -6,7 +6,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -16,7 +15,7 @@ import org.springframework.web.client.RestTemplate
 import java.time.Instant
 import java.util.*
 
-const val SEND_URL: String = "https://api.ng.termii.com/api/sms/otp/send"
+const val SEND_URL = "https://api.ng.termii.com/api/sms/otp/send"
 const val VERIFY_URL = "https://api.ng.termii.com/api/sms/otp/verify"
 
 
@@ -31,7 +30,7 @@ class SmsOtpService(
     var termiiApiKey: String? = null
 
     @Value("\${otp-expiry-mins}")
-    var otpExpiryMins: Int = 1
+    var otpExpiryMins: Int = 5
 
 
     fun sendOtp(phone: String): OtpRefBody? {
@@ -46,7 +45,7 @@ class SmsOtpService(
             addProperty("pin_time_to_live", otpExpiryMins)
             addProperty("pin_length", 6)
             addProperty("pin_placeholder", "<otp>")
-            addProperty("message_text", "Your Cove login OTP is: <otp>")
+            addProperty("message_text", "Your Cove login OTP is: <otp>\nIt expires in $otpExpiryMins minutes")
         }
 
         val headers: HttpHeaders = HttpHeaders().apply {

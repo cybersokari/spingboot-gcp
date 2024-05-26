@@ -9,13 +9,14 @@ import java.util.*
 
 class SecretsSetupListener : ApplicationListener<ApplicationPreparedEvent> {
     override fun onApplicationEvent(event: ApplicationPreparedEvent) {
-        val profile = event.applicationContext.environment.activeProfiles.getOrNull(0)
+        val context = event.applicationContext
+        val profile = context.environment.activeProfiles.getOrNull(0)
         // if empty, default to prod
         val isNotDev = profile.isNullOrBlank() || profile != "dev"
 
         // Get secrets from GCP, only run on test and prod
        if (isNotDev){
-           val gcpProjectId = "gatedaccessdev"
+           val gcpProjectId = context.environment.getProperty("secretmanager-project-id")!!
            val firebaseSecret = SecretVersionName.of(gcpProjectId, "firebase-service-account", "1")
            val termiiSecret = SecretVersionName.of(gcpProjectId, "termii-key", "1")
            val dbSecret = SecretVersionName.of(gcpProjectId, "db-uri", "1")
@@ -26,15 +27,15 @@ class SecretsSetupListener : ApplicationListener<ApplicationPreparedEvent> {
                    it.accessSecretVersion(termiiSecret).payload.data.toByteArray().inputStream()
                val dbSecretPayload =
                    it.accessSecretVersion(dbSecret).payload.data.toByteArray().inputStream()
-               val serviceAccountStream =
+               val serviceAccountPayload =
                    it.accessSecretVersion(firebaseSecret).payload.data.toByteArray().inputStream()
 
                val props = Properties()
                props["termii-key"] = String(termiiSecretPayload.readAllBytes())
-               props["firebase-secret"] = String(serviceAccountStream.readAllBytes())
+               props["firebase-secret"] = String(serviceAccountPayload.readAllBytes())
                props["spring.data.mongodb.uri"] = String(dbSecretPayload.readAllBytes())
 
-               event.applicationContext.environment.propertySources
+               context.environment.propertySources
                    .addFirst(PropertiesPropertySource("d-secrets", props))
            }
        }

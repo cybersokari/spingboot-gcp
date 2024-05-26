@@ -2,8 +2,11 @@ package ng.cove.web.http.interceptor
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import ng.cove.web.data.model.Admin
 import ng.cove.web.data.model.Member
+import ng.cove.web.data.repo.CommunityRepo
 import org.springframework.http.HttpStatus
+import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.HandlerInterceptor
 
 /***
@@ -11,11 +14,12 @@ import org.springframework.web.servlet.HandlerInterceptor
  * It checks if the user is an admin of their community.
  * There is an assumption that [SecureInterceptor] sets a [Member] user as a request attribute.
  */
-class AdminInterceptor : HandlerInterceptor {
+class AdminInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        val member = request.getAttribute("user") as Member
-        member.community?.adminIds?.let {
-            if (it.contains(member.id))
+        val admin = request.getAttribute("user") as Admin
+        val community = context.getBean(CommunityRepo::class.java).findById(admin.communityId!!).orElse(null)
+        community?.admins?.let {
+            if (it.contains(admin.id))
                 return true
         }
         response.status = HttpStatus.UNAUTHORIZED.value()

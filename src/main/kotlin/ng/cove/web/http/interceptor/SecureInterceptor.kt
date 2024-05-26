@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import ng.cove.web.data.model.UserType
+import ng.cove.web.data.repo.AdminRepo
 import ng.cove.web.data.repo.MemberRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import org.slf4j.LoggerFactory
@@ -41,15 +42,22 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                 }
 
                 /** Get User model from DB and attach to request**/
-                if (userType == UserType.Guard) {
-                    val repo = context.getBean(SecurityGuardRepo::class.java)
-                    val guard = repo.findSecurityGuardById(userId)!!
-                    request.setAttribute("user", guard)
-                } else {
-                    val repo = context.getBean(MemberRepo::class.java)
-                    val member = repo.findMemberById(userId)!!
-                    request.setAttribute("user", member)
+                val user : Any
+                when(userType){
+                    UserType.Member -> {
+                        val repo = context.getBean(MemberRepo::class.java)
+                        user = repo.findFirstById(userId)!!
+                    }
+                    UserType.Guard -> {
+                        val repo = context.getBean(SecurityGuardRepo::class.java)
+                        user = repo.findFirstById(userId)!!
+                    }
+                    UserType.Admin -> {
+                        val repo = context.getBean(AdminRepo::class.java)
+                        user = repo.findFirstById(userId)!!
+                    }
                 }
+                request.setAttribute("user", user)
                 return true
             } catch (e: Exception) {
                 LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)

@@ -10,7 +10,9 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document
+@Document(
+    collection = "occupants"
+)
 class Occupant(
     @Id var id: String,
     @Field(
