@@ -43,77 +43,7 @@ class CommunityService {
     private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
 
-    fun bookVisitor(bookingEntry: Booking, member: Member): ResponseEntity<*> {
 
-        try {
-
-            val generator = AccessCodeGenerator()
-            var booking: Booking? = bookingEntry
-            while (booking!!.id == null) {
-                booking.apply {
-                    communityId = member.communityId
-                    code = generator.getCode(accessCodeLength)
-                    host = member.id
-                }
-
-                booking = try {
-                    bookingRepo.save(booking)
-                } catch (e: DuplicateKeyException) {
-                    logger.warn("Access code duplication for community: ${member.communityId}")
-                    null // Set access to null to try again with another code
-                }
-            }
-            return ResponseEntity.ok().body(booking)
-
-        } catch (e: NullPointerException) {
-            logger.error("Access code generation failed: ${e.localizedMessage}")
-            return ResponseEntity.internalServerError().body("Community not found for user ${member.phone}")
-        }
-
-    }
-
-    fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity<Any> {
-        try {
-
-            var access = bookingRepo.findByCodeAndCommunityId(code, guard.communityId!!)
-                ?: return ResponseEntity.noContent().build()
-
-            if (access.checkedInAt == null) {
-                access.checkedInAt = Date()
-                access.checkedInBy = guard.id
-            }
-            access = bookingRepo.save(access) // Update access
-
-            //TODO: Notify host of check in
-
-            return ResponseEntity.ok().body(access)
-
-        } catch (e: Exception) {
-            logger.error(e.localizedMessage)
-            return ResponseEntity.internalServerError().build()
-        }
-    }
-
-    fun checkOutVisitor(code: String, guard: SecurityGuard): ResponseEntity<Any> {
-        try {
-            // Find checked-in booking
-            var booking = bookingRepo.findByCodeAndCommunityIdAndCheckedInAtIsNotNull(code, guard.communityId!!)
-                ?: return ResponseEntity.badRequest().body("Checked-in booking not found")
-
-            if (booking.checkedInAt == null) {
-                booking.checkedOutAt = Date()
-                booking.checkedOutBy = guard.id
-            }
-            booking = bookingRepo.save(booking) // Update access
-
-            //TODO: Notify host of check out
-
-            return ResponseEntity.ok().body(booking)
-        } catch (e: Exception) {
-            logger.error(e.localizedMessage)
-            return ResponseEntity.internalServerError().build()
-        }
-    }
 
 
     /**

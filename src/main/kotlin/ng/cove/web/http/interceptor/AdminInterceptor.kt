@@ -17,12 +17,14 @@ import org.springframework.web.servlet.HandlerInterceptor
 class AdminInterceptor(val context: WebApplicationContext) : HandlerInterceptor {
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
         val admin = request.getAttribute("user") as Admin
-        val community = context.getBean(CommunityRepo::class.java).findById(admin.communityId!!).orElse(null)
-        community?.admins?.let {
-            if (it.contains(admin.id))
-                return true
+        val community = context.getBean(CommunityRepo::class.java)
+            .findCommunityByIdAndAdminsContains(admin.communityId!!, admin.id!!)
+
+        return if(community != null){
+            true
+        }else{
+            response.status = HttpStatus.UNAUTHORIZED.value()
+            false
         }
-        response.status = HttpStatus.UNAUTHORIZED.value()
-        return false
     }
 }

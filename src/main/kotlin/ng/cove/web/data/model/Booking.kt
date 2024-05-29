@@ -70,14 +70,14 @@ class Booking {
     @field:NonNull
     @field:NotNull
     @Field(value = "time_of_entry")
-    val timeOfEntry: Date? = null
+    lateinit var timeOfEntry: Date
 
     @Future
     @field:Indexed
     @field:NonNull
     @field:NotNull
     @Field(value = "time_of_exit")
-    val timeOfExit: Date? = null
+    lateinit var timeOfExit: Date
 
     @field:CreatedDate
     @field:Field("created_at")

@@ -8,6 +8,7 @@ import jakarta.validation.Valid
 import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.JoinRequest
 import ng.cove.web.data.model.Member
+import ng.cove.web.service.BookingService
 import ng.cove.web.service.CommunityService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -24,6 +25,9 @@ class MemberController{
 
     @Autowired
     lateinit var communityService: CommunityService
+
+    @Autowired
+    lateinit var bookingService: BookingService
 
     @ApiResponse(
         description = "Request already sent",
@@ -66,7 +70,7 @@ class MemberController{
         @Valid @RequestBody entry: Booking
     )
             : ResponseEntity<*> {
-        return communityService.bookVisitor(entry, user)
+        return bookingService.bookVisitor(entry, user)
     }
 
 }

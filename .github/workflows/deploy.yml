@@ -48,7 +48,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
 
-      - name: Build with Maven
+      - name: Build and Submit to Artifact Registry
         run: mvn -B package -DskipTests
 
       - name: Configure Docker for Artifact Registry

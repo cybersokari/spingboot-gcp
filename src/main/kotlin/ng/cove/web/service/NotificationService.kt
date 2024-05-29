@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class NotificationService {
 
     @Async
-    fun notifyUserDeviceWhenPossible(title: String?, message: String?, token: String, data: Map<String, String>) {
+    fun send(title: String?, message: String?, token: String, data: Map<String, String>?) {
         //Check if user has granted notification permission on this device
 
         val notification = Notification.builder()

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.SecurityGuard
-import ng.cove.web.service.CommunityService
+import ng.cove.web.service.BookingService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*
 class GuardController {
 
     @Autowired
-    lateinit var communityService: CommunityService
+    lateinit var bookingService: BookingService
 
     @ApiResponse(
         description = "Check in successful",
@@ -40,7 +40,7 @@ class GuardController {
         @PathVariable code: String
     )
             : ResponseEntity<*> {
-        return communityService.checkInVisitor(code, user)
+        return bookingService.checkInVisitor(code, user)
     }
 
     @ApiResponse(
@@ -60,6 +60,6 @@ class GuardController {
         @PathVariable code: String
     )
             : ResponseEntity<*> {
-        return communityService.checkOutVisitor(code, user)
+        return bookingService.checkOutVisitor(code, user)
     }
 }
