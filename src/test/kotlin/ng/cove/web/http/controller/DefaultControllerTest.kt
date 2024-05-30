@@ -1,11 +1,11 @@
 package ng.cove.web.http.controller
 
 import ng.cove.web.AppTest
-import ng.cove.web.service.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
 import ng.cove.web.data.model.UserType
 import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
+import ng.cove.web.service.SmsOtpService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -54,8 +54,10 @@ class DefaultControllerTest : AppTest() {
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
-        val result = mockMvc.get("/login?phone={phone}&type={type}",
-            phone, UserType.MEMBER).andReturn().response
+        val result = mockMvc.get(
+            "/login?phone={phone}&type={type}",
+            phone, UserType.MEMBER
+        ).andReturn().response
 
         assertTrue(result.status == 200)
         verify(smsOtpService, times(1)).sendOtp(phone)
@@ -84,7 +86,7 @@ class DefaultControllerTest : AppTest() {
     }
 
     @Test
-    fun givenUserIsTester_whenLoginWithPhone_ThenDoNotSendOtp(){
+    fun givenUserIsTester_whenLoginWithPhone_ThenDoNotSendOtp() {
         member.testOtp = faker.random().nextInt(6).toString()
         memberRepo.save(member)
 
@@ -98,10 +100,10 @@ class DefaultControllerTest : AppTest() {
     }
 
     @Nested
-    inner class OTPVerificationTest{
+    inner class OTPVerificationTest {
 
         @BeforeEach
-        fun setUp(){
+        fun setUp() {
             memberRepo.save(member)
             val phoneOtps = buildList {
                 repeat(maxDailyOtpTrial) {
@@ -116,15 +118,19 @@ class DefaultControllerTest : AppTest() {
             }
             memberPhoneOtpRepo.saveAll(phoneOtps)
         }
+
         @AfterEach
-        fun tearDown(){
+        fun tearDown() {
             memberPhoneOtpRepo.deleteAllByPhone(member.phone!!)
         }
+
         @Test
         fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
-            val result = mockMvc.get("/login?phone={phone}&type={type}",
-                member.phone!!, UserType.MEMBER).andReturn().response
+            val result = mockMvc.get(
+                "/login?phone={phone}&type={type}",
+                member.phone!!, UserType.MEMBER
+            ).andReturn().response
 
             assertEquals(400, result.status, "Should return 400")
             verifyNoInteractions(smsOtpService)
@@ -140,7 +146,7 @@ class DefaultControllerTest : AppTest() {
             `when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
 
             val customJWT = faker.random().hex(55)
-            `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("type" to UserType.MEMBER.name)))
                 .thenReturn(customJWT)
 
             val login = LoginBody().apply {
@@ -163,7 +169,7 @@ class DefaultControllerTest : AppTest() {
         }
 
         @Test
-        fun givenUserIsTester_whenVerifyOtp_ThenDoNotCallVerificationService(){
+        fun givenUserIsTester_whenVerifyOtp_ThenDoNotCallVerificationService() {
             val otp = faker.random().nextInt(6).toString()
             member.testOtp = otp
             memberRepo.save(member)
@@ -190,7 +196,7 @@ class DefaultControllerTest : AppTest() {
         }
 
         @Test
-        fun givenRouteIsNotConfigured_whenRouteIsCalled_thenReturn404(){
+        fun givenRouteIsNotConfigured_whenRouteIsCalled_thenReturn404() {
             val result = mockMvc.post("/").andReturn().response
             assertTrue(result.status == 404)
         }

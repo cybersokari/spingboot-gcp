@@ -28,6 +28,7 @@ class Admin : User{
     override var lastName: String? = null
 
     @Indexed(unique = true)
+    @NonNull
     override var phone: String? = null
 
     @Field(value = "phone_verified_at")
