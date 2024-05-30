@@ -48,14 +48,14 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.Member
+        phoneOtp.type = UserType.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
         val result = mockMvc.get("/login?phone={phone}&type={type}",
-            phone, UserType.Member).andReturn().response
+            phone, UserType.MEMBER).andReturn().response
 
         assertTrue(result.status == 200)
         verify(smsOtpService, times(1)).sendOtp(phone)
@@ -68,7 +68,7 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.Member
+        phoneOtp.type = UserType.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
@@ -76,7 +76,7 @@ class DefaultControllerTest : AppTest() {
 
         val result = mockMvc.perform(
             get("/login").param("phone", phone)
-                .param("type", UserType.Member.name)
+                .param("type", UserType.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
 
@@ -90,7 +90,7 @@ class DefaultControllerTest : AppTest() {
 
         val result = mockMvc.perform(
             get("/login").param("phone", member.phone!!)
-                .param("type", UserType.Member.name)
+                .param("type", UserType.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
         assertEquals(200, result.status)
@@ -109,7 +109,7 @@ class DefaultControllerTest : AppTest() {
                     val phoneOtp = PhoneOtp()
                     phoneOtp.phone = member.phone!!
                     phoneOtp.ref = faker.random().hex(20)
-                    phoneOtp.type = UserType.Member
+                    phoneOtp.type = UserType.MEMBER
                     phoneOtp.expireAt = Date.from(momentsAgo)
                     add(phoneOtp)
                 }
@@ -124,7 +124,7 @@ class DefaultControllerTest : AppTest() {
         fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
             val result = mockMvc.get("/login?phone={phone}&type={type}",
-                member.phone!!, UserType.Member).andReturn().response
+                member.phone!!, UserType.MEMBER).andReturn().response
 
             assertEquals(400, result.status, "Should return 400")
             verifyNoInteractions(smsOtpService)
@@ -144,7 +144,7 @@ class DefaultControllerTest : AppTest() {
                 .thenReturn(customJWT)
 
             val login = LoginBody().apply {
-                this.type = UserType.Member
+                this.type = UserType.MEMBER
                 this.otp = otp
                 this.ref = ref
                 this.deviceName = faker.device().modelName()
@@ -174,7 +174,7 @@ class DefaultControllerTest : AppTest() {
 
 
             val login = LoginBody().apply {
-                this.type = UserType.Member
+                this.type = UserType.MEMBER
                 this.otp = otp
                 this.ref = member.id!!
                 this.deviceName = faker.device().modelName()

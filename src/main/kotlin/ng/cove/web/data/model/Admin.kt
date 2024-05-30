@@ -1,6 +1,7 @@
 package ng.cove.web.data.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.mongodb.lang.NonNull
@@ -26,9 +27,6 @@ class Admin : User{
     @NonNull
     override var lastName: String? = null
 
-    @NonNull
-    var gender: Gender? = null
-
     @Indexed(unique = true)
     override var phone: String? = null
 
@@ -51,7 +49,6 @@ class Admin : User{
     @Field("last_modified_at")
     override var lastModifiedAt: Date? = null
 
-    /** Device info start**/
     @Field("device_name")
     override var deviceName: String? = null
 
@@ -59,6 +56,7 @@ class Admin : User{
     @Field("fcm_token")
     override var fcmToken: String? = null
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Field("last_login_at")
     override var lastLoginAt: Date? = null
 

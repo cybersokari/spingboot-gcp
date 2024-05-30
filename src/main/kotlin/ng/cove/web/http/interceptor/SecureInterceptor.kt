@@ -31,7 +31,7 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                 val userType: UserType
                 // Running on dev, skip token decode
                 if (context.environment.activeProfiles.getOrNull(0) == "dev") {
-                    userType = UserType.Member // Manually update this to any type when running on dev
+                    userType = UserType.MEMBER // Manually update this to any type when running on dev
                     userId = idToken
                     println("Bearer is: $idToken")
                 } else {
@@ -44,15 +44,15 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                 /** Get User model from DB and attach to request**/
                 val user : Any
                 when(userType){
-                    UserType.Member -> {
+                    UserType.MEMBER -> {
                         val repo = context.getBean(MemberRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }
-                    UserType.Guard -> {
+                    UserType.GUARD -> {
                         val repo = context.getBean(SecurityGuardRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }
-                    UserType.Admin -> {
+                    UserType.ADMIN -> {
                         val repo = context.getBean(AdminRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }

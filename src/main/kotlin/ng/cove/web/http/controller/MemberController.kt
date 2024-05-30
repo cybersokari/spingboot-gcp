@@ -1,5 +1,6 @@
 package ng.cove.web.http.controller
 
+import com.google.api.client.http.HttpStatusCodes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -8,16 +9,19 @@ import jakarta.validation.Valid
 import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.JoinRequest
 import ng.cove.web.data.model.Member
+import ng.cove.web.http.body.ApiError
 import ng.cove.web.service.BookingService
 import ng.cove.web.service.CommunityService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = "401",
-    content = [Content(schema = Schema(implementation = String::class))]
+    responseCode = HttpStatusCodes.STATUS_CODE_UNAUTHORIZED.toString(),
+    content = [Content(schema = Schema(implementation = String::class),
+        mediaType = MediaType.TEXT_PLAIN_VALUE)]
 )
 @RestController
 @RequestMapping("/member")
@@ -59,11 +63,17 @@ class MemberController{
         content = [Content(schema = Schema(implementation = Booking::class))]
     )
     @ApiResponse(
+        description = "Time of entry invalid",
+        responseCode = "400",
+        content = [Content(schema = Schema(implementation = ApiError::class),
+            mediaType = MediaType.APPLICATION_JSON_VALUE)]
+    )
+    @ApiResponse(
         description = "User does not have a community",
         responseCode = "500",
         content = [Content(schema = Schema(implementation = String::class))]
     )
-    @Operation(summary = "Create access code for visitor")
+    @Operation(summary = "Book a visitor")
     @PostMapping("/visitor/book")
     fun getAccessCode(
         @RequestAttribute("user") user: Member,

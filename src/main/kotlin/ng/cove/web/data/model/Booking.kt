@@ -1,7 +1,6 @@
 package ng.cove.web.data.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
@@ -14,7 +13,6 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
@@ -28,6 +26,8 @@ class Booking {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     var id: String? = null
 
+    @NotNull
+    @NonNull
     val name : String? = null
 
     @Field("code")
@@ -69,15 +69,15 @@ class Booking {
     @field:Indexed
     @field:NonNull
     @field:NotNull
-    @Field(value = "time_of_entry")
-    lateinit var timeOfEntry: Date
+    @Field(value = "enter_after")
+    lateinit var enterAfter: Date
 
     @Future
     @field:Indexed
     @field:NonNull
     @field:NotNull
-    @Field(value = "time_of_exit")
-    lateinit var timeOfExit: Date
+    @Field(value = "exit_before")
+    lateinit var exitBefore: Date
 
     @field:CreatedDate
     @field:Field("created_at")

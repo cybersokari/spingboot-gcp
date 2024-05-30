@@ -71,7 +71,7 @@ class AdminControllerTest : AppTest() {
             //auth user
             reset(auth)
             `when`(auth.verifyIdToken(idToken, true)).thenReturn(firebaseToken)
-            `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.Admin.name))
+            `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.ADMIN.name))
             `when`(firebaseToken.uid).thenReturn(admin.id)
         }
 

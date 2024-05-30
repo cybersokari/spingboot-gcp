@@ -1,12 +1,14 @@
 package ng.cove.web.http.controller
 
+import com.google.api.client.http.HttpStatusCodes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
-import ng.cove.web.data.model.*
-import ng.cove.web.http.ExceptionHandler
+import ng.cove.web.data.model.Admin
+import ng.cove.web.data.model.Bill
+import ng.cove.web.data.model.IssuedBill
 import ng.cove.web.http.body.GuardInfoBody
 import ng.cove.web.http.body.IssuableBillBody
 import ng.cove.web.service.BillService
@@ -18,8 +20,8 @@ import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = "401",
-    content = [Content(schema = Schema(implementation = String::class))]
+    responseCode = HttpStatusCodes.STATUS_CODE_UNAUTHORIZED.toString(),
+    content = [Content(mediaType = MediaType.TEXT_PLAIN_VALUE)]
 )
 @RestController
 @RequestMapping("/admin")

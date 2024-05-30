@@ -1,5 +1,6 @@
 package ng.cove.web.http.controller
 
+import com.google.api.client.http.HttpStatusCodes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -8,13 +9,15 @@ import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.service.BookingService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = "401",
-    content = [Content(schema = Schema(implementation = String::class))]
+    responseCode = HttpStatusCodes.STATUS_CODE_UNAUTHORIZED.toString(),
+    content = [Content(schema = Schema(implementation = String::class),
+        mediaType = MediaType.TEXT_PLAIN_VALUE)]
 )
 @RestController
 @RequestMapping("/guard")

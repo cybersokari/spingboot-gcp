@@ -5,7 +5,9 @@ import ng.cove.web.data.model.Booking
 import ng.cove.web.data.model.Member
 import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.data.repo.*
+import ng.cove.web.http.body.ApiError
 import ng.cove.web.util.AccessCodeGenerator
+import ng.cove.web.util.ApiResponseMessage.ENTER_AFTER_MUST_BE_BEFORE_EXIT_BEFORE
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -34,13 +36,13 @@ class BookingService {
 
     fun bookVisitor(bookingEntry: Booking, member: Member): ResponseEntity<*> {
 
-        val timeOfEntry = bookingEntry.timeOfEntry.toInstant()
-        val timeOfExit = bookingEntry.timeOfExit.toInstant()
+        val timeOfEntry = bookingEntry.enterAfter.toInstant()
+        val timeOfExit = bookingEntry.exitBefore.toInstant()
 
         return if (timeOfEntry.isBefore(timeOfExit)){
             val generator = AccessCodeGenerator()
-            var booking: Booking? = bookingEntry
-            while (booking!!.id == null) {
+            var booking: Booking = bookingEntry
+            while (booking.id == null) {// Only saved booking will have Mongo generated ID
                 booking.apply {
                     communityId = member.communityId
                     code = generator.getCode(accessCodeLength)
@@ -50,15 +52,14 @@ class BookingService {
                 booking = try {
                     bookingRepo.save(booking)
                 } catch (e: DuplicateKeyException) {
-                    logger.warn("Access code duplication for community: ${member.communityId}")
+                    logger.warn("Access code duplicate conflict for member: ${member.communityId}")
                     booking
                 }
             }
             ResponseEntity.ok(booking)
         } else {
-            ResponseEntity.badRequest().body("Time of entry must be before time of exit")
+        ResponseEntity.badRequest().body(ApiError(ENTER_AFTER_MUST_BE_BEFORE_EXIT_BEFORE))
         }
-
     }
 
     fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity<Any> {

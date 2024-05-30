@@ -6,6 +6,7 @@ import com.google.cloud.secretmanager.v1.SecretPayload
 import com.google.cloud.secretmanager.v1.SecretVersionName
 import com.google.protobuf.ByteString
 import net.datafaker.Faker
+import ng.cove.web.App
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ import java.util.Properties
 import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration
+@ContextConfiguration(classes = [SecretsSetupListener::class])
 class SecretsSetupListenerTest {
 
     private lateinit var secretManagerStatic: MockedStatic<SecretManagerServiceClient>

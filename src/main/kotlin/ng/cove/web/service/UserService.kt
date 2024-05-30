@@ -50,17 +50,17 @@ class UserService {
     fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
 
         when (userType) {
-            UserType.Member -> {
+            UserType.MEMBER -> {
                 memberRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                     ?: return ResponseEntity.badRequest().body("$phone is not a member of a community")
             }
 
-            UserType.Guard -> {
+            UserType.GUARD -> {
                 guardRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                     ?: return ResponseEntity.badRequest().body("$phone is not guard of a community")
             }
 
-            UserType.Admin -> {
+            UserType.ADMIN -> {
                 val admin = adminRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                 if (admin == null || !communityRepo.existsByAdminsContains(admin.id!!)) {
                     return ResponseEntity.badRequest().body("$phone is not an admin of a community")
@@ -111,21 +111,21 @@ class UserService {
             val userId: String
 
             when (login.type) {
-                UserType.Member -> {
+                UserType.MEMBER -> {
                     var member = memberRepo.findByPhone(phone)!!
                     userId = member.id!!
                     member = setUpValidUserForLogin(member, login.deviceName, CacheName.MEMBERS) as Member
                     memberRepo.save(member)
                 }
 
-                UserType.Guard -> {
+                UserType.GUARD -> {
                     var guard = guardRepo.findByPhone(phone)!!
                     userId = guard.id!!
                     guard = setUpValidUserForLogin(guard, login.deviceName, CacheName.GUARDS) as SecurityGuard
                     guardRepo.save(guard)
                 }
 
-                UserType.Admin -> {
+                UserType.ADMIN -> {
                     var admin = adminRepo.findByPhone(phone)!!
                     userId = admin.id!!
                     admin = setUpValidUserForLogin(admin, login.deviceName, CacheName.ADMINS) as Admin
@@ -169,15 +169,15 @@ class UserService {
 
     private fun getTesterId(phone: String, userType: UserType): String? {
         return when (userType) {
-            UserType.Member -> {
+            UserType.MEMBER -> {
                 memberRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
 
-            UserType.Guard -> {
+            UserType.GUARD -> {
                 guardRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
 
-            UserType.Admin -> {
+            UserType.ADMIN -> {
                 adminRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
         }
@@ -186,15 +186,15 @@ class UserService {
     // Return null if user is not a tester
     private fun verifyTesterOtp(login: LoginBody): String? {
         return when (login.type) {
-            UserType.Member -> {
+            UserType.MEMBER -> {
                 memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
 
-            UserType.Guard -> {
+            UserType.GUARD -> {
                 guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
 
-            UserType.Admin -> {
+            UserType.ADMIN -> {
                 adminRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
         }
