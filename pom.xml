@@ -70,35 +70,7 @@
         <dependency>
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
-            <version>9.2.0</version>
-            <exclusions>
-                <!--  Excluding old version due to exploit-->
-                <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <!--  Excluding old version due to exploit-->
-                <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-codec-http</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--  Using a later version due to exploit-->
-        <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>32.1.0-jre</version>
-        </dependency>
-        <!--  Using a later version due to exploit-->
-        <!--  https://devhub.checkmarx.com/cve-details/CVE-2023-2976/-->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-codec-http</artifactId>
-            <version>4.1.108.Final</version>
+            <version>9.3.0</version>
         </dependency>
 
         <dependency>

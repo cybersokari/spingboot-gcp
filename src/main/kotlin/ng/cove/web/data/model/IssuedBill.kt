@@ -8,6 +8,7 @@ import jakarta.validation.constraints.FutureOrPresent
 import jakarta.validation.constraints.NotNull
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
@@ -43,4 +44,9 @@ open class IssuedBill {
     @Field("created_at")
     @CreatedDate
     var createdAt: Date? = null
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Field("last_updated_at")
+    @LastModifiedDate
+    var lastUpdatedAt: Date? = null
 }
