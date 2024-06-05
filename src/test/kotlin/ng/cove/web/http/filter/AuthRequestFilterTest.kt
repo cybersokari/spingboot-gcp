@@ -1,7 +1,7 @@
-package ng.cove.web.http.interceptor
+package ng.cove.web.http.filter
 
-import com.google.common.util.concurrent.Monitor.Guard
 import com.google.firebase.auth.FirebaseToken
+import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import net.datafaker.Faker
@@ -12,7 +12,6 @@ import ng.cove.web.data.model.SecurityGuard
 import ng.cove.web.data.model.UserType
 import ng.cove.web.data.repo.AdminRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -23,39 +22,47 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import java.io.PrintWriter
 
 
-class SecureInterceptorTest: AppTest() {
+class AuthRequestFilterTest : AppTest() {
 
     @Autowired
     lateinit var adminRepo: AdminRepo
 
     @Autowired
-    lateinit var guardRepo : SecurityGuardRepo
+    lateinit var guardRepo: SecurityGuardRepo
 
     @Mock
-    lateinit var httpRequest : HttpServletRequest
+    lateinit var httpRequest: HttpServletRequest
 
     @Mock
-    lateinit var httpResponse : HttpServletResponse
+    lateinit var httpResponse: HttpServletResponse
+
+    @Mock
+    lateinit var filterChain: FilterChain
+
+    @Mock
+    lateinit var writer: PrintWriter
 
     @Autowired
-    lateinit var context : WebApplicationContext
+    lateinit var context: WebApplicationContext
 
     private val idToken: String = Faker().random().hex(30)
     private val firebaseToken: FirebaseToken = Mockito.mock(FirebaseToken::class.java)
 
     @BeforeEach
-    fun setupFirebaseToken(){
+    fun setupAuth() {
         `when`(auth.verifyIdToken(idToken, true)).thenReturn(firebaseToken)
+        `when`(httpResponse.writer).thenReturn(writer)
+        doNothing().`when`(writer).write(any<String>())
     }
 
     @AfterEach
-    fun reset(){
+    fun reset() {
         reset(httpRequest)
         reset(httpResponse)
+        reset(filterChain)
     }
 
 
@@ -64,56 +71,56 @@ class SecureInterceptorTest: AppTest() {
         // Given
         val invalidIdToken = "23456789"
         `when`(httpRequest.getHeader("Authorization")).thenReturn("Bearer $invalidIdToken")
-        val interceptor = SecureInterceptor(context)
+        val filter = AuthRequestFilter(context)
         // When
-        val success = interceptor.preHandle(httpRequest, httpResponse, Any())
+
+        filter.doFilterInternal(httpRequest, httpResponse, filterChain)
 
         //Then
-        assertFalse(success)
+        verify(filterChain, never()).doFilter(httpRequest, httpResponse)
         verify(httpRequest, never()).setAttribute(any(), any())
         verify(httpResponse, times(1)).status = 401
     }
 
     @Nested
-    inner class MemberUserTest{
+    inner class MemberUserTest {
         @BeforeEach
-        fun authMember(){
+        fun authMember() {
             member = memberRepo.save(member)
             `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.MEMBER.name))
             `when`(firebaseToken.uid).thenReturn(member.id)
-
         }
 
         @Test
         fun givenValidMember_whenOnHandleRequest_thenReturnTrue() {
             // Given
             `when`(httpRequest.getHeader("Authorization")).thenReturn("Bearer $idToken")
-            val interceptor = SecureInterceptor(context)
+            val filter = AuthRequestFilter(context)
             // When
-            val success = interceptor.preHandle(httpRequest, httpResponse, Any())
+            filter.doFilterInternal(httpRequest, httpResponse, filterChain)
 
             //Then
-            assertTrue(success)
-            verify(httpRequest, times(1)).setAttribute(any(), any<Member>())
+            verify(filterChain, times(1)).doFilter(httpRequest, httpResponse)
+            verify(httpRequest, times(1)).setAttribute(any<String>(), any<Member>())
             verifyNoInteractions(httpResponse)
         }
 
     }
 
     @Nested
-    inner class AdminUserTest{
+    inner class AdminUserTest {
 
-        private lateinit var admin : Admin
+        private lateinit var admin: Admin
 
         @BeforeEach
-        fun authAdmin(){
+        fun authAdmin() {
             admin = Admin().apply {
                 firstName = member.firstName
                 lastName = member.lastName
                 phone = member.phone
                 communityId = member.communityId
             }
-             admin = adminRepo.save(admin)
+            admin = adminRepo.save(admin)
             `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.ADMIN.name))
             `when`(firebaseToken.uid).thenReturn(admin.id)
 
@@ -123,24 +130,24 @@ class SecureInterceptorTest: AppTest() {
         fun givenValidAdmin_whenOnHandleRequest_thenReturnTrue() {
             // Given
             `when`(httpRequest.getHeader("Authorization")).thenReturn("Bearer $idToken")
-            val interceptor = SecureInterceptor(context)
+            val filter = AuthRequestFilter(context)
             // When
-            val success = interceptor.preHandle(httpRequest, httpResponse, Any())
+            filter.doFilterInternal(httpRequest, httpResponse, filterChain)
 
             //Then
-            assertTrue(success)
+            verify(filterChain, times(1)).doFilter(httpRequest, httpResponse)
             verify(httpRequest, times(1)).setAttribute(any(), any<Admin>())
             verifyNoInteractions(httpResponse)
         }
     }
 
     @Nested
-    inner class GuardUserTest{
+    inner class GuardUserTest {
 
-        private lateinit var guard : SecurityGuard
+        private lateinit var guard: SecurityGuard
 
         @BeforeEach
-        fun authSecurityGuard(){
+        fun authSecurityGuard() {
             guard = SecurityGuard().apply {
                 firstName = member.firstName
                 lastName = member.lastName
@@ -157,12 +164,12 @@ class SecureInterceptorTest: AppTest() {
         fun givenValidGuard_whenOnHandleRequest_thenReturnTrue() {
             // Given
             `when`(httpRequest.getHeader("Authorization")).thenReturn("Bearer $idToken")
-            val interceptor = SecureInterceptor(context)
+            val filter = AuthRequestFilter(context)
             // When
-            val success = interceptor.preHandle(httpRequest, httpResponse, Any())
+            filter.doFilterInternal(httpRequest, httpResponse, filterChain)
 
             //Then
-            assertTrue(success)
+            verify(filterChain, times(1)).doFilter(httpRequest, httpResponse)
             verify(httpRequest, times(1)).setAttribute(any(), any<SecurityGuard>())
             verifyNoInteractions(httpResponse)
         }

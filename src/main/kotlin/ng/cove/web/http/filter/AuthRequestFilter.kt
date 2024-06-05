@@ -1,7 +1,9 @@
-package ng.cove.web.http.interceptor
+package ng.cove.web.http.filter
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
+import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import ng.cove.web.data.model.UserType
@@ -9,20 +11,18 @@ import ng.cove.web.data.repo.AdminRepo
 import ng.cove.web.data.repo.MemberRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.web.context.WebApplicationContext
-import org.springframework.web.servlet.HandlerInterceptor
-import javax.annotation.Nonnull
+import org.springframework.web.filter.OncePerRequestFilter
 
-class SecureInterceptor(private val context: WebApplicationContext) : HandlerInterceptor {
-
-    override fun preHandle(
+class AuthRequestFilter(val context: WebApplicationContext): OncePerRequestFilter() {
+    public override fun doFilterInternal(
         request: HttpServletRequest,
-        @Nonnull response: HttpServletResponse,
-        @Nonnull handler: Any
-    ): Boolean {
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
+        val bearer : String? = request.getHeader("Authorization")
 
-        request.getHeader("Authorization")?.let { bearer ->
+        if (bearer != null){
             try {
                 val idToken =
                     bearer.split(" ").dropLastWhile { it.isEmpty() }[1] //Remove Bearer prefix
@@ -58,14 +58,13 @@ class SecureInterceptor(private val context: WebApplicationContext) : HandlerInt
                     }
                 }
                 request.setAttribute("user", user)
-                return true
+                filterChain.doFilter(request, response)
+                return
             } catch (e: Exception) {
                 LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)
             }
         }
-
-        response.status = HttpStatus.UNAUTHORIZED.value()
-        return false
+        response.writer.write("Unauthorized")
+        response.status = 401
     }
-
 }
