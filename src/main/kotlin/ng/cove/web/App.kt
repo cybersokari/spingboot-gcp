@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import ng.cove.web.listener.SecretsSetupListener
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.context.annotation.Bean
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit
 @EnableCaching
 @EnableScheduling
 @EnableMongoRepositories("ng.cove.web.data.repo")
-@SpringBootApplication
+@SpringBootApplication(exclude = [SecurityAutoConfiguration::class])
 class App {
 
     @Bean
