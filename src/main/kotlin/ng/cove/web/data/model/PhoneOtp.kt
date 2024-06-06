@@ -21,7 +21,7 @@ class PhoneOtp {
     @field:NonNull
     var ref: String? = null
 
-    var type: UserType = UserType.MEMBER
+    var type: UserRole = UserRole.MEMBER
 
     @field:Field("expire_at")
     var expireAt: Date? = null

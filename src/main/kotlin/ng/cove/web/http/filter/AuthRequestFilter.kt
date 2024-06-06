@@ -1,16 +1,16 @@
 package ng.cove.web.http.filter
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import ng.cove.web.data.model.UserType
+import ng.cove.web.data.model.UserRole
 import ng.cove.web.data.repo.AdminRepo
 import ng.cove.web.data.repo.MemberRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -27,32 +27,23 @@ class AuthRequestFilter(val context: WebApplicationContext): OncePerRequestFilte
                 val idToken =
                     bearer.split(" ").dropLastWhile { it.isEmpty() }[1] //Remove Bearer prefix
 
-                val userId: String
-                val userType: UserType
-                // Running on dev, skip token decode
-                if (context.environment.activeProfiles.getOrNull(0) == "dev") {
-                    userType = UserType.MEMBER // Manually update this to any type when running on dev
-                    userId = idToken
-                    println("Bearer is: $idToken")
-                } else {
-                    val firebaseToken: FirebaseToken = FirebaseAuth.getInstance()
-                        .verifyIdToken(idToken, true)
-                    userType = UserType.valueOf(firebaseToken.claims["type"] as String)
-                    userId = firebaseToken.uid
-                }
+                val firebaseToken: FirebaseToken = FirebaseAuth.getInstance()
+                    .verifyIdToken(idToken, true)
+                val userRole = UserRole.valueOf(firebaseToken.claims["role"] as String)
+                val userId = firebaseToken.uid
 
                 /** Get User model from DB and attach to request**/
                 val user : Any
-                when(userType){
-                    UserType.MEMBER -> {
+                when(userRole){
+                    UserRole.MEMBER -> {
                         val repo = context.getBean(MemberRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }
-                    UserType.GUARD -> {
+                    UserRole.GUARD -> {
                         val repo = context.getBean(SecurityGuardRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }
-                    UserType.ADMIN -> {
+                    UserRole.ADMIN -> {
                         val repo = context.getBean(AdminRepo::class.java)
                         user = repo.findFirstById(userId)!!
                     }
@@ -64,7 +55,6 @@ class AuthRequestFilter(val context: WebApplicationContext): OncePerRequestFilte
                 LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)
             }
         }
-        response.writer.write("Unauthorized")
-        response.status = 401
+        response.status = HttpStatus.UNAUTHORIZED.value()
     }
 }

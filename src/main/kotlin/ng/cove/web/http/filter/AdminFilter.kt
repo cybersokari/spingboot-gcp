@@ -11,9 +11,9 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.filter.OncePerRequestFilter
 
 /***
- * This interceptor runs after [SecureInterceptor] is successful.
+ * This interceptor runs after [AuthRequestFilter] is successful.
  * It checks if the user is an admin of their community.
- * There is an assumption that [SecureInterceptor] sets a [Member] user as a request attribute.
+ * There is an assumption that [AuthRequestFilter] sets an [Admin] user as a request attribute.
  */
 class AdminFilter(val context: WebApplicationContext) : OncePerRequestFilter() {
 
@@ -30,7 +30,6 @@ class AdminFilter(val context: WebApplicationContext) : OncePerRequestFilter() {
             filterChain.doFilter(request,response)
         }else{
             response.status = HttpStatus.UNAUTHORIZED.value()
-            response.writer.write("Unauthorized")
         }
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.context.WebApplicationContext
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -20,6 +21,9 @@ import java.util.*
 
 @Service
 class UserService {
+
+    @Autowired
+    private lateinit var webApplicationContext: WebApplicationContext
 
     @Autowired
     private lateinit var communityRepo: CommunityRepo
@@ -47,20 +51,20 @@ class UserService {
     var maxDailyOtpTrial: Int = 1
 
 
-    fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
+    fun getOtpForLogin(phone: String, userRole: UserRole): ResponseEntity<*> {
 
-        when (userType) {
-            UserType.MEMBER -> {
+        when (userRole) {
+            UserRole.MEMBER -> {
                 memberRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                     ?: return ResponseEntity.badRequest().body("$phone is not a member of a community")
             }
 
-            UserType.GUARD -> {
+            UserRole.GUARD -> {
                 guardRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                     ?: return ResponseEntity.badRequest().body("$phone is not guard of a community")
             }
 
-            UserType.ADMIN -> {
+            UserRole.ADMIN -> {
                 val admin = adminRepo.findByPhoneAndCommunityIdIsNotNull(phone)
                 if (admin == null || !communityRepo.existsByAdminsContains(admin.id!!)) {
                     return ResponseEntity.badRequest().body("$phone is not an admin of a community")
@@ -69,7 +73,7 @@ class UserService {
         }
 
         // Check if user is a tester
-        getTesterId(phone, userType)?.let {
+        getTesterId(phone, userRole)?.let {
             val future = Date.from(Instant.now().plus(Duration.ofDays(1)))
             return ResponseEntity.ok().body(OtpRefBody(it, phone, future, 100))
         }
@@ -88,7 +92,7 @@ class UserService {
             val phoneOtp = PhoneOtp()
             phoneOtp.phone = phone
             phoneOtp.ref = otpResult.ref
-            phoneOtp.type = userType
+            phoneOtp.type = userRole
             phoneOtp.expireAt = otpResult.expireAt
             otpRepo.save(phoneOtp)
             ResponseEntity.ok().body(otpResult)
@@ -110,22 +114,22 @@ class UserService {
 
             val userId: String
 
-            when (login.type) {
-                UserType.MEMBER -> {
+            when (login.role) {
+                UserRole.MEMBER -> {
                     var member = memberRepo.findByPhone(phone)!!
                     userId = member.id!!
                     member = setUpValidUserForLogin(member, login.deviceName, CacheName.MEMBERS) as Member
                     memberRepo.save(member)
                 }
 
-                UserType.GUARD -> {
+                UserRole.GUARD -> {
                     var guard = guardRepo.findByPhone(phone)!!
                     userId = guard.id!!
                     guard = setUpValidUserForLogin(guard, login.deviceName, CacheName.GUARDS) as SecurityGuard
                     guardRepo.save(guard)
                 }
 
-                UserType.ADMIN -> {
+                UserRole.ADMIN -> {
                     var admin = adminRepo.findByPhone(phone)!!
                     userId = admin.id!!
                     admin = setUpValidUserForLogin(admin, login.deviceName, CacheName.ADMINS) as Admin
@@ -144,11 +148,17 @@ class UserService {
             }
 
             // Set Admin claim for JWT
-            val claims = mapOf("type" to login.type.name)
+            val claims = mapOf("role" to login.role.name)
 
             val customToken = firebaseAuth.createCustomToken(userId, claims)
 
-            return ResponseEntity.ok(customToken)
+            return if(login.returnIdToken){ // For testing API in production
+                val tokenService = webApplicationContext.getBean(IdTokenService::class.java)
+                ResponseEntity.ok(tokenService.getIdToken(customToken))
+            }else{
+                ResponseEntity.ok(customToken)
+            }
+
         } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return ResponseEntity.internalServerError().body(e.localizedMessage)
@@ -167,17 +177,17 @@ class UserService {
         return user
     }
 
-    private fun getTesterId(phone: String, userType: UserType): String? {
-        return when (userType) {
-            UserType.MEMBER -> {
+    private fun getTesterId(phone: String, userRole: UserRole): String? {
+        return when (userRole) {
+            UserRole.MEMBER -> {
                 memberRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
 
-            UserType.GUARD -> {
+            UserRole.GUARD -> {
                 guardRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
 
-            UserType.ADMIN -> {
+            UserRole.ADMIN -> {
                 adminRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
             }
         }
@@ -185,16 +195,16 @@ class UserService {
 
     // Return null if user is not a tester
     private fun verifyTesterOtp(login: LoginBody): String? {
-        return when (login.type) {
-            UserType.MEMBER -> {
+        return when (login.role) {
+            UserRole.MEMBER -> {
                 memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
 
-            UserType.GUARD -> {
+            UserRole.GUARD -> {
                 guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
 
-            UserType.ADMIN -> {
+            UserRole.ADMIN -> {
                 adminRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
             }
         }

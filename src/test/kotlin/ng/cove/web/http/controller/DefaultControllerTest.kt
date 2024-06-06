@@ -2,7 +2,7 @@ package ng.cove.web.http.controller
 
 import ng.cove.web.AppTest
 import ng.cove.web.data.model.PhoneOtp
-import ng.cove.web.data.model.UserType
+import ng.cove.web.data.model.UserRole
 import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
 import ng.cove.web.service.SmsOtpService
@@ -48,15 +48,15 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.MEMBER
+        phoneOtp.type = UserRole.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
         `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
         val result = mockMvc.get(
-            "/login?phone={phone}&type={type}",
-            phone, UserType.MEMBER
+            "/login?phone={phone}&role={role}",
+            phone, UserRole.MEMBER
         ).andReturn().response
 
         assertTrue(result.status == 200)
@@ -70,7 +70,7 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.MEMBER
+        phoneOtp.type = UserRole.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
@@ -78,7 +78,7 @@ class DefaultControllerTest : AppTest() {
 
         val result = mockMvc.perform(
             get("/login").param("phone", phone)
-                .param("type", UserType.MEMBER.name)
+                .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
 
@@ -92,7 +92,7 @@ class DefaultControllerTest : AppTest() {
 
         val result = mockMvc.perform(
             get("/login").param("phone", member.phone!!)
-                .param("type", UserType.MEMBER.name)
+                .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
         assertEquals(200, result.status)
@@ -111,7 +111,7 @@ class DefaultControllerTest : AppTest() {
                     val phoneOtp = PhoneOtp()
                     phoneOtp.phone = member.phone!!
                     phoneOtp.ref = faker.random().hex(20)
-                    phoneOtp.type = UserType.MEMBER
+                    phoneOtp.type = UserRole.MEMBER
                     phoneOtp.expireAt = Date.from(momentsAgo)
                     add(phoneOtp)
                 }
@@ -129,7 +129,7 @@ class DefaultControllerTest : AppTest() {
 
             val result = mockMvc.get(
                 "/login?phone={phone}&type={type}",
-                member.phone!!, UserType.MEMBER
+                member.phone!!, UserRole.MEMBER
             ).andReturn().response
 
             assertEquals(400, result.status, "Should return 400")
@@ -146,11 +146,11 @@ class DefaultControllerTest : AppTest() {
             `when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
 
             val customJWT = faker.random().hex(55)
-            `when`(auth.createCustomToken(member.id!!, mapOf("type" to UserType.MEMBER.name)))
+            `when`(auth.createCustomToken(member.id!!, mapOf("role" to UserRole.MEMBER.name)))
                 .thenReturn(customJWT)
 
             val login = LoginBody().apply {
-                this.type = UserType.MEMBER
+                this.role = UserRole.MEMBER
                 this.otp = otp
                 this.ref = ref
                 this.deviceName = faker.device().modelName()
@@ -175,12 +175,12 @@ class DefaultControllerTest : AppTest() {
             memberRepo.save(member)
 
             val customJWT = faker.random().hex(55)
-            `when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("role" to "Member")))
                 .thenReturn(customJWT)
 
 
             val login = LoginBody().apply {
-                this.type = UserType.MEMBER
+                this.role = UserRole.MEMBER
                 this.otp = otp
                 this.ref = member.id!!
                 this.deviceName = faker.device().modelName()

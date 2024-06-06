@@ -6,8 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import jakarta.validation.Valid
-import ng.cove.web.data.model.UserType
-import ng.cove.web.http.ExceptionHandler
+import ng.cove.web.data.model.UserRole
 import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
 import ng.cove.web.service.UserService
@@ -43,9 +42,9 @@ class DefaultController{
     @GetMapping("/login")
     fun loginWithPhone(
         @RequestParam phone: String,
-        @RequestParam type: UserType
+        @RequestParam role: UserRole
     ): ResponseEntity<*> {
-        return userService.getOtpForLogin(phone, type)
+        return userService.getOtpForLogin(phone, role)
     }
 
     @ApiResponse(

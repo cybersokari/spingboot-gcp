@@ -9,7 +9,7 @@ import ng.cove.web.AppTest
 import ng.cove.web.data.model.Admin
 import ng.cove.web.data.model.Member
 import ng.cove.web.data.model.SecurityGuard
-import ng.cove.web.data.model.UserType
+import ng.cove.web.data.model.UserRole
 import ng.cove.web.data.repo.AdminRepo
 import ng.cove.web.data.repo.SecurityGuardRepo
 import org.junit.jupiter.api.AfterEach
@@ -87,7 +87,7 @@ class AuthRequestFilterTest : AppTest() {
         @BeforeEach
         fun authMember() {
             member = memberRepo.save(member)
-            `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.MEMBER.name))
+            `when`(firebaseToken.claims).thenReturn(mapOf("role" to UserRole.MEMBER.name))
             `when`(firebaseToken.uid).thenReturn(member.id)
         }
 
@@ -121,7 +121,7 @@ class AuthRequestFilterTest : AppTest() {
                 communityId = member.communityId
             }
             admin = adminRepo.save(admin)
-            `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.ADMIN.name))
+            `when`(firebaseToken.claims).thenReturn(mapOf("role" to UserRole.ADMIN.name))
             `when`(firebaseToken.uid).thenReturn(admin.id)
 
         }
@@ -155,7 +155,7 @@ class AuthRequestFilterTest : AppTest() {
                 communityId = member.communityId
             }
             guard = guardRepo.save(guard)
-            `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.GUARD.name))
+            `when`(firebaseToken.claims).thenReturn(mapOf("role" to UserRole.GUARD.name))
             `when`(firebaseToken.uid).thenReturn(guard.id)
 
         }

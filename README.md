@@ -19,10 +19,12 @@ To run the desired profile use `mvn spring-boot:run -P dev|prod`
 
 ### Setup MongoDB
 
+### Setup Firebase Emulator locally
+Follow the official Firebase guide to set up the emulator locally.
+
 
 ### Creating Routes
 Routes can be found in `src/main/***/http/controller`
-There is a `BaseController.kt` abstract class that every `@RestController` can must inherit.
 
 ### Creating Mongo Documents and Repositories
 Documents can be found in `src/main/***/model`

@@ -3,7 +3,7 @@ package ng.cove.web.http.controller
 import com.google.firebase.auth.FirebaseToken
 import net.datafaker.Faker
 import ng.cove.web.AppTest
-import ng.cove.web.data.model.UserType
+import ng.cove.web.data.model.UserRole
 import ng.cove.web.util.ApiResponseMessage.ENTER_AFTER_MUST_BE_BEFORE_EXIT_BEFORE
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class MemberControllerTest: AppTest() {
 
@@ -26,7 +27,7 @@ class MemberControllerTest: AppTest() {
         member = memberRepo.save(member)
 
         `when`(auth.verifyIdToken(idToken, true)).thenReturn(firebaseToken)
-        `when`(firebaseToken.claims).thenReturn(mapOf("type" to UserType.MEMBER.name))
+        `when`(firebaseToken.claims).thenReturn(mapOf("role" to UserRole.MEMBER.name))
         `when`(firebaseToken.uid).thenReturn(member.id)
     }
 
@@ -71,6 +72,7 @@ class MemberControllerTest: AppTest() {
             .content(mapper.writeValueAsString(body))
             .header("Authorization", "Bearer $idToken")).andReturn().response
         val booking = JSONObject(response.contentAsString)
+
 
         //then
         assert(response.status == 200)
