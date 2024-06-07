@@ -44,7 +44,7 @@ class MemberControllerTest: AppTest() {
         )
 
         //when
-        val result = mockMvc.perform(post("/member/visitor/book")
+        val result = mockMvc.perform(post("$API_VERSION/member/visitor/book")
             .contentType("application/json")
             .content(mapper.writeValueAsString(body))
             .header("Authorization", "Bearer $idToken")).andReturn()
@@ -67,7 +67,7 @@ class MemberControllerTest: AppTest() {
         )
 
         //when
-        val response = mockMvc.perform(post("/member/visitor/book")
+        val response = mockMvc.perform(post("$API_VERSION/member/visitor/book")
             .contentType("application/json")
             .content(mapper.writeValueAsString(body))
             .header("Authorization", "Bearer $idToken")).andReturn().response

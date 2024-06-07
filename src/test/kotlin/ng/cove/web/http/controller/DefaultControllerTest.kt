@@ -55,7 +55,7 @@ class DefaultControllerTest : AppTest() {
         `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
         val result = mockMvc.get(
-            "/login?phone={phone}&role={role}",
+            "$API_VERSION/login?phone={phone}&role={role}",
             phone, UserRole.MEMBER
         ).andReturn().response
 
@@ -77,7 +77,7 @@ class DefaultControllerTest : AppTest() {
         `when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
         val result = mockMvc.perform(
-            get("/login").param("phone", phone)
+            get("$API_VERSION/login").param("phone", phone)
                 .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
@@ -91,7 +91,7 @@ class DefaultControllerTest : AppTest() {
         memberRepo.save(member)
 
         val result = mockMvc.perform(
-            get("/login").param("phone", member.phone!!)
+            get("$API_VERSION/login").param("phone", member.phone!!)
                 .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
@@ -128,7 +128,7 @@ class DefaultControllerTest : AppTest() {
         fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
             val result = mockMvc.get(
-                "/login?phone={phone}&type={type}",
+                "$API_VERSION/login?phone={phone}&type={type}",
                 member.phone!!, UserRole.MEMBER
             ).andReturn().response
 
@@ -155,7 +155,7 @@ class DefaultControllerTest : AppTest() {
                 this.ref = ref
                 this.deviceName = faker.device().modelName()
             }
-            val result = mockMvc.post("/login/verify") {
+            val result = mockMvc.post("$API_VERSION/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response
@@ -186,7 +186,7 @@ class DefaultControllerTest : AppTest() {
                 this.deviceName = faker.device().modelName()
             }
 
-            val result = mockMvc.post("/login/verify") {
+            val result = mockMvc.post("$API_VERSION/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response

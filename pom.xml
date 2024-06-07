@@ -197,6 +197,19 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.2.5</version>
+<!--                <configuration>-->
+<!--                    <jvmArguments>-->
+<!--                        -agentlib:native-image-agent=config-output-dir=target/native-image-->
+<!--                    </jvmArguments>-->
+<!--                </configuration>-->
+                <executions>
+                    <execution>
+                        <id>process-aot</id>
+                        <goals>
+                            <goal>process-aot</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!--Kotlin-->
             <plugin>

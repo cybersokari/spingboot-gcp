@@ -19,8 +19,10 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -32,7 +34,7 @@ class AdminControllerTest : AppTest() {
 
     @Test
     fun givenUserNoJWT_WhenDeleteGuard_ThenReturns401() {
-        val result = mockMvc.delete("/admin/guard/{guard_id}", 1).andReturn().response
+        val result = mockMvc.delete("$API_VERSION/admin/guard/{guard_id}", 1).andReturn().response
         assertEquals(401, result.status)
         verifyNoInteractions(auth)
     }
@@ -43,7 +45,7 @@ class AdminControllerTest : AppTest() {
         `when`(auth.verifyIdToken(any(), any())).thenReturn(null)
 
         val unknownToken = faker.random().hex(21)
-        val result = mockMvc.delete("/admin/guard/{guard_id}", 1) {
+        val result = mockMvc.delete("$API_VERSION/admin/guard/{guard_id}", 1) {
             header("Authorization", "Bearer $unknownToken")
         }.andReturn().response
 
@@ -80,7 +82,7 @@ class AdminControllerTest : AppTest() {
         fun givenUserNotAdmin_WhenDeleteGuard_ThenReturns401() {
             communityRepo.save(community)
 
-            val result = mockMvc.delete("/admin/guard/{guard_id}", 1) {
+            val result = mockMvc.delete("$API_VERSION/admin/guard/{guard_id}", 1) {
                 header("Authorization", "Bearer $idToken")
             }.andReturn().response
             assertEquals(401, result.status)
@@ -113,7 +115,7 @@ class AdminControllerTest : AppTest() {
 
             request = joinRequestRepo.save(request)
 
-            val result = mockMvc.post("/admin/community/request/{id}?accept={accept}", request.id, true) {
+            val result = mockMvc.post("$API_VERSION/admin/community/request/{id}?accept={accept}", request.id, true) {
                 header("Authorization", "Bearer $idToken")
                 contentType = MediaType.APPLICATION_JSON
             }.andReturn().response

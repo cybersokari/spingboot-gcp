@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = HttpStatusCodes.STATUS_CODE_UNAUTHORIZED.toString(),
+    responseCode = "401",
     content = [Content(mediaType = MediaType.TEXT_PLAIN_VALUE)]
 )
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("$API_VERSION/admin")
 class AdminController{
 
     @Autowired

@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.*
 
 @ApiResponse(
     description = "Unauthorized",
-    responseCode = HttpStatusCodes.STATUS_CODE_UNAUTHORIZED.toString(),
+    responseCode = "401",
     content = [Content(schema = Schema(implementation = String::class),
         mediaType = MediaType.TEXT_PLAIN_VALUE)]
 )
 @RestController
-@RequestMapping("/guard")
+@RequestMapping("$API_VERSION/guard")
 class GuardController {
 
     @Autowired

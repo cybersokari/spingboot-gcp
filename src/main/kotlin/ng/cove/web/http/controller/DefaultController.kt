@@ -14,7 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+const val API_VERSION = "/v1"
+
+/**
+ * Default controller
+ */
+
 @RestController
+@RequestMapping(API_VERSION)
 @SecurityRequirements
 class DefaultController{
 

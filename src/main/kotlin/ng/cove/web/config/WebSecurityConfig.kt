@@ -1,5 +1,6 @@
 package ng.cove.web.config
 
+import ng.cove.web.http.controller.API_VERSION
 import ng.cove.web.http.filter.AuthRequestFilter
 import ng.cove.web.http.filter.AdminFilter
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -8,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.context.WebApplicationContext
 
 val SECURE_PATHS = arrayOf(
-    "/admin/*", "/member/*", "/guard/*"
+    "$API_VERSION/admin/*", "$API_VERSION/member/*", "$API_VERSION/guard/*"
 )
 
 @Configuration
@@ -29,7 +30,7 @@ class WebSecurityConfig(val context: WebApplicationContext) {
     fun adminFilter(): FilterRegistrationBean<AdminFilter> {
         return FilterRegistrationBean<AdminFilter>().apply {
             setFilter(AdminFilter(context))
-            addUrlPatterns("/admin/*")
+            addUrlPatterns("$API_VERSION/admin/*")
             order = filterOrder++
         }
     }
