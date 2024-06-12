@@ -42,7 +42,7 @@ jobs:
 
       - name: Create Google Default credentials file
         run: |
-          echo ${{ secrets.GCLOUD_SERVICE_KEY }} > cred.json
+          cp ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} cred.json
 
       - name: Build Image
         run: docker build -t web . --build-arg project_id=${{vars.PROJECT_ID}}
