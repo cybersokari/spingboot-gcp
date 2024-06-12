@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > AccessRepo</title>
+  <title>Coverage Report > SecurityGuardRepo</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">ng.cove.web.data.repo</a>
 </div>
 
-<h1>Coverage Summary for Class: AccessRepo (ng.cove.web.data.repo)</h1>
+<h1>Coverage Summary for Class: SecurityGuardRepo (ng.cove.web.data.repo)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">AccessRepo</td>
+  <td class="name">SecurityGuardRepo</td>
 </tr>
 
 </table>
@@ -41,13 +41,20 @@ Current scope:     <a href="../../index.html">all classes</a>
 <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.data.repo
 &nbsp;
-&nbsp;import ng.cove.web.data.model.Access
-&nbsp;import ng.cove.web.data.model.AccessId
+&nbsp;import ng.cove.web.data.model.Member
+&nbsp;import ng.cove.web.data.model.SecurityGuard
+&nbsp;import ng.cove.web.util.CacheName
+&nbsp;import org.springframework.cache.annotation.Cacheable
 &nbsp;import org.springframework.data.mongodb.repository.MongoRepository
-&nbsp;import java.util.*
 &nbsp;
-&nbsp;interface AccessRepo: MongoRepository&lt;Access, AccessId&gt;{
-&nbsp;    fun findByIdAndValidUntilIsAfter(id: AccessId, validUntil: Date): Access?
+&nbsp;interface SecurityGuardRepo : MongoRepository&lt;SecurityGuard?, String?&gt;{
+&nbsp;    @Cacheable(value = [CacheNames.GUARDS])
+&nbsp;    fun findSecurityGuardById(id: String): SecurityGuard?
+&nbsp;    fun findByPhoneAndCommunityIdIsNotNull(phone: String): SecurityGuard?
+&nbsp;    fun existsByPhone(phone: String): Boolean
+&nbsp;    fun findByPhone(phone: String): SecurityGuard?
+&nbsp;    fun findFirstByTestOtpIsNotNullAndPhone(phone: String): SecurityGuard?
+&nbsp;    fun findByIdAndTestOtp(id: String, testOtp: String): SecurityGuard?
 &nbsp;}
 </code>
 </pre>
@@ -72,7 +79,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

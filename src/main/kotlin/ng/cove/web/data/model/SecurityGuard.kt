@@ -6,55 +6,62 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.mongodb.lang.NonNull
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document("security_guard")
+@Document("security_guards")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-class SecurityGuard {
+class SecurityGuard : User {
     @Id
-    var id: String? = null
+    override var id: String? = null
 
     @Field("first_name")
     @NonNull
-    var firstName: String? = null
+    override var firstName: String? = null
 
     @Field("last_name")
     @NonNull
-    var lastName: String? = null
+    override var lastName: String? = null
 
     @NonNull
     @Indexed(unique = true)
-    var phone: String? = null
+    override var phone: String? = null
 
     @Field("phone_verified_at")
-    var phoneVerifiedAt: Date? = null
+    override var phoneVerifiedAt: Date? = null
+
+    override var photoUrl: String? = null
 
     @NonNull
     @Indexed
     @Field("community_id")
-    var communityId: String? = null
+    override var communityId: String? = null
 
     @CreatedDate
     @Field("created_at")
-    var createdAt: Date? = null
+    override var createdAt: Date? = null
 
     /** Device info start**/
     @Field("device_name")
-    var deviceName: String? = null
+    override var deviceName: String? = null
 
     @JsonIgnore
     @Field("fcm_token")
-    var fcmToken: String? = null
+    override var fcmToken: String? = null
 
     @Field("last_login_at")
-    var lastLoginAt: Date? = null
-    /** Device info end**/
+    override var lastLoginAt: Date? = null
+
+    @JsonIgnore
+    @Field("last_modified_at")
+    @LastModifiedDate
+    override var lastModifiedAt: Date? = null
 
     @JsonIgnore
     @Field("test_otp")
-    var testOtp: String? = null
+    override var testOtp: String? = null
 
 }

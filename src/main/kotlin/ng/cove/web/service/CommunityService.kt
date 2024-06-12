@@ -4,12 +4,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.mongodb.DuplicateKeyException
 import ng.cove.web.data.model.*
 import ng.cove.web.data.repo.*
-import ng.cove.web.http.body.AccessInfoBody
 import ng.cove.web.http.body.GuardInfoBody
+import ng.cove.web.util.AccessCodeGenerator
 import ng.cove.web.util.ApiResponseMessage
-import ng.cove.web.util.CodeGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -35,85 +35,31 @@ class CommunityService {
     lateinit var securityGuardRepo: SecurityGuardRepo
 
     @Autowired
-    lateinit var accessRepo: AccessRepo
+    lateinit var bookingRepo: BookingRepo
 
-    @Autowired
-    lateinit var codeGenerator: CodeGenerator
-
-    @Autowired
-    lateinit var levyService: LevyService
-
-    @Autowired
-    lateinit var assignedLevyRepo: AssignedLevyRepo
+    @Value("\${visitor.access-code.length}")
+    val accessCodeLength = 1
 
     private val logger = LoggerFactory.getLogger(CommunityService::class.java)
 
 
-    fun getAccessCodeForVisitor(info: AccessInfoBody, member: Member): ResponseEntity<*> {
 
-        try {
-
-            val communityId = member.community!!.id!!
-            var access: Access? = null
-            while (access == null) {
-                access = Access()
-                access.id = AccessId(communityId = communityId, code = codeGenerator.getCode())
-                access.durationOfVisit = info.durationOfVisitInSec
-                access.validUntil = info.validUntil
-                access.headCount = info.headCount
-                access.host = member
-                access.createdAt = Date()
-
-                access = try {
-                    accessRepo.save(access)
-                } catch (e: DuplicateKeyException) {
-                    logger.warn("Access code duplication for community: ${member.community!!.id}")
-                    null // Set access to null to try again with another code
-                }
-            }
-            return ResponseEntity.ok().body(access)
-
-        } catch (e: NullPointerException) {
-            logger.error("Access code generation failed: ${e.localizedMessage}")
-            return ResponseEntity.internalServerError().body("Community not found for user ${member.phone}")
-        }
-
-    }
-
-    fun checkInVisitor(code: String, guard: SecurityGuard): ResponseEntity<Any> {
-        try {
-            val accessId = AccessId(communityId = guard.communityId!!, code = code)
-            var access = accessRepo.findByIdAndValidUntilIsAfter(accessId, Date())
-                ?: return ResponseEntity.noContent().build()
-
-            if (access.checkedInAt == null) {
-                access.checkedInAt = Date()
-                access.checkedInBy = guard
-            }
-            access = accessRepo.save(access) // Update access
-            return ResponseEntity.ok().body(access)
-
-        } catch (e: Exception) {
-            logger.error(e.localizedMessage)
-            return ResponseEntity.internalServerError().build()
-        }
-    }
 
 
     /**
-     * @param adminUserId Identity of the admin of the community
+     * @param admin Admin of the community
      * @param requestId
      * @param accept      if the request was accepted or rejected
      * @return status of the request
      */
     @Transactional
     fun handleCommunityJoinRequest(
-        adminUserId: String,
-        requestId: JoinRequestId,
+        admin: Admin,
+        requestId: String,
         accept: Boolean
     ): ResponseEntity<*> {
 
-        val community = communityRepo.findCommunityByIdAndAdminIdsContains(requestId.communityId, adminUserId)
+        val community = communityRepo.findCommunityByIdAndAdminsContains(admin.communityId!!, admin.id!!)
             ?: return ResponseEntity.badRequest()
                 .body(ApiResponseMessage.USER_NOT_SUPER_ADMIN)
 
@@ -129,24 +75,25 @@ class CommunityService {
             if (!accept) {
                 joinRequestRepo.deleteById(requestId)
                 //TODO:Notify referrer of rejection
-                return ResponseEntity.ok().body("Request rejected")
+                return ResponseEntity.ok("Request rejected")
             }
 
             // Update or create a Member
-            val memberPhone = joinRequest.id!!.phone
+            val memberPhone = joinRequest.phone
             var member = memberRepo.findByPhone(memberPhone) ?: Member()
 
             member.firstName = joinRequest.firstName
             member.lastName = joinRequest.lastName
-            member.community = community
+            member.communityId = community.id
             member.phone = memberPhone
             member = memberRepo.save(member)
 
+            community.members = community.members.plus(member.id!!)
+            communityRepo.save(community)
+
             joinRequest.acceptedAt = Date()
-            joinRequest.approvedBy = adminUserId
+            joinRequest.approvedBy = admin.id
             joinRequestRepo.save(joinRequest)
-            //Delete all pending request with this phone number
-            joinRequestRepo.deleteAllByIdPhoneAndAcceptedAtIsNull(requestId.phone)
 
             //TODO:Notify referrer of acceptance
             return ResponseEntity.ok(member)
@@ -161,12 +108,11 @@ class CommunityService {
     fun inviteUserToCommunity(request: JoinRequest, referrer: Member): ResponseEntity<*> {
         try {
 
-            val community = referrer.community
+            val community = referrer.communityId?.let { communityRepo.findById(it).orElse(null) }
                 ?: return ResponseEntity.badRequest()
                     .body("Referrer is not part of any community at this time")
 
-            val requestId = request.id!!
-            if (community.id != requestId.communityId) {
+            if (community.id != request.communityId) {
                 return ResponseEntity.badRequest()
                     .body("Referrer can only invite a user to their community")
             }
@@ -175,11 +121,11 @@ class CommunityService {
                 return ResponseEntity.badRequest().body("Community does not have an super admin")
             }
 
-            if (memberRepo.existsByPhoneAndCommunityIsNotNull(requestId.phone)) {
+            if (memberRepo.existsByPhoneAndCommunityIdIsNotNull(request.phone)) {
                 return ResponseEntity.badRequest().body("User is already part of a community")
             }
 
-            if (joinRequestRepo.existsByIdAndAcceptedAtIsNull(requestId)) {
+            if (joinRequestRepo.existsByPhoneAndCommunityId(request.phone, request.communityId)) {
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("User already has a pending request")
             }
 
@@ -194,9 +140,10 @@ class CommunityService {
         }
     }
 
+    @Transactional
     fun addSecurityGuardToCommunity(guardData: GuardInfoBody, userId: String): ResponseEntity<*> {
 
-        val community = communityRepo.findByAdminIdsContains(userId)
+        val community = communityRepo.findByAdminsContains(userId)
             ?: return ResponseEntity.badRequest().body("User not an Admin in a community")
 
         val phone = guardData.phone
@@ -211,12 +158,16 @@ class CommunityService {
         guard.communityId = community.id
         securityGuardRepo.save(guard)
 
+        community.guards = community.guards.plus(guard.id!!)
+        communityRepo.save(community)
+
         return ResponseEntity.ok().body(guardData)
     }
 
+    @Transactional
     fun removeSecurityGuardFromCommunity(guardId: String, userId: String): ResponseEntity<*> {
 
-        val community = communityRepo.findByAdminIdsContains(userId)
+        val community = communityRepo.findByAdminsContains(userId)
             ?: return ResponseEntity.badRequest().body("User not an Admin in a community")
 
         try {
@@ -225,8 +176,11 @@ class CommunityService {
             if (guardCommunityId == community.id) {
 
                 securityGuardRepo.deleteById(guardId)
+                community.guards = community.guards.minus(guardId)
+                communityRepo.save(community)
+
                 FirebaseAuth.getInstance().revokeRefreshTokens(guardId)
-                return ResponseEntity.ok().body("Guard has been removed from community")
+                return ResponseEntity.ok("Guard has been removed from community")
             } else {
                 return ResponseEntity.badRequest().body("User not an Admin in Guard's community")
             }
@@ -235,8 +189,6 @@ class CommunityService {
             logger.warn(e.localizedMessage)
             return ResponseEntity.badRequest().body(e.localizedMessage)
         }
-
-
     }
 
 }

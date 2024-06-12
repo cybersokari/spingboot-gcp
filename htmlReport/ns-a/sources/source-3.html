@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > LevyPaymentRepo</title>
+  <title>Coverage Report > JoinRequestRepo</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">ng.cove.web.data.repo</a>
 </div>
 
-<h1>Coverage Summary for Class: LevyPaymentRepo (ng.cove.web.data.repo)</h1>
+<h1>Coverage Summary for Class: JoinRequestRepo (ng.cove.web.data.repo)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">LevyPaymentRepo</td>
+  <td class="name">JoinRequestRepo</td>
 </tr>
 
 </table>
@@ -41,10 +41,15 @@ Current scope:     <a href="../../index.html">all classes</a>
 <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.data.repo
 &nbsp;
-&nbsp;import ng.cove.web.data.model.LevyPayment
+&nbsp;import ng.cove.web.data.model.JoinRequest
+&nbsp;import ng.cove.web.data.model.JoinRequestId
 &nbsp;import org.springframework.data.mongodb.repository.MongoRepository
 &nbsp;
-&nbsp;interface LevyPaymentRepo : MongoRepository&lt;LevyPayment, String&gt;
+&nbsp;interface JoinRequestRepo : MongoRepository&lt;JoinRequest, JoinRequestId?&gt; {
+&nbsp;    fun existsByIdAndAcceptedAtIsNull(id: JoinRequestId): Boolean
+&nbsp;    fun findByIdPhone(phone: String): List&lt;JoinRequest&gt;?
+&nbsp;    fun deleteAllByIdPhoneAndAcceptedAtIsNull(phone: String)
+&nbsp;}
 </code>
 </pre>
 </div>
@@ -68,7 +73,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

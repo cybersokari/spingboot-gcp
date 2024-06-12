@@ -7,4 +7,5 @@ object ApiResponseMessage {
     const val REQUEST_ALREADY_ACCEPTED: String = "Request has already been accepted"
     const val USER_NOT_SUPER_ADMIN: String = "This user is not a super admin of this community"
     const val PHOTO_IS_REQUIRED: String = "Upload profile photo before joining a community"
+    const val ENTER_AFTER_MUST_BE_BEFORE_EXIT_BEFORE = "enter_after must be before exit_before"
 }

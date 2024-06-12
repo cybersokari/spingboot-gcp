@@ -8,65 +8,65 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document
+@Document(collection = "members")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-open class Member {
+open class Member: User {
     @Id
-    var id: String? = null
+    override var id: String? = null
 
     @Field("first_name")
     @NonNull
-    var firstName: String? = null
+    override var firstName: String? = null
 
     @Field("last_name")
     @NonNull
-    var lastName: String? = null
+    override var lastName: String? = null
 
     @NonNull
     var gender: String? = null
 
     @Indexed(unique = true)
-    var phone: String? = null
+    override var phone: String? = null
 
     @Field(value = "phone_verified_at")
-    var phoneVerifiedAt: Date? = null
+    override var phoneVerifiedAt: Date? = null
 
     var address: String? = null
 
     @Field(value = "photo_url")
-    var photoUrl: String? = null
+    override var photoUrl: String? = null
 
-    @DBRef
     @NonNull
-    var community: Community? = null
+    @Indexed
+    @Field("community_id")
+    override var communityId: String? = null
 
     @CreatedDate
     @Field("created_at")
-    var createdAt: Date? = null
+    override var createdAt: Date? = null
 
     @LastModifiedDate
     @Field("last_modified_at")
-    var lastModifiedAt: Date? = null
+    override var lastModifiedAt: Date? = null
 
     /** Device info start**/
     @Field("device_name")
-    var deviceName: String? = null
+    override var deviceName: String? = null
 
     @JsonIgnore
     @Field("fcm_token")
-    var fcmToken: String? = null
+    override var fcmToken: String? = null
 
     @Field("last_login_at")
-    var lastLoginAt: Date? = null
+    override var lastLoginAt: Date? = null
 
     /** Device info end**/
 
     @JsonIgnore
     @Field("test_otp")
-    var testOtp: String? = null
+    override var testOtp: String? = null
 }

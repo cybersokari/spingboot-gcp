@@ -64,18 +64,18 @@ Current scope:     <a href="../../index.html">all classes</a>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    66.7%
+    50%
   </span>
   <span class="absValue">
-    (4/6)
+    (3/6)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    100%
+    62.5%
   </span>
   <span class="absValue">
-    (8/8)
+    (5/8)
   </span>
 </td>
 </tr>
@@ -104,11 +104,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
 <b class="fc">&nbsp;        val member = request.getAttribute(&quot;user&quot;) as Member</b>
 <b class="pc">&nbsp;        member.community?.adminIds?.let {</b>
-<b class="fc">&nbsp;            if (it.contains(member.id))</b>
+<b class="pc">&nbsp;            if (it.contains(member.id))</b>
 <b class="fc">&nbsp;                return true</b>
-<b class="fc">&nbsp;        }</b>
-<b class="fc">&nbsp;        response.status = HttpStatus.UNAUTHORIZED.value()</b>
-<b class="fc">&nbsp;        return false</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        response.status = HttpStatus.UNAUTHORIZED.value()</b>
+<b class="nc">&nbsp;        return false</b>
 &nbsp;    }
 &nbsp;}
 </code>
@@ -134,7 +134,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2024-05-20 16:46</div>
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
 </div>
 </body>
 </html>

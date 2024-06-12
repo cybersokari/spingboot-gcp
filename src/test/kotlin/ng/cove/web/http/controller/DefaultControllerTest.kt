@@ -1,17 +1,18 @@
 package ng.cove.web.http.controller
 
 import ng.cove.web.AppTest
-import ng.cove.web.component.SmsOtpService
 import ng.cove.web.data.model.PhoneOtp
-import ng.cove.web.data.model.UserType
+import ng.cove.web.data.model.UserRole
+import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
+import ng.cove.web.service.SmsOtpService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -24,13 +25,12 @@ import java.time.Instant
 import java.util.*
 
 
-//@WebAppConfiguration("")
 class DefaultControllerTest : AppTest() {
 
     @MockBean
     lateinit var smsOtpService: SmsOtpService
 
-    @Value("\${otp.trial-limit}")
+    @Value("\${otp-trial-limit}")
     var maxDailyOtpTrial: Int = 0
 
     @BeforeEach
@@ -48,13 +48,16 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.Member
+        phoneOtp.type = UserRole.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
-        Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
+        `when`(smsOtpService.sendOtp(phone)).thenReturn(otpRefBody)
 
-        val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+        val result = mockMvc.get(
+            "$API_VERSION/login?phone={phone}&role={role}",
+            phone, UserRole.MEMBER
+        ).andReturn().response
 
         assertTrue(result.status == 200)
         verify(smsOtpService, times(1)).sendOtp(phone)
@@ -67,14 +70,15 @@ class DefaultControllerTest : AppTest() {
         val phoneOtp = PhoneOtp()
         phoneOtp.phone = phone
         phoneOtp.ref = ref
-        phoneOtp.type = UserType.Member
+        phoneOtp.type = UserRole.MEMBER
         phoneOtp.expireAt = Date()
         memberPhoneOtpRepo.save(phoneOtp)
         val otpRefBody = OtpRefBody(ref, phone, Date(), 2)
-        Mockito.`when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
+        `when`(smsOtpService.sendOtp(member.phone!!)).thenReturn(otpRefBody)
 
         val result = mockMvc.perform(
-            get("/user/login").param("phone", phone)
+            get("$API_VERSION/login").param("phone", phone)
+                .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
 
@@ -82,12 +86,13 @@ class DefaultControllerTest : AppTest() {
     }
 
     @Test
-    fun givenUserIsTester_whenLoginWithPhone_ThenDoNotSendOtp(){
+    fun givenUserIsTester_whenLoginWithPhone_ThenDoNotSendOtp() {
         member.testOtp = faker.random().nextInt(6).toString()
         memberRepo.save(member)
 
         val result = mockMvc.perform(
-            get("/user/login").param("phone", member.phone!!)
+            get("$API_VERSION/login").param("phone", member.phone!!)
+                .param("role", UserRole.MEMBER.name)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().response
         assertEquals(200, result.status)
@@ -95,10 +100,10 @@ class DefaultControllerTest : AppTest() {
     }
 
     @Nested
-    inner class OTPVerificationTest{
+    inner class OTPVerificationTest {
 
         @BeforeEach
-        fun setUp(){
+        fun setUp() {
             memberRepo.save(member)
             val phoneOtps = buildList {
                 repeat(maxDailyOtpTrial) {
@@ -106,21 +111,26 @@ class DefaultControllerTest : AppTest() {
                     val phoneOtp = PhoneOtp()
                     phoneOtp.phone = member.phone!!
                     phoneOtp.ref = faker.random().hex(20)
-                    phoneOtp.type = UserType.Member
+                    phoneOtp.type = UserRole.MEMBER
                     phoneOtp.expireAt = Date.from(momentsAgo)
                     add(phoneOtp)
                 }
             }
             memberPhoneOtpRepo.saveAll(phoneOtps)
         }
+
         @AfterEach
-        fun tearDown(){
+        fun tearDown() {
             memberPhoneOtpRepo.deleteAllByPhone(member.phone!!)
         }
+
         @Test
         fun givenDailyOtpLimitReached_whenUserPhoneGetOtp_thenError() {
 
-            val result = mockMvc.get("/user/login?phone={phone}", member.phone!!).andReturn().response
+            val result = mockMvc.get(
+                "$API_VERSION/login?phone={phone}&type={type}",
+                member.phone!!, UserRole.MEMBER
+            ).andReturn().response
 
             assertEquals(400, result.status, "Should return 400")
             verifyNoInteractions(smsOtpService)
@@ -133,19 +143,19 @@ class DefaultControllerTest : AppTest() {
             val phone = member.phone!!
             val otp = faker.number().randomNumber(6, true).toString()
             val ref = faker.random().hex(15)
-            Mockito.`when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
+            `when`(smsOtpService.verifyOtp(otp, ref)).thenReturn(phone)
 
             val customJWT = faker.random().hex(55)
-            Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("role" to UserRole.MEMBER.name)))
                 .thenReturn(customJWT)
 
-            val login = mapOf(
-                "otp" to otp,
-                "ref" to ref,
-                "device_id" to faker.random().hex(30),
-                "device_name" to faker.device().modelName()
-            )
-            val result = mockMvc.post("/user/login/verify") {
+            val login = LoginBody().apply {
+                this.role = UserRole.MEMBER
+                this.otp = otp
+                this.ref = ref
+                this.deviceName = faker.device().modelName()
+            }
+            val result = mockMvc.post("$API_VERSION/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response
@@ -159,23 +169,24 @@ class DefaultControllerTest : AppTest() {
         }
 
         @Test
-        fun givenUserIsTester_whenVerifyOtp_ThenDoNotCallVerificationService(){
+        fun givenUserIsTester_whenVerifyOtp_ThenDoNotCallVerificationService() {
             val otp = faker.random().nextInt(6).toString()
             member.testOtp = otp
             memberRepo.save(member)
 
             val customJWT = faker.random().hex(55)
-            Mockito.`when`(auth.createCustomToken(member.id!!, mapOf("type" to "Member")))
+            `when`(auth.createCustomToken(member.id!!, mapOf("role" to "Member")))
                 .thenReturn(customJWT)
 
-            val login = mapOf(
-                "otp" to otp,
-                "ref" to member.id,
-                "device_id" to faker.random().hex(30),
-                "device_name" to faker.device().modelName()
-            )
 
-            val result = mockMvc.post("/user/login/verify") {
+            val login = LoginBody().apply {
+                this.role = UserRole.MEMBER
+                this.otp = otp
+                this.ref = member.id!!
+                this.deviceName = faker.device().modelName()
+            }
+
+            val result = mockMvc.post("$API_VERSION/login/verify") {
                 contentType = MediaType.APPLICATION_JSON
                 content = mapper.writeValueAsString(login)
             }.andReturn().response
@@ -185,7 +196,7 @@ class DefaultControllerTest : AppTest() {
         }
 
         @Test
-        fun givenRouteIsNotConfigured_whenRouteIsCalled_thenReturn404(){
+        fun givenRouteIsNotConfigured_whenRouteIsCalled_thenReturn404() {
             val result = mockMvc.post("/").andReturn().response
             assertTrue(result.status == 404)
         }

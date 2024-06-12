@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 import java.util.*
 
-@Document
+@Document(collection = "communities")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 open class Community {
     @Id
@@ -29,8 +29,18 @@ open class Community {
 
     @NonNull
     @Indexed
-    @Field("admin_ids")
-    var adminIds: Set<String>? = null
+    @Field("admins")
+    var admins: Set<String> = setOf()
+
+    @NonNull
+    @Indexed
+    @Field("members")
+    var members: Set<String> = setOf()
+
+    @NonNull
+    @Indexed
+    @Field("guards")
+    var guards: Set<String> = setOf()
 
     @Field("created_at")
     @CreatedDate

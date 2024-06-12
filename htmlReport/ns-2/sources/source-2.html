@@ -1,0 +1,173 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SmsOtpServiceKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ng.cove.web.component</a>
+</div>
+
+<h1>Coverage Summary for Class: SmsOtpServiceKt (ng.cove.web.component)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">SmsOtpServiceKt</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ng.cove.web.component
+&nbsp;
+&nbsp;import com.google.gson.JsonObject
+&nbsp;import ng.cove.web.http.body.OtpRefBody
+&nbsp;import org.slf4j.Logger
+&nbsp;import org.slf4j.LoggerFactory
+&nbsp;import org.springframework.beans.factory.annotation.Autowired
+&nbsp;import org.springframework.beans.factory.annotation.Value
+&nbsp;import org.springframework.context.annotation.Bean
+&nbsp;import org.springframework.http.HttpEntity
+&nbsp;import org.springframework.http.HttpHeaders
+&nbsp;import org.springframework.http.HttpStatus
+&nbsp;import org.springframework.http.MediaType
+&nbsp;import org.springframework.stereotype.Service
+&nbsp;import org.springframework.web.client.RestTemplate
+&nbsp;import java.time.Instant
+&nbsp;import java.util.*
+&nbsp;
+&nbsp;const val SEND_URL: String = &quot;https://api.ng.termii.com/api/sms/otp/send&quot;
+&nbsp;const val VERIFY_URL = &quot;https://api.ng.termii.com/api/sms/otp/verify&quot;
+&nbsp;
+&nbsp;
+&nbsp;@Service
+&nbsp;class SmsOtpService(
+&nbsp;    @Autowired
+&nbsp;    val template: RestTemplate
+&nbsp;) {
+&nbsp;
+&nbsp;    val logger: Logger = LoggerFactory.getLogger(this::class.java)
+&nbsp;
+&nbsp;    // Set in ApplicationStartup
+&nbsp;    var termiiApiKey: String? = null
+&nbsp;
+&nbsp;    @Value(&quot;\${otp.expiry-mins}&quot;)
+&nbsp;    var otpExpiryMins: Int = 1
+&nbsp;
+&nbsp;
+&nbsp;    fun sendOtp(phone: String): OtpRefBody? {
+&nbsp;
+&nbsp;        val requestBody = JsonObject().apply {
+&nbsp;            addProperty(&quot;api_key&quot;, termiiApiKey)
+&nbsp;            addProperty(&quot;from&quot;, &quot;N-Alert&quot;)
+&nbsp;            addProperty(&quot;to&quot;, phone)
+&nbsp;            addProperty(&quot;message_type&quot;, &quot;NUMERIC&quot;)
+&nbsp;            addProperty(&quot;channel&quot;, &quot;dnd&quot;)
+&nbsp;            addProperty(&quot;pin_attempts&quot;, 5)
+&nbsp;            addProperty(&quot;pin_time_to_live&quot;, otpExpiryMins)
+&nbsp;            addProperty(&quot;pin_length&quot;, 6)
+&nbsp;            addProperty(&quot;pin_placeholder&quot;, &quot;&lt;otp&gt;&quot;)
+&nbsp;            addProperty(&quot;message_text&quot;, &quot;Your Cove login OTP is: &lt;otp&gt;&quot;)
+&nbsp;        }
+&nbsp;
+&nbsp;        val headers: HttpHeaders = HttpHeaders().apply {
+&nbsp;            contentType = MediaType.APPLICATION_JSON
+&nbsp;        }
+&nbsp;        val entity = HttpEntity(requestBody.toString(), headers)
+&nbsp;        try {
+&nbsp;
+&nbsp;            val response = template
+&nbsp;                .postForEntity(SEND_URL, entity, Map::class.java)
+&nbsp;
+&nbsp;            val result = response.body!!
+&nbsp;            // Log error when Termii returns any other status
+&nbsp;            result[&quot;status&quot;].takeIf { it != 200 }?.let {
+&nbsp;                throw Exception(&quot;SMS OTP provide error code: $it&quot;)
+&nbsp;            }
+&nbsp;
+&nbsp;            val ref = result[&quot;pinId&quot;] as String
+&nbsp;            val futureDateTime = Instant.now()
+&nbsp;                .plusSeconds(otpExpiryMins.toLong() * 60)
+&nbsp;            val expiry = Date.from(futureDateTime)
+&nbsp;
+&nbsp;            return OtpRefBody(ref, phone, expiry, null)
+&nbsp;        } catch (e: Exception) {
+&nbsp;            logger.error(e.localizedMessage)
+&nbsp;            return null
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    fun verifyOtp(otp: String, ref: String): String? {
+&nbsp;        val requestBody = JsonObject().apply {
+&nbsp;            addProperty(&quot;api_key&quot;, termiiApiKey)
+&nbsp;            addProperty(&quot;pin_id&quot;, ref)
+&nbsp;            addProperty(&quot;pin&quot;, otp)
+&nbsp;        }
+&nbsp;
+&nbsp;        val headers: HttpHeaders = HttpHeaders().apply {
+&nbsp;            contentType = MediaType.APPLICATION_JSON
+&nbsp;        }
+&nbsp;        val entity = HttpEntity(requestBody.toString(), headers)
+&nbsp;        try {
+&nbsp;            val result = template
+&nbsp;                .postForEntity(VERIFY_URL, entity, Map::class.java)
+&nbsp;
+&nbsp;            if (result.statusCode != HttpStatus.OK)
+&nbsp;                return null
+&nbsp;
+&nbsp;            return result.body!![&quot;msisdn&quot;] as String
+&nbsp;        } catch (e: Exception) {
+&nbsp;            logger.error(e.localizedMessage)
+&nbsp;            return null
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-23 17:01</div>
+</div>
+</body>
+</html>

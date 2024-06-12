@@ -1,15 +1,11 @@
 package ng.cove.web.service
 
 import com.google.firebase.auth.FirebaseAuth
-import ng.cove.web.component.SmsOtpService
-import ng.cove.web.data.model.PhoneOtp
-import ng.cove.web.data.model.UserType
-import ng.cove.web.data.repo.MemberPhoneOtpRepo
-import ng.cove.web.data.repo.MemberRepo
-import ng.cove.web.data.repo.SecurityGuardRepo
+import ng.cove.web.data.model.*
+import ng.cove.web.data.repo.*
 import ng.cove.web.http.body.LoginBody
 import ng.cove.web.http.body.OtpRefBody
-import ng.cove.web.util.CacheNames
+import ng.cove.web.util.CacheName
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.context.WebApplicationContext
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -25,6 +22,11 @@ import java.util.*
 @Service
 class UserService {
 
+    @Autowired
+    private lateinit var webApplicationContext: WebApplicationContext
+
+    @Autowired
+    private lateinit var communityRepo: CommunityRepo
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @Autowired
@@ -32,6 +34,9 @@ class UserService {
 
     @Autowired
     lateinit var guardRepo: SecurityGuardRepo
+
+    @Autowired
+    lateinit var adminRepo: AdminRepo
 
     @Autowired
     lateinit var smsOtp: SmsOtpService
@@ -42,21 +47,33 @@ class UserService {
     @Autowired
     lateinit var otpRepo: MemberPhoneOtpRepo
 
-    @Value("\${otp.trial-limit}")
-    var maxDailyOtpTrial: Int = 0
+    @Value("\${otp-trial-limit}")
+    var maxDailyOtpTrial: Int = 1
 
 
-    fun getOtpForLogin(phone: String, userType: UserType): ResponseEntity<*> {
-        if (userType == UserType.Member) {
-            memberRepo.findByPhoneAndCommunityIsNotNull(phone)
-                ?: return ResponseEntity.badRequest().body("$phone is not a member of a community")
-        } else {
-            guardRepo.findByPhoneAndCommunityIdIsNotNull(phone)
-                ?: return ResponseEntity.badRequest().body("$phone is not guard of a community")
+    fun getOtpForLogin(phone: String, userRole: UserRole): ResponseEntity<*> {
+
+        when (userRole) {
+            UserRole.MEMBER -> {
+                memberRepo.findByPhoneAndCommunityIdIsNotNull(phone)
+                    ?: return ResponseEntity.badRequest().body("$phone is not a member of a community")
+            }
+
+            UserRole.GUARD -> {
+                guardRepo.findByPhoneAndCommunityIdIsNotNull(phone)
+                    ?: return ResponseEntity.badRequest().body("$phone is not guard of a community")
+            }
+
+            UserRole.ADMIN -> {
+                val admin = adminRepo.findByPhoneAndCommunityIdIsNotNull(phone)
+                if (admin == null || !communityRepo.existsByAdminsContains(admin.id!!)) {
+                    return ResponseEntity.badRequest().body("$phone is not an admin of a community")
+                }
+            }
         }
 
         // Check if user is a tester
-        getTesterId(phone, userType)?.let {
+        getTesterId(phone, userRole)?.let {
             val future = Date.from(Instant.now().plus(Duration.ofDays(1)))
             return ResponseEntity.ok().body(OtpRefBody(it, phone, future, 100))
         }
@@ -75,7 +92,7 @@ class UserService {
             val phoneOtp = PhoneOtp()
             phoneOtp.phone = phone
             phoneOtp.ref = otpResult.ref
-            phoneOtp.type = userType
+            phoneOtp.type = userRole
             phoneOtp.expireAt = otpResult.expireAt
             otpRepo.save(phoneOtp)
             ResponseEntity.ok().body(otpResult)
@@ -88,45 +105,36 @@ class UserService {
     /**
      * Verify phone OTP for all user types
      */
-    fun verifyPhoneOtp(login: LoginBody, userType: UserType): ResponseEntity<*> {
+    fun verifyPhoneOtp(login: LoginBody): ResponseEntity<*> {
 
         try {
             // If user is tester return the phone number, otherwise verify OTP
-            val phone = verifyTesterOtp(login, userType) ?: smsOtp.verifyOtp(login.otp, login.ref)
+            val phone = verifyTesterOtp(login) ?: smsOtp.verifyOtp(login.otp, login.ref)
             ?: return ResponseEntity.badRequest().body("Invalid code")
 
             val userId: String
 
-            if (userType == UserType.Member) {
-                val member = memberRepo.findByPhone(phone)!!
-                //TODO: Redesign this if possible: Its only going to run on first user login, but check forever
-                if (member.phoneVerifiedAt == null) {
-                    member.phoneVerifiedAt = Date()
+            when (login.role) {
+                UserRole.MEMBER -> {
+                    var member = memberRepo.findByPhone(phone)!!
+                    userId = member.id!!
+                    member = setUpValidUserForLogin(member, login.deviceName, CacheName.MEMBERS) as Member
+                    memberRepo.save(member)
                 }
 
-                member.deviceName = login.deviceName
-                member.lastLoginAt = Date()
-                memberRepo.save(member)
-
-                userId = member.id!!
-                // Update cache
-                cacheManager.getCache(CacheNames.MEMBERS)?.evict(userId)
-
-            } else {
-                val guard = guardRepo.findByPhone(phone)!!
-                //TODO: Redesign this if possible: Its only going to run on first user login, but check forever
-                if (guard.phoneVerifiedAt == null) {
-                    guard.phoneVerifiedAt = Date()
+                UserRole.GUARD -> {
+                    var guard = guardRepo.findByPhone(phone)!!
+                    userId = guard.id!!
+                    guard = setUpValidUserForLogin(guard, login.deviceName, CacheName.GUARDS) as SecurityGuard
+                    guardRepo.save(guard)
                 }
 
-                userId = guard.id!!
-
-                // Update device info
-                guard.deviceName = login.deviceName
-                guard.lastLoginAt = Date()
-                guardRepo.save(guard)
-                // Update cache
-                cacheManager.getCache(CacheNames.GUARDS)?.evict(userId)
+                UserRole.ADMIN -> {
+                    var admin = adminRepo.findByPhone(phone)!!
+                    userId = admin.id!!
+                    admin = setUpValidUserForLogin(admin, login.deviceName, CacheName.ADMINS) as Admin
+                    adminRepo.save(admin)
+                }
             }
 
             val firebaseAuth = FirebaseAuth.getInstance()
@@ -140,31 +148,65 @@ class UserService {
             }
 
             // Set Admin claim for JWT
-            val claims = mapOf("type" to userType.name)
+            val claims = mapOf("role" to login.role.name)
 
             val customToken = firebaseAuth.createCustomToken(userId, claims)
 
-            return ResponseEntity.ok().body(customToken)
+            return if(login.returnIdToken){ // For testing API in production
+                val tokenService = webApplicationContext.getBean(IdTokenService::class.java)
+                ResponseEntity.ok(tokenService.getIdToken(customToken))
+            }else{
+                ResponseEntity.ok(customToken)
+            }
+
         } catch (e: Exception) {
             logger.error(e.localizedMessage)
             return ResponseEntity.internalServerError().body(e.localizedMessage)
         }
     }
 
-    fun getTesterId(phone: String, userType: UserType): String? {
-        return if (userType == UserType.Member) {
-            memberRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
-        } else {
-            guardRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
+    private fun setUpValidUserForLogin(user: User, deviceName: String, cacheName: String): Any {
+        if (user.phoneVerifiedAt == null) {
+            user.phoneVerifiedAt = Date()
+        }
+
+        // Update device info
+        user.deviceName = deviceName
+        user.lastLoginAt = Date()
+        cacheManager.getCache(cacheName)?.evict(user.id!!)
+        return user
+    }
+
+    private fun getTesterId(phone: String, userRole: UserRole): String? {
+        return when (userRole) {
+            UserRole.MEMBER -> {
+                memberRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
+            }
+
+            UserRole.GUARD -> {
+                guardRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
+            }
+
+            UserRole.ADMIN -> {
+                adminRepo.findFirstByTestOtpIsNotNullAndPhone(phone)?.id
+            }
         }
     }
 
     // Return null if user is not a tester
-    fun verifyTesterOtp(login: LoginBody, userType: UserType): String? {
-        return if (userType == UserType.Member) {
-            memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
-        } else {
-            guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
+    private fun verifyTesterOtp(login: LoginBody): String? {
+        return when (login.role) {
+            UserRole.MEMBER -> {
+                memberRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
+            }
+
+            UserRole.GUARD -> {
+                guardRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
+            }
+
+            UserRole.ADMIN -> {
+                adminRepo.findByIdAndTestOtp(login.ref, login.otp)?.phone
+            }
         }
     }
 

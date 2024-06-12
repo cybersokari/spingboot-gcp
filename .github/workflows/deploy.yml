@@ -24,13 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-
       - name: Authenticate Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -47,12 +40,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Copy Google Default credentials
+        run: cp $HOME/.config/gcloud/application_default_credentials.json ./cred.json
 
-      - name: Build with Maven
-        run: mvn -B package -DskipTests
+      - name: Build Image
+        run: docker build -t web . --build-arg project_id=${{vars.PROJECT_ID}}
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{vars.DOCKER_CRED_HELPER}} -q
+
+      - name: Tag and push Docker Image
+        run: |
+          docker tag web ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}} \
+            && docker push ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
 
       - name: Update VM with new image
         run: |

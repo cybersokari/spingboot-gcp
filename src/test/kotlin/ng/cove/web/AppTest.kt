@@ -27,6 +27,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mockStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -44,7 +45,7 @@ import javax.annotation.PreDestroy
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource("/application.properties")
 @Import(value = [EmbeddedMongoConfig::class])
-@EnableAutoConfiguration(exclude = [EmbeddedMongoAutoConfiguration::class])
+@EnableAutoConfiguration(exclude = [EmbeddedMongoAutoConfiguration::class, MongoDataAutoConfiguration::class])
 class AppTest {
 
     @Autowired
@@ -61,7 +62,6 @@ class AppTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
-
 
     lateinit var authMockedStatic: MockedStatic<FirebaseAuth>
 
@@ -89,24 +89,22 @@ class AppTest {
             name = "${faker.address().state()} Community"
             address = faker.address().streetAddress()
             superAdminId = member.id
-            adminIds = setOf(member.id!!)
+            admins = setOf(member.id!!)
         }
 
-        member.community = community
+        member.communityId = community.id
     }
 
     @BeforeAll
     fun setupAll() {
         // Mock FirebaseAuth
-        authMockedStatic = mockStatic(FirebaseAuth::class.java)
-        authMockedStatic.`when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
+        authMockedStatic = mockStatic(FirebaseAuth::class.java).apply {
+            `when`<FirebaseAuth>(FirebaseAuth::getInstance).thenReturn(auth)
+        }
     }
 
     @AfterAll
-    fun tearDownAll() {
-        authMockedStatic.close()
-    }
-
+    fun tearDownAll() = authMockedStatic.close()
 }
 
 @TestConfiguration
@@ -118,15 +116,11 @@ class EmbeddedMongoConfig : AbstractMongoClientConfiguration() {
 
     override fun mongoClient(): MongoClient {
         // Embedded Mongo instance for testing
-        embeddedMongo = Mongod.instance()./**/start(Version.Main.V7_0)
+        embeddedMongo = Mongod.instance().start(Version.Main.V7_0)
         val serverAddress: ServerAddress = embeddedMongo!!.current().serverAddress
-        val host = serverAddress.host
-        val port = serverAddress.port
-        return MongoClients.create("mongodb://$host:$port")
+        return MongoClients.create("mongodb://$serverAddress")
     }
 
     @PreDestroy
-    fun onShutDown() {
-        embeddedMongo?.close()
-    }
+    fun onShutDown() = embeddedMongo?.close()
 }
