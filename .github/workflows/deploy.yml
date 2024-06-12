@@ -40,8 +40,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Copy Google Default credentials
-        run: cp $HOME/.config/gcloud/application_default_credentials.json ./cred.json
+      - name: Create Google Default credentials file
+        run: |
+          echo "${{ secrets.GCLOUD_SERVICE_KEY }}" > cred.json
 
       - name: Build Image
         run: docker build -t web . --build-arg project_id=${{vars.PROJECT_ID}}
