@@ -1,4 +1,4 @@
-LABEL authors="cybersokari"
+# Build GraalVM native image
 FROM ghcr.io/graalvm/graalvm-ce:latest as build
 # GOOGLE_APPLICATION_CREDENTIALS and GCLOUD_PROJECT
 # environment variables are required for a successful
