@@ -37,29 +37,32 @@ When running in `prod` Logs are sent to [Cloud Logging](https://cloud.google.com
 The Logback plugin only reports logs from the LF4J logging API, so we only use the `org.slf4j.Logger` interface for logging.
 When running in `dev` profile, logs are configured to write to the console.
 
-
 Use this [setup to configure Docker](https://docs.docker.com/config/containers/logging/gcplogs/) to work with Cloud Logging when moving to a new VM
-
-#### Deploying custom config for Google's Ops Agent
-Our custom Ops Agent config can be found in the ``config.yaml`` file. Use the following command to Update the Ops Agent config  when setting up a new VM
-```shell 
-$ gcloud compute scp config.yaml gated-vm:/etc/google-cloud-ops-agent/config.yaml
-```
 
 ### Secrets Management 🔒
 We use Google Cloud Secrets Manager to manage secrets (API keys, passwords, database URLs, etc.)
 
-### Deployments
+## Deployments
 
 Deployments are currently automated via GitHub actions. The workflow file is located at ``/.github/workflows/deploy.yml``
+The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes.
 
-The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes
+### Building the production docker image on a new machine
+1. Install Docker and Gcloud CLI
+2. Run ``gcloud auth application-default login`` to authenticate with Google Cloud Platform
+3. Run ``CP $HOME/.config/gcloud/application_default_credentials.json cred.json`` from the project root folder.
+4. Run ``docker build -t <IMAGE_NAME> -f Dockerfile . --build-arg PROJECT_ID=<GCP_PROJECT_ID>`` to build the docker image.\
+   Replace the `<GCP_PROJECT_ID>` with the appropriate Google Cloud Project ID.\
+   Replace `Dockerfile` with `native.Dockerfile` if you want to build the GraalVM native docker image.\
+   Replace `IMAGE_NAME` with `jvm` or `native` to match the service name in the `docker-compose.yml` file if you want to run the images locally.
+5. Temporarily allow the production MongoDB Atlas to accept traffic from your local machine's IP address.
+6. Run ``docker-compose up <service-name>`` from the project root folder. Use `jvm` or `native` as the service name.
+
 
 ### Publishing a new version to Google Artifact Registry
 You will need to have write access to our Google Artifact Registry on Google Cloud Platform and install docker on your machine.
 1. Run ``gcloud auth configure-docker us-central1-docker.pkg.dev`` to enable [Google Cloud CLI to authenticate requests to Artifact Registry](https://cloud.google.com/artifact-registry/docs/docker/store-docker-container-images#linux).
-2. Run the ``mvn clean package`` command to publish the new version to Google Artifact Registry. The required repository path is
-configured in the [Jib Maven plugin](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin) in pom.xml file
+2. Run the ``docker tag web <GCP_IMAGE_NAME> && docker push <GCP_IMAGE_NAME>`` command to publish the new version to Google Artifact Registry.
 
 
 ### Updating the container image with the new image version
@@ -77,13 +80,6 @@ While will not need to log into the VM to get Telementry information, you can SS
 
 Use Cloud logging to inspect the logs and health of the machine.
 
-### Running the production docker image on local machine
-1. Install and start docker daemon
-2. Run ``mvn clean compile jib:dockerBuild`` to build the docker image
-3. Temporarily allow the production Mongo Atlas to accept traffic from anywhere on the internet.
-4. Install Gcloud CLI and authenticate it ``gcloud auth application-default login``
-5. Run ``docker-compose up`` from the project root folder.
-
 
 ### Tests 🧪
 #### Unit test
@@ -94,11 +90,12 @@ an [Embedded DB](https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo) th
 1. `Mockito` is used for Mocking external services
 2. `MockMvc` is used for the Integration test
 
-While ``mvn clean test`` is good for running the tests during development, we advise you use the following command to run the `Dockerfile` to verify that the test can run in an
-isolated environment without any preconfiguration on your local machine.
+While ``mvn clean test`` is good for running the tests during development, we advise you use the following command to build the `test.Dockerfile` 
+to verify that the test can run in an isolated environment without any preconfiguration on your local machine.
 ```shell
-docker build -t java-docker-image-test --progress=plain --no-cache --target=test .
+docker build -t test -f test.Dockerfile .
 ```
+A successful build from the above command indicates that all tests are passing on your local machine.
 
 ---
 

@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+LABEL authors="cybersokari"
 # Dockerfile for running test
 FROM eclipse-temurin:17-jdk-jammy as base
 WORKDIR /build
@@ -20,6 +20,9 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 
 FROM deps as package
 WORKDIR /build
+ENV GCLOUD_PROJECT=gatedaccessdev
+ENV GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
+COPY cred.json $GOOGLE_APPLICATION_CREDENTIALS
 COPY ./src src/
 RUN --mount=type=bind,source=pom.xml,target=pom.xml \
     --mount=type=cache,target=/root/.m2 \

@@ -16,7 +16,6 @@
     <properties>
         <java.version>17</java.version>
         <kotlin.version>1.9.23</kotlin.version>
-        <image.path>us-central1-docker.pkg.dev/gatedaccessdev/cove-repo/vm</image.path>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -125,6 +124,7 @@
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
+            <!-- Jacoco plugin -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -144,34 +144,18 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--Jib-->
+            <!-- Surefire plugin -->
             <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <version>3.4.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <from>
-                        <image>
-                            eclipse-temurin:17-jre@sha256:15b50cf95210242511c17e1ec8281fd691ad7d34f163c250a21298943d65de87
-                        </image>
-                    </from>
-                    <to>
-                        <image>${image.path}</image>
-                    </to>
-                    <container>
-                        <ports>
-                            <port>80</port>
-                        </ports>
-                    </container>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit-platform</artifactId>
+                        <version>3.2.5</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <!--Spring Boot Maven-->
             <plugin>
@@ -282,6 +266,36 @@
         </profile>
         <profile>
             <id>test</id>
+        </profile>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <!-- GraalVM -->
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <skipNativeTests>true</skipNativeTests>
+                            <buildArgs>
+                                <arg>--initialize-at-build-time=org.slf4j.helpers</arg>
+                                <!-- 3. Quick build mode -->
+                                <!--                        <buildArg>-Ob</buildArg>-->
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
