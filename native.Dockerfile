@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21 as build
+FROM ghcr.io/graalvm/graalvm-ce:latest as build
 # GOOGLE_APPLICATION_CREDENTIALS and GCLOUD_PROJECT
 # environment variables are required for a successful
 # AOT compilation process, which starts the app
@@ -23,13 +23,18 @@ COPY ./src src/
 # Download the dependencies and cache them
 RUN ./mvnw dependency:go-offline -DskipTests
 # Build the application
-RUN ./mvnw package -DskipTests
+RUN ./mvnw package -Pnative -DskipTests
 
 # Stage 2: Create the final Docker image
-FROM bellsoft/liberica-openjre-alpine as final
-# Copy the application from the build stage
-COPY --from=build /app/target/web-0.0.1-SNAPSHOT.jar .
+FROM alpine:latest AS final
+# Set the working directory
+WORKDIR /app
+# Installs the libc6-compat package, which provides
+# compatibility with glibc-based binaries.
+RUN apk add --no-cache libc6-compat
+# Copy the native executable from the build stage
+COPY --from=build /app/target/web .
 # Command to run the application
-ENTRYPOINT ["java", "-jar", "/web-0.0.1-SNAPSHOT.jar"]
+CMD ["./web"]
 # Expose the port the application runs on
 EXPOSE 80

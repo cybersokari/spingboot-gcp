@@ -77,12 +77,15 @@ While will not need to log into the VM to get Telementry information, you can SS
 
 Use Cloud logging to inspect the logs and health of the machine.
 
-### Running the production docker image on local machine
-1. Install and start docker daemon
-2. Run ``mvn clean compile jib:dockerBuild`` to build the docker image
-3. Temporarily allow the production Mongo Atlas to accept traffic from anywhere on the internet.
-4. Install Gcloud CLI and authenticate it ``gcloud auth application-default login``
-5. Run ``docker-compose up`` from the project root folder.
+### Building the production docker image on local machine
+1. Install Docker and Gcloud CLI
+2. Run ``gcloud auth application-default login`` to authenticate with Google Cloud Platform
+3. Run ``CP $HOME/.config/gcloud/application_default_credentials.json cred.json`` from the project root folder. 
+4. Run ``docker build -t jvm -f Dockerfile . --build-arg PROJECT_ID=<GCP_PROJECT_ID>`` to build the docker image.\
+Replace the `<GCP_PROJECT_ID>` with the appropriate Google Cloud Project ID.\
+Replace `Dockerfile` with `native.Dockerfile` if you want to build the GraalVM native docker image.
+5. Temporarily allow the production MongoDB Atlas to accept traffic from your local machine's IP address. 
+6. Run ``docker-compose up`` from the project root folder.
 
 
 ### Tests 🧪

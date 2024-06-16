@@ -44,7 +44,7 @@ jobs:
           cp ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} cred.json
 
       - name: Build Image
-        run: docker build -t web . --build-arg PROJECT_ID=${{vars.PROJECT_ID}}
+        run: docker build -t web -f ${{vars.DOCKER_FILE_NAME}} . --build-arg PROJECT_ID=${{vars.PROJECT_ID}}
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{vars.DOCKER_CRED_HELPER}} -q
