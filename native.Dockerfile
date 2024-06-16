@@ -1,5 +1,5 @@
 # Build GraalVM native image
-FROM ghcr.io/graalvm/graalvm-ce:latest as build
+FROM --platform=$BUILDPLATFORM ghcr.io/graalvm/graalvm-ce:latest as build
 # GOOGLE_APPLICATION_CREDENTIALS and GCLOUD_PROJECT
 # environment variables are required for a successful
 # AOT compilation process, which starts the app
@@ -27,7 +27,7 @@ RUN ./mvnw dependency:go-offline -DskipTests
 RUN ./mvnw package -Pnative -DskipTests
 
 # Stage 2: Create the final Docker image
-FROM alpine:latest AS final
+FROM --platform=$TARGETPLATFORM alpine:latest AS final
 # Set the working directory
 WORKDIR /app
 # Installs the libc6-compat package, which provides

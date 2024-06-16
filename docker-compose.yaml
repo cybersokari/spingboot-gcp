@@ -9,6 +9,8 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
       - GCLOUD_PROJECT=gatedaccessdev
+    mem_limit: 512m
+    cpus: 1
   native:
     image: native
     ports:
@@ -18,3 +20,5 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
       - GCLOUD_PROJECT=gatedaccessdev
+    mem_limit: 512m
+    cpus: 1

@@ -27,7 +27,7 @@ RUN ./mvnw dependency:go-offline -DskipTests
 RUN ./mvnw package -DskipTests
 
 # Stage 2: Create the final Docker image
-FROM bellsoft/liberica-openjre-alpine as final
+FROM --platform=$TARGETPLATFORM bellsoft/liberica-openjre-alpine as final
 # Copy the application from the build stage
 COPY --from=build /app/target/web-0.0.1-SNAPSHOT.jar .
 # Command to run the application
