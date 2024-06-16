@@ -20,6 +20,9 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 
 FROM deps as package
 WORKDIR /build
+ENV GCLOUD_PROJECT=gatedaccessdev
+ENV GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
+COPY cred.json $GOOGLE_APPLICATION_CREDENTIALS
 COPY ./src src/
 RUN --mount=type=bind,source=pom.xml,target=pom.xml \
     --mount=type=cache,target=/root/.m2 \
