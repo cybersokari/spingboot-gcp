@@ -1,4 +1,4 @@
-LABEL authors="cybersokari"
+# Build jar package to run on JVM
 FROM eclipse-temurin:21 as build
 # GOOGLE_APPLICATION_CREDENTIALS and GCLOUD_PROJECT
 # environment variables are required for a successful
