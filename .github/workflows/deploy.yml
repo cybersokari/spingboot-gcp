@@ -13,8 +13,7 @@ jobs:
   deploy:
 
     env:
-      # https://github.com/actions/setup-java#cache-segment-restore-timeout
-      SEGMENT_DOWNLOAD_TIMEOUT_MINS: '4'
+      IMAGE_NAME: ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
 
     runs-on: ubuntu-latest
     permissions:
@@ -45,17 +44,17 @@ jobs:
           cp ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} cred.json
 
       - name: Build Image
-        run: docker build -t web . --build-arg project_id=${{vars.PROJECT_ID}}
+        run: docker build -t web -f ${{vars.DOCKER_FILE_NAME}} . --build-arg PROJECT_ID=${{vars.PROJECT_ID}}
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{vars.DOCKER_CRED_HELPER}} -q
 
       - name: Tag and push Docker Image
         run: |
-          docker tag web ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}} \
-            && docker push ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
+          docker tag web ${{env.IMAGE_NAME}} \
+            && docker push ${{env.IMAGE_NAME}}
 
-      - name: Update VM with new image
+      - name: Restart VM with new image
         run: |
           gcloud compute instances update-container ${{vars.VM_NAME}} --zone=${{vars.ZONE}} \
-            --container-image=${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
+            --container-image=${{env.IMAGE_NAME}}
