@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+LABEL authors="cybersokari"
 # Dockerfile for running test
 FROM eclipse-temurin:17-jdk-jammy as base
 WORKDIR /build
