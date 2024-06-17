@@ -4,18 +4,18 @@ FROM eclipse-temurin:21 as build
 # environment variables are required for a successful
 # AOT compilation process, which starts the app
 # before the compilation.
-ARG PROJECT_ID
-RUN if [ -z "$PROJECT_ID" ]; then \
+ARG GCLOUD_PROJECT
+RUN if [ -z "$GCLOUD_PROJECT" ]; then \
      echo "PROJECT_ID is required but not set"; \
      exit 1; \
     fi
-RUN echo "PROJECT_ID is set to $PROJECT_ID"
-ENV GCLOUD_PROJECT=$PROJECT_ID
-ENV GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
+RUN echo "PROJECT_ID is set to $GCLOUD_PROJECT"
+ENV GCLOUD_PROJECT=$GCLOUD_PROJECT
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
 
 WORKDIR /app
 # Copy the  Google Cloud credentials
-COPY cred.json $GOOGLE_APPLICATION_CREDENTIALS
+COPY ./credentials.json $GOOGLE_APPLICATION_CREDENTIALS
 # Copy the source code
 COPY .mvn/ .mvn/
 COPY --chmod=0755 mvnw mvnw

@@ -1,24 +1,45 @@
-# Use this file to run the image locally after building the image
+# Set the PROJECT_ID and GCP_SERVICE_ACCOUNT_KEY_PATH environment variables
+# before running the services
 services:
   jvm:
-    image: jvm
+    #platform: linux/arm64
+    build:
+      dockerfile: jvm.Dockerfile
+      args:
+        GCLOUD_PROJECT: ${GCLOUD_PROJECT}
+    develop:
+      watch:
+        - path: ./src
+          action: rebuild
+        - path: ./pom.xml
+          action: rebuild
     ports:
       - "8080:80"
     volumes:
-      - $HOME/.config/gcloud/application_default_credentials.json:/gcp/cred.json
+      - ./credentials.json:/credentials.json
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
-      - GCLOUD_PROJECT=gatedaccessdev
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials.json
+      - GCLOUD_PROJECT=${GCLOUD_PROJECT}
     mem_limit: 512m
     cpus: 1
   native:
-    image: native
+    #platform: linux/arm64
+    build:
+      dockerfile: native.Dockerfile
+      args:
+        GCLOUD_PROJECT: ${GCLOUD_PROJECT}
+    develop:
+      watch:
+        - path: ./src
+          action: rebuild
+        - path: ./pom.xml
+          action: rebuild
     ports:
       - "8081:80"
     volumes:
-      - $HOME/.config/gcloud/application_default_credentials.json:/gcp/cred.json
+      - ./credentials.json:/credentials.json
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcp/cred.json
-      - GCLOUD_PROJECT=gatedaccessdev
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials.json
+      - GCLOUD_PROJECT=${GCLOUD_PROJECT}
     mem_limit: 512m
     cpus: 1

@@ -11,7 +11,6 @@ on:
 
 jobs:
   deploy:
-
     env:
       IMAGE_NAME: ${{vars.DOCKER_CRED_HELPER}}/${{vars.IMAGE_PATH}}
 
@@ -39,14 +38,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Create Google Default credentials file
+      - name: Create GOOGLE_APPLICATION_CREDENTIALS file in project root
         run: |
-          cp ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} cred.json
+          cp ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} credentials.json
 
-      - name: Build Image
+      - name: Build Docker Image
         run: |
           docker build -t web -f ${{vars.DOCKER_FILE_NAME}} . \
-            --build-arg PROJECT_ID=${{vars.PROJECT_ID}} --platform linux/amd64
+            --build-arg GCLOUD_PROJECT=${{env.GCLOUD_PROJECT}} --platform linux/amd64
+
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{vars.DOCKER_CRED_HELPER}} -q

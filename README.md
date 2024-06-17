@@ -51,13 +51,8 @@ The app runs on a Google Compute Engine VM with full GCP API permissions and req
 1. Install Docker and Gcloud CLI
 2. Run ``gcloud auth application-default login`` to authenticate with Google Cloud Platform
 3. Run ``CP $HOME/.config/gcloud/application_default_credentials.json cred.json`` from the project root folder.
-4. Run ``docker build -t <IMAGE_NAME> -f Dockerfile . --build-arg PROJECT_ID=<GCP_PROJECT_ID>`` to build the docker image.\
-   Replace the `<GCP_PROJECT_ID>` with the appropriate Google Cloud Project ID.\
-   Replace `Dockerfile` with `native.Dockerfile` if you want to build the GraalVM native docker image.\
-   Replace `IMAGE_NAME` with `jvm` or `native` to match the service name in the `docker-compose.yml` file if you want to run the images locally.
-5. Temporarily allow the production MongoDB Atlas to accept traffic from your local machine's IP address.
-6. Run ``docker-compose up <service-name>`` from the project root folder. Use `jvm` or `native` as the service name.
-
+4. Temporarily allow the production MongoDB Atlas to accept traffic from your local machine's IP address.
+5. Run ``docker-compose up <service-name>`` from the project root folder. Use `jvm` or `native` as the service name.
 
 ### Publishing a new version to Google Artifact Registry
 You will need to have write access to our Google Artifact Registry on Google Cloud Platform and install docker on your machine.
