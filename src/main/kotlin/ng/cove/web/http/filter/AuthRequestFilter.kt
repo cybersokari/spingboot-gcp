@@ -1,6 +1,7 @@
 package ng.cove.web.http.filter
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseToken
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -20,41 +21,43 @@ class AuthRequestFilter(val context: WebApplicationContext): OncePerRequestFilte
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val bearer : String? = request.getHeader("Authorization")
-
-        if (bearer != null){
-            try {
-                val idToken =
-                    bearer.split(" ").dropLastWhile { it.isEmpty() }[1] //Remove Bearer prefix
-
-                val firebaseToken: FirebaseToken = FirebaseAuth.getInstance()
-                    .verifyIdToken(idToken, true)
-                val userRole = UserRole.valueOf(firebaseToken.claims["role"] as String)
-                val userId = firebaseToken.uid
-
-                /** Get User model from DB and attach to request**/
-                val user : Any
-                when(userRole){
-                    UserRole.MEMBER -> {
-                        val repo = context.getBean(MemberRepo::class.java)
-                        user = repo.findFirstById(userId)!!
-                    }
-                    UserRole.GUARD -> {
-                        val repo = context.getBean(SecurityGuardRepo::class.java)
-                        user = repo.findFirstById(userId)!!
-                    }
-                    UserRole.ADMIN -> {
-                        val repo = context.getBean(AdminRepo::class.java)
-                        user = repo.findFirstById(userId)!!
-                    }
-                }
-                request.setAttribute("user", user)
-                filterChain.doFilter(request, response)
-                return
-            } catch (e: Exception) {
-                LoggerFactory.getLogger(this::class.java.simpleName).warn(e.localizedMessage)
-            }
+        if (request.getHeader("Authorization").isNullOrBlank()){
+            response.status = HttpStatus.UNAUTHORIZED.value()
+            return
         }
-        response.status = HttpStatus.UNAUTHORIZED.value()
+        val bearer : String = request.getHeader("Authorization")
+        try {
+            val idToken =
+                bearer.split(" ").dropLastWhile { it.isEmpty() }[1] //Remove Bearer prefix
+
+            val firebaseToken: FirebaseToken = FirebaseAuth.getInstance()
+                .verifyIdToken(idToken, true)
+            val userRole = UserRole.valueOf(firebaseToken.claims["role"] as String)
+            val userId = firebaseToken.uid
+
+            /** Get User model from DB and attach to request**/
+            val user : Any
+            when(userRole){
+                UserRole.MEMBER -> {
+                    val repo = context.getBean(MemberRepo::class.java)
+                    user = repo.findFirstById(userId)!!
+                }
+                UserRole.GUARD -> {
+                    val repo = context.getBean(SecurityGuardRepo::class.java)
+                    user = repo.findFirstById(userId)!!
+                }
+                UserRole.ADMIN -> {
+                    val repo = context.getBean(AdminRepo::class.java)
+                    user = repo.findFirstById(userId)!!
+                }
+            }
+            request.setAttribute("user", user)
+            filterChain.doFilter(request, response)
+        } catch (e: Exception) {
+            if (e !is FirebaseAuthException){
+                LoggerFactory.getLogger(this::class.java.simpleName).error(e.localizedMessage)
+            }
+            response.status = HttpStatus.UNAUTHORIZED.value()
+        }
     }
 }

@@ -20,7 +20,7 @@ class WebSecurityConfig(val context: WebApplicationContext) {
     @Bean
     fun authFilter(): FilterRegistrationBean<AuthRequestFilter> {
         return FilterRegistrationBean<AuthRequestFilter>().apply {
-            setFilter(AuthRequestFilter(context))
+            filter = AuthRequestFilter(context)
             addUrlPatterns(*SECURE_PATHS)
             order = filterOrder
         }
@@ -29,7 +29,7 @@ class WebSecurityConfig(val context: WebApplicationContext) {
     @Bean
     fun adminFilter(): FilterRegistrationBean<AdminFilter> {
         return FilterRegistrationBean<AdminFilter>().apply {
-            setFilter(AdminFilter(context))
+            filter = AdminFilter(context)
             addUrlPatterns("$API_VERSION/admin/*")
             order = filterOrder++
         }
