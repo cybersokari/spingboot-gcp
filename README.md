@@ -1,16 +1,15 @@
-# Cove Web Service Repo
+# Spring boot and Docker in Google Compute Engine
 
 ![Deployment](https://github.com/sprinthubmobile/cove_web/actions/workflows/deploy.yml/badge.svg?branch=main)
 ![Test](https://github.com/sprinthubmobile/cove_web/actions/workflows/test.yml/badge.svg)
 ## Before diving in 🙌
 
-- Our recommend IDE for this project is IntelliJ, but you can use any IDE that supports Springboot
 - Request access to the `Google Cloud Developer Console` and `MongoDB Atlas console`
 - Install the latest stable version of [Maven](https://maven.apache.org/docs/history.html). This will be your main version across your machine.
 
 ## Getting Started 🚀
 
-This project contains 2 profiles:
+This project contains two profiles:
 
 - dev
 - prod
@@ -40,11 +39,12 @@ When running in `dev` profile, logs are configured to write to the console.
 Use this [setup to configure Docker](https://docs.docker.com/config/containers/logging/gcplogs/) to work with Cloud Logging when moving to a new VM
 
 ### Secrets Management 🔒
-We use Google Cloud Secrets Manager to manage secrets (API keys, passwords, database URLs, etc.)
+Use Google Cloud Secrets Manager to manage secrets (API keys, passwords, database URLs, etc.)
 
 ## Deployments
 
-Deployments are currently automated via GitHub actions. The workflow file is located at ``/.github/workflows/deploy.yml``
+Deployments are currently automated with GitHub actions.
+The workflow file is located at ``/.github/workflows/deploy.yml``
 The app runs on a Google Compute Engine VM with full GCP API permissions and required scopes.
 
 ### Building the production docker image on a new machine
@@ -61,15 +61,13 @@ You will need to have write access to our Google Artifact Registry on Google Clo
 
 
 ### Updating the container image with the new image version
-It takes the Compute Engine VM 20 to 30 seconds to update the container image. So we try not to run the following command
-at peak hours of the day if possible.
 ```shell
 $ gcloud compute instances update-container [instance-name] --zone=[zone-name] --container-image=[container-image-name]
 ```
 Replace the `instance-name`, `zone-name` and `container-image-name` with the appropriate values.
 
 ### Inspecting the app on the VM
-While will not need to log into the VM to get Telementry information, you can SSH into the VM and run the following command to inspect the app
+While you will not need to log into the VM to get Telementry information, you can SSH into the VM and run the following command to inspect the app
 1. Run ``docker ps`` to view the docker instances running
 2. Run ``docker attach [container-id]`` to attach to the container and start seeing logs. Note that you will only see logs from when you attach, not the past logs.
 
